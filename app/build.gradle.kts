@@ -12,7 +12,7 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
-val apkId = "HyperCeiler"
+val apkId = "MeowCeiler"
 val gitHash: String by lazy { runGitCommand("rev-parse", "--short", "HEAD") ?: "unknown" }
 val gitHashLong: String by lazy { runGitCommand("rev-parse", "HEAD") ?: "unknown" }
 val gitCommitCount: Int by lazy { runGitCommand("rev-list", "--count", "HEAD")?.toIntOrNull() ?: 0 }

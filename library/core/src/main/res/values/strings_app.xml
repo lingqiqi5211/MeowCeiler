@@ -18,7 +18,7 @@
   ~ Copyright (C) 2023-2026 HyperCeiler Contributions
   -->
 <resources>
-    <string name="app_name" translatable="false">HyperCeiler</string>
+    <string name="app_name" translatable="false">MeowCeiler</string>
     <string name="app_name_sp" translatable="false">HappyCeiler</string>
     <string name="navigation_home_title" translatable="false">@string/home</string>
     <string name="navigation_settings_title" translatable="false">@string/settings</string>
