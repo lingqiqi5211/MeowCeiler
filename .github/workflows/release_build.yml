@@ -2,7 +2,7 @@ name: Release Build
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main2" ]
     paths-ignore:
       - ".github/**"
       - "!.github/workflows/**"

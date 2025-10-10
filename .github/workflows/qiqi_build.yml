@@ -1,19 +1,8 @@
-name: CI Build
+name: Qiqi Build
 
 on:
-  pull_request:
-    types: [opened, synchronize]
-    paths-ignore:
-      - ".github/**"
-      - "!.github/workflows/**"
-      - ".idea/"
-      - "doc/*"
-      - "*.md"
-      - "imgs/*"
-      - "app/src/assets/**"
-      - "crowdin.yml"
   push:
-    branches: [main2]
+    branches: [main]
     paths-ignore:
       - ".github/**"
       - "!.github/workflows/**"
@@ -28,16 +17,6 @@ on:
 
 jobs:
   build_app:
-    if: |
-      (
-        startsWith(github.event.head_commit.message, 'app: update version ')
-        ||
-        (
-          !contains(github.event.head_commit.message, '[release]')
-          && !contains(github.event.head_commit.message, '[beta]')
-          && !contains(github.event.head_commit.message, 'app: update version')
-        )
-      )
     runs-on: macos-latest
     name: Build App
     steps:
@@ -78,7 +57,7 @@ jobs:
           echo "IS_DEBUG=false" >> $GITHUB_ENV
 
       - name: Build with Gradle (Debug)
-        if: github.event_name == 'pull_request'
+        if: contains(github.event.head_commit.message, '[debug]')
         shell: bash
         run: |
           ./gradlew assembleDebug
@@ -108,7 +87,7 @@ jobs:
           fi
 
       - name: Upload APKs
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.APK_FILE_NAME }}
           path: ${{ env.APK_FILE }}
@@ -116,26 +95,13 @@ jobs:
 
   push_to_canary_group:
     if: |
-      github.event_name == 'push' &&
-      github.ref == 'refs/heads/main' &&
-      github.ref_type != 'tag' &&
-      !contains(github.event.head_commit.message, '[skp]') &&
-      !contains(github.event.head_commit.message, 's#') &&
-      (
-        startsWith(github.event.head_commit.message, 'app: update version ')
-        ||
-        (
-          !contains(github.event.head_commit.message, '[release]')
-          && !contains(github.event.head_commit.message, '[beta]')
-          && !contains(github.event.head_commit.message, 'app: update version')
-        )
-      )
+      !contains(github.event.head_commit.message, '[debug]')
     runs-on: ubuntu-latest
     name: Push to Canary Channel
     needs: build_app
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v5
         with:
           path: artifacts
 
@@ -161,22 +127,13 @@ jobs:
 
   push_to_debug_group:
     if: |
-      github.event_name == 'pull_request' &&
-      (
-        startsWith(github.event.head_commit.message, 'app: update version ')
-        ||
-        (
-          !contains(github.event.head_commit.message, '[release]')
-          && !contains(github.event.head_commit.message, '[beta]')
-          && !contains(github.event.head_commit.message, 'app: update version')
-        )
-      )
+      contains(github.event.head_commit.message, '[debug]')
     runs-on: ubuntu-latest
     name: Push to Debug Group
     needs: build_app
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v5
         with:
           path: artifacts
 
