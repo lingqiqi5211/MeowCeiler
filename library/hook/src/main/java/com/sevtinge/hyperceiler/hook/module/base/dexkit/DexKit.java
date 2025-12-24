@@ -30,7 +30,6 @@ import androidx.annotation.Nullable;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.sevtinge.hyperceiler.hook.R;
 import com.sevtinge.hyperceiler.hook.utils.log.XposedLogUtils;
 
 import org.jetbrains.annotations.NotNull;
@@ -47,9 +46,13 @@ import org.luckypray.dexkit.wrap.DexClass;
 import org.luckypray.dexkit.wrap.DexField;
 import org.luckypray.dexkit.wrap.DexMethod;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.StandardOpenOption;
@@ -337,7 +340,7 @@ public class DexKit {
     }
 
     public static void deleteAllCache(Context context) {
-        String[] folderNames = context.getResources().getStringArray(R.array.xposed_scope);
+        String[] folderNames = getScopeList();
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.submit(() -> {
             for (String folderName : folderNames) {
@@ -401,5 +404,22 @@ public class DexKit {
                 && Objects.equals(memberData.type, type)
                 && Objects.equals(memberData.data, data);
         }
+    }
+
+    private static String[] getScopeList() {
+        List<String> scopeList = new ArrayList<>();
+        try (InputStream is = DexKit.class.getClassLoader().getResourceAsStream("META-INF/xposed/scope.list");
+             BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (!line.isEmpty()) {
+                    scopeList.add(line);
+                }
+            }
+        } catch (IOException | NullPointerException e) {
+            XposedLogUtils.logE(TAG, "Failed to read scope.list: " + e.getMessage(), e);
+        }
+        return scopeList.toArray(new String[0]);
     }
 }

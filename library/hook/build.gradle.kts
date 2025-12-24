@@ -68,7 +68,12 @@ dependencies {
     api(libs.core.ktx)
     api(libs.expansion)
     compileOnlyApi(projects.library.hiddenApi)
+
     compileOnlyApi(libs.xposed.api)
+    // libxposed API 100
+    compileOnly(":api-100@aar")
+    compileOnly(":interface-100@aar")
+    compileOnly(":service-100@aar")
 
     api(libs.dexkit)
     api(libs.bundles.ezxhelper)

@@ -69,7 +69,7 @@ miuix-visualcheck = { module = "fan.miuix:visualcheck", version.ref = "miuix" }
 dexkit = { module = "org.luckypray:dexkit", version.ref = "dexkit" }
 ezxhelper-android-utils = { module = "io.github.kyuubiran.ezxhelper:android-utils", version.ref = "ezxhelper" }
 ezxhelper-core = { module = "io.github.kyuubiran.ezxhelper:core", version.ref = "ezxhelper" }
-ezxhelper-xposed-api = { module = "io.github.kyuubiran.ezxhelper:xposed-api-82", version.ref = "ezxhelper" }
+ezxhelper-xposed-api = { module = "io.github.kyuubiran.ezxhelper:xposed-api-100", version.ref = "ezxhelper" }
 hiddenapibypass = { module = "org.lsposed.hiddenapibypass:hiddenapibypass", version.ref = "hiddenapibypass" }
 hooktool = { module = "com.github.HChenX:HookTool", version.ref = "hooktool" }
 xposed-api = { module = "de.robv.android.xposed:api", version.ref = "xposed-api" }
