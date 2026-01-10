@@ -1,5 +1,8 @@
 @file:Suppress("UnstableApiUsage")
 
+include(":library:libhook")
+
+
 data class GprCredentials(val user: String, val key: String)
 
 fun loadGprCredentials(): GprCredentials {

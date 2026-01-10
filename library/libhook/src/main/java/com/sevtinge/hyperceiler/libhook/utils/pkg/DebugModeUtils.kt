@@ -16,23 +16,32 @@
 
  * Copyright (C) 2023-2026 HyperCeiler Contributions
  */
-package com.sevtinge.hyperceiler.utils;
+package com.sevtinge.hyperceiler.libhook.utils.pkg
 
-import android.content.Context;
+import com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils
 
-import com.sevtinge.hyperceiler.common.utils.DialogHelper;
-import com.sevtinge.hyperceiler.hook.module.base.manager.ServiceManager;
+object DebugModeUtils {
 
-public class XposedActivateHelper {
-
-    public static boolean isModuleActive = ServiceManager.isModuleActivated();
-    public static int XposedVersion = 0;
-
-    public static void init(Context context) {
-        checkActivateState(context);
+    /**
+     * 获取指定包名的调试版本号
+     */
+    fun getChooseResult(pkg: String): Int {
+        return PrefsUtils.mPrefsMap.getInt("debug_choose_$pkg", 0)
     }
 
-    private static void checkActivateState(Context context) {
-        if (!isModuleActive) DialogHelper.showXposedActivateDialog(context);
+    /**
+     * 手动设置指定包名的调试版本号
+     */
+    fun setChooseResult(pkg: String, isModified: Int) {
+        clearChooseResult(pkg)
+        PrefsUtils.editor().putInt("prefs_key_debug_choose_$pkg", isModified).commit()
     }
+
+    /**
+     * 清除指定包名的调试版本号
+     */
+    fun clearChooseResult(pkg: String) {
+        PrefsUtils.editor().remove("prefs_key_debug_choose_$pkg").commit()
+    }
+
 }

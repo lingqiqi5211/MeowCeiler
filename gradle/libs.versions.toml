@@ -1,6 +1,6 @@
 [versions]
 # Build tools
-agp = "9.0.0-rc01"
+agp = "9.1.0-alpha04"
 lsparanoid = "0.6.0"
 autoService = "1.1.1"
 
@@ -18,7 +18,7 @@ miuix = "1.0.10.5"
 # Xposed & Hooks
 xposed-api = "82"
 dexkit = "2.0.7"
-ezxhelper = "3.0.1"
+ezxhelper = "3.1.0-rc1"
 hiddenapibypass = "6.1"
 hooktool = "v.2.2.3"
 
@@ -70,6 +70,7 @@ dexkit = { module = "org.luckypray:dexkit", version.ref = "dexkit" }
 ezxhelper-android-utils = { module = "io.github.kyuubiran.ezxhelper:android-utils", version.ref = "ezxhelper" }
 ezxhelper-core = { module = "io.github.kyuubiran.ezxhelper:core", version.ref = "ezxhelper" }
 ezxhelper-xposed-api = { module = "io.github.kyuubiran.ezxhelper:xposed-api-82", version.ref = "ezxhelper" }
+ezxhelper-xposed-api-new = { module = "io.github.kyuubiran.ezxhelper:xposed-api-100", version.ref = "ezxhelper" }
 hiddenapibypass = { module = "org.lsposed.hiddenapibypass:hiddenapibypass", version.ref = "hiddenapibypass" }
 hooktool = { module = "com.github.HChenX:HookTool", version.ref = "hooktool" }
 xposed-api = { module = "de.robv.android.xposed:api", version.ref = "xposed-api" }
@@ -97,3 +98,4 @@ miuix = [
     "miuix-theme", "miuix-viewpager", "miuix-visualcheck"
 ]
 ezxhelper = ["ezxhelper-core", "ezxhelper-xposed-api", "ezxhelper-android-utils"]
+ezxhelper-new = ["ezxhelper-core", "ezxhelper-xposed-api-new", "ezxhelper-android-utils"]

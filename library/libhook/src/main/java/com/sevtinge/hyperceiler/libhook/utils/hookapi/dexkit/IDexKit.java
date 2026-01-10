@@ -16,23 +16,14 @@
 
  * Copyright (C) 2023-2026 HyperCeiler Contributions
  */
-package com.sevtinge.hyperceiler.utils;
+package com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit;
 
-import android.content.Context;
+import org.luckypray.dexkit.DexKitBridge;
+import org.luckypray.dexkit.result.base.BaseData;
 
-import com.sevtinge.hyperceiler.common.utils.DialogHelper;
-import com.sevtinge.hyperceiler.hook.module.base.manager.ServiceManager;
-
-public class XposedActivateHelper {
-
-    public static boolean isModuleActive = ServiceManager.isModuleActivated();
-    public static int XposedVersion = 0;
-
-    public static void init(Context context) {
-        checkActivateState(context);
-    }
-
-    private static void checkActivateState(Context context) {
-        if (!isModuleActive) DialogHelper.showXposedActivateDialog(context);
-    }
+/**
+ * @author 焕晨HChen
+ */
+public interface IDexKit {
+    BaseData dexkit(DexKitBridge bridge) throws ReflectiveOperationException;
 }

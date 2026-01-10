@@ -53,11 +53,11 @@ import com.sevtinge.hyperceiler.hook.utils.log.AndroidLogUtils;
 import com.sevtinge.hyperceiler.hook.utils.log.LogManager;
 import com.sevtinge.hyperceiler.hook.utils.pkg.CheckModifyUtils;
 import com.sevtinge.hyperceiler.hook.utils.shell.ShellInit;
+import com.sevtinge.hyperceiler.libhook.base.manager.ServiceManager;
 import com.sevtinge.hyperceiler.main.NaviBaseActivity;
 import com.sevtinge.hyperceiler.main.fragment.DetailFragment;
 import com.sevtinge.hyperceiler.utils.LogServiceUtils;
 import com.sevtinge.hyperceiler.utils.PermissionUtils;
-import com.sevtinge.hyperceiler.utils.XposedActivateHelper;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -119,7 +119,7 @@ public class HyperCeilerTabActivity extends NaviBaseActivity
         LanguageHelper.init(this);
         PermissionUtils.init(this);
         ShellInit.init(this);
-        XposedActivateHelper.init(this);
+        ServiceManager.INSTANCE.init();
 
         final boolean restored = (savedInstanceState != null);
         final android.content.Context appCtx = getApplicationContext();
@@ -150,6 +150,7 @@ public class HyperCeilerTabActivity extends NaviBaseActivity
             mHandler.post(() -> {
                 appCrash = computedAppCrash;
                 mHandler.postDelayed(this::showSafeModeDialogIfNeeded, 600);
+                if (!ServiceManager.isModuleActivated()) DialogHelper.showXposedActivateDialog(this);
                 requestCta();
             });
         });
