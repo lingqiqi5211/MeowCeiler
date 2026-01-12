@@ -19,8 +19,8 @@
 package com.sevtinge.hyperceiler.hooker;
 
 import static android.os.Looper.getMainLooper;
-import static com.sevtinge.hyperceiler.hook.utils.devicesdk.MiDeviceAppUtilsKt.isPad;
-import static com.sevtinge.hyperceiler.hook.utils.devicesdk.SystemSDKKt.isMoreSmallVersion;
+import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Miui.isPad;
+import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isMoreSmallVersion;
 
 import android.os.Handler;
 
@@ -30,8 +30,8 @@ import androidx.preference.SwitchPreference;
 
 import com.sevtinge.hyperceiler.core.R;
 import com.sevtinge.hyperceiler.dashboard.DashboardFragment;
-import com.sevtinge.hyperceiler.hook.module.base.tool.AppsTool;
-import com.sevtinge.hyperceiler.hook.utils.ThreadPoolManager;
+import com.sevtinge.hyperceiler.libhook.utils.api.ThreadPoolManager;
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.AppsTool;
 
 public class VariousFragment extends DashboardFragment {
     PreferenceCategory mDefault;

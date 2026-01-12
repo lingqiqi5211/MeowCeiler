@@ -23,7 +23,7 @@ import android.util.Log;
 
 import com.fan.common.logviewer.LogEntry;
 import com.fan.common.logviewer.LogManager;
-import com.sevtinge.hyperceiler.hook.utils.shell.ShellUtils;
+import com.sevtinge.hyperceiler.libhook.utils.shell.ShellUtils;
 
 import java.io.BufferedReader;
 import java.io.StringReader;

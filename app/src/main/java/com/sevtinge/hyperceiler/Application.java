@@ -24,13 +24,15 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Process;
 
+import androidx.annotation.NonNull;
+
 import com.fan.common.logviewer.LogAppProxy;
 import com.fan.common.logviewer.LogEntry;
 import com.fan.common.logviewer.LogManager;
 import com.fan.common.logviewer.LogViewerActivity;
 import com.sevtinge.hyperceiler.common.utils.LSPosedScopeHelper;
-import com.sevtinge.hyperceiler.hook.utils.log.AndroidLogUtils;
-import com.sevtinge.hyperceiler.hook.utils.prefs.PrefsUtils;
+import com.sevtinge.hyperceiler.libhook.utils.log.AndroidLog;
+import com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils;
 import com.sevtinge.hyperceiler.model.data.AppInfoCache;
 import com.sevtinge.hyperceiler.safemode.ExceptionCrashActivity;
 import com.sevtinge.hyperceiler.utils.log.XposedLogLoader;
@@ -38,23 +40,30 @@ import com.sevtinge.hyperceiler.utils.log.XposedLogLoader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-public class Application extends android.app.Application {
+import io.github.libxposed.service.RemotePreferences;
+import io.github.libxposed.service.XposedService;
+import io.github.libxposed.service.XposedServiceHelper;
+
+public class Application extends android.app.Application implements XposedServiceHelper.OnServiceListener {
     private static final String TAG = "HyperCeiler:Application";
+    private static final Runnable reloadListener = () -> {};
+    public static boolean isModuleActivated = false;
+    public static XposedService mService = null;
 
     @Override
     protected void attachBaseContext(Context base) {
-        PrefsUtils.mSharedPreferences = PrefsUtils.getSharedPrefs(base);
         super.attachBaseContext(base);
+        PrefsUtils.mSharedPreferences = PrefsUtils.getSharedPrefs(base);
+        XposedServiceHelper.registerListener(this);
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
         LogAppProxy.onCreate(this);
-
         LogViewerActivity.setXposedLogLoader(XposedLogLoader::loadLogs);
 
-        AndroidLogUtils.setLogListener((level, tag, message) -> {
+        AndroidLog.setLogListener((level, tag, message) -> {
             try {
                 LogManager logManager = LogManager.getInstance();
                 logManager.addLog(new LogEntry(level, "App", "[" + tag + "] " + message, tag, true));
@@ -90,5 +99,27 @@ public class Application extends android.app.Application {
                 System.exit(1);
             }
         });
+    }
+
+    @Override
+    public void onServiceBind(@NonNull XposedService service) {
+        AndroidLog.d(TAG, "LSPosed service connected: " + service.getFrameworkName() + " v" + service.getFrameworkVersion());
+        synchronized (this) {
+            isModuleActivated = true;
+            mService = service;
+            PrefsUtils.remotePrefs =
+                (RemotePreferences) service.getRemotePreferences(PrefsUtils.mPrefsName + "_remote");
+            reloadListener.run();
+        }
+    }
+
+    @Override
+    public void onServiceDied(@NonNull XposedService xposedService) {
+        AndroidLog.e(TAG, "LSPosed service died.");
+        synchronized (this) {
+            isModuleActivated = false;
+            mService = null;
+            PrefsUtils.remotePrefs = null;
+        }
     }
 }

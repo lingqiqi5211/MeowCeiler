@@ -18,7 +18,8 @@
  */
 package com.sevtinge.hyperceiler.common.utils.search;
 
-import static com.sevtinge.hyperceiler.hook.utils.devicesdk.MiDeviceAppUtilsKt.isPad;
+
+import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Miui.isPad;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -29,8 +30,6 @@ import android.text.TextUtils;
 import com.sevtinge.hyperceiler.common.model.data.ModData;
 import com.sevtinge.hyperceiler.core.R;
 import com.sevtinge.hyperceiler.dashboard.DashboardFragment;
-import com.sevtinge.hyperceiler.hook.utils.ThreadPoolManager;
-import com.sevtinge.hyperceiler.hook.utils.log.AndroidLogUtils;
 import com.sevtinge.hyperceiler.hooker.AodFragment;
 import com.sevtinge.hyperceiler.hooker.CameraNewFragment;
 import com.sevtinge.hyperceiler.hooker.ContentExtensionFragment;
@@ -85,6 +84,8 @@ import com.sevtinge.hyperceiler.hooker.systemui.statusbar.NetworkSpeedIndicatorS
 import com.sevtinge.hyperceiler.hooker.systemui.statusbar.NewClockIndicatorSettings;
 import com.sevtinge.hyperceiler.hooker.systemui.statusbar.StrongToastSettings;
 import com.sevtinge.hyperceiler.hooker.various.AOSPSettings;
+import com.sevtinge.hyperceiler.libhook.utils.api.ThreadPoolManager;
+import com.sevtinge.hyperceiler.libhook.utils.log.AndroidLog;
 
 import org.xmlpull.v1.XmlPullParser;
 
@@ -441,7 +442,7 @@ public class SearchHelper {
                             }
                             order++;
                         } catch (Throwable t) {
-                            AndroidLogUtils.logE(TAG, "Failed to get xml keyword object!", t);
+                            AndroidLog.e(TAG, "Failed to get xml keyword object!", t);
                         }
                     }
                     eventType = xml.next();
@@ -454,7 +455,7 @@ public class SearchHelper {
                 }
 
             } catch (Throwable t) {
-                AndroidLogUtils.logE(TAG, "Failed to access XML resource!", t);
+                AndroidLog.e(TAG, "Failed to access XML resource!", t);
             }
         });
     }

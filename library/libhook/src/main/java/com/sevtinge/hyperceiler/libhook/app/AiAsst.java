@@ -9,9 +9,8 @@ import com.sevtinge.hyperceiler.libhook.rules.aiasst.UnlockSplitTranslation;
 @HookBase(targetPackage = "com.xiaomi.aiasst.vision")
 public class AiAsst extends BaseLoad {
 
-    @Override
-    protected boolean needDexKit() {
-        return true;
+    public AiAsst() {
+        super(true);
     }
 
     @Override

@@ -71,7 +71,7 @@ rootProject.name = "HyperCeiler"
 
 include(
     "app",
-    ":library:hook",
+    ":library:libhook",
     ":library:core",
     ":library:provision",
     ":library:common",

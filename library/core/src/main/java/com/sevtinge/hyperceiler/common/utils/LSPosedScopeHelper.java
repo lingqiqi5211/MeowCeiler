@@ -19,11 +19,11 @@
 package com.sevtinge.hyperceiler.common.utils;
 
 import static com.sevtinge.hyperceiler.core.BuildConfig.APP_MODULE_ID;
-import static com.sevtinge.hyperceiler.hook.utils.SQLiteDatabaseHelper.isDatabaseLocked;
-import static com.sevtinge.hyperceiler.hook.utils.SQLiteDatabaseHelper.queryList;
-import static com.sevtinge.hyperceiler.hook.utils.devicesdk.SystemSDKKt.getCurrentUserId;
-import static com.sevtinge.hyperceiler.hook.utils.devicesdk.SystemSDKKt.getWhoAmI;
-import static com.sevtinge.hyperceiler.hook.utils.shell.ShellUtils.rootExecCmd;
+import static com.sevtinge.hyperceiler.libhook.utils.SQLiteDatabaseHelper.isDatabaseLocked;
+import static com.sevtinge.hyperceiler.libhook.utils.SQLiteDatabaseHelper.queryList;
+import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.getCurrentUserId;
+import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.getWhoAmI;
+import static com.sevtinge.hyperceiler.libhook.utils.shell.ShellUtils.rootExecCmd;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -31,7 +31,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.sevtinge.hyperceiler.hook.utils.log.AndroidLogUtils;
+import com.sevtinge.hyperceiler.libhook.utils.log.AndroidLog;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -117,7 +117,7 @@ public class LSPosedScopeHelper {
             db = SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READONLY);
 
             if (isDatabaseLocked(db)) {
-                AndroidLogUtils.logW("PreferenceHeader", "Database locked, skip get scope.");
+                AndroidLog.w("PreferenceHeader", "Database locked, skip get scope.");
                 isScopeGetFailed = true;
                 return;
             }
@@ -134,7 +134,7 @@ public class LSPosedScopeHelper {
                 try {
                     scopeUid = queryList(db, "app_pkg_name", "scope", "user_id = ?", new String[]{String.valueOf(userId)}, true);
                 } catch (Exception e) {
-                    AndroidLogUtils.logW("PreferenceHeader", "Query scope by user_id failed: ", e);
+                    AndroidLog.w("PreferenceHeader", "Query scope by user_id failed: ", e);
                 }
 
                 do {
@@ -148,7 +148,7 @@ public class LSPosedScopeHelper {
                         try {
                             candidates.addAll(queryList(db, "app_pkg_name", "scope", "mid = ?", new String[]{mid}, true));
                         } catch (Exception e) {
-                            AndroidLogUtils.logW("PreferenceHeader", "Query scope by mid failed: ", e);
+                            AndroidLog.w("PreferenceHeader", "Query scope by mid failed: ", e);
                         }
                     }
 
@@ -156,7 +156,7 @@ public class LSPosedScopeHelper {
                         try {
                             candidates.addAll(queryList(db, "app_pkg_name", "scope", "module_pkg_name = ?", new String[]{modulePkg}, true));
                         } catch (Exception e) {
-                            AndroidLogUtils.logW("PreferenceHeader", "Query scope by module_pkg_name failed: ", e);
+                            AndroidLog.w("PreferenceHeader", "Query scope by module_pkg_name failed: ", e);
                         }
                     }
 
@@ -170,7 +170,7 @@ public class LSPosedScopeHelper {
             mScope = new ArrayList<>(totalScopeSet);
         } catch (Exception e) {
             isScopeGetFailed = true;
-            AndroidLogUtils.logW("PreferenceHeader", "Database error: ", e);
+            AndroidLog.w("PreferenceHeader", "Database error: ", e);
         } finally {
             if (cursor != null) cursor.close();
             if (db != null) db.close();

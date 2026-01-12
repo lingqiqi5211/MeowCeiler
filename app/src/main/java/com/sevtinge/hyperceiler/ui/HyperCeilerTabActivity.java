@@ -18,11 +18,12 @@
  */
 package com.sevtinge.hyperceiler.ui;
 
+import static com.sevtinge.hyperceiler.Application.isModuleActivated;
 import static com.sevtinge.hyperceiler.common.utils.DialogHelper.showUserAgreeDialog;
 import static com.sevtinge.hyperceiler.common.utils.LSPosedScopeHelper.mDisableOrHiddenApp;
 import static com.sevtinge.hyperceiler.common.utils.LSPosedScopeHelper.mUninstallApp;
 import static com.sevtinge.hyperceiler.common.utils.PersistConfig.isLunarNewYearThemeView;
-import static com.sevtinge.hyperceiler.hook.utils.devicesdk.DeviceSDKKt.isTablet;
+import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Hardware.isTablet;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -45,15 +46,14 @@ import com.sevtinge.hyperceiler.common.utils.DialogHelper;
 import com.sevtinge.hyperceiler.common.utils.LanguageHelper;
 import com.sevtinge.hyperceiler.common.utils.search.SearchHelper;
 import com.sevtinge.hyperceiler.holiday.HolidayHelper;
-import com.sevtinge.hyperceiler.hook.callback.IResult;
-import com.sevtinge.hyperceiler.hook.safe.CrashData;
-import com.sevtinge.hyperceiler.hook.utils.BackupUtils;
-import com.sevtinge.hyperceiler.hook.utils.ThreadPoolManager;
-import com.sevtinge.hyperceiler.hook.utils.log.AndroidLogUtils;
-import com.sevtinge.hyperceiler.hook.utils.log.LogManager;
-import com.sevtinge.hyperceiler.hook.utils.pkg.CheckModifyUtils;
-import com.sevtinge.hyperceiler.hook.utils.shell.ShellInit;
-import com.sevtinge.hyperceiler.libhook.base.manager.ServiceManager;
+import com.sevtinge.hyperceiler.libhook.callback.IResult;
+import com.sevtinge.hyperceiler.libhook.safecrash.CrashData;
+import com.sevtinge.hyperceiler.libhook.utils.api.BackupUtils;
+import com.sevtinge.hyperceiler.libhook.utils.api.ThreadPoolManager;
+import com.sevtinge.hyperceiler.libhook.utils.log.AndroidLog;
+import com.sevtinge.hyperceiler.libhook.utils.log.LogManager;
+import com.sevtinge.hyperceiler.libhook.utils.pkg.CheckModifyUtils;
+import com.sevtinge.hyperceiler.libhook.utils.shell.ShellInit;
 import com.sevtinge.hyperceiler.main.NaviBaseActivity;
 import com.sevtinge.hyperceiler.main.fragment.DetailFragment;
 import com.sevtinge.hyperceiler.utils.LogServiceUtils;
@@ -119,7 +119,6 @@ public class HyperCeilerTabActivity extends NaviBaseActivity
         LanguageHelper.init(this);
         PermissionUtils.init(this);
         ShellInit.init(this);
-        ServiceManager.INSTANCE.init();
 
         final boolean restored = (savedInstanceState != null);
         final android.content.Context appCtx = getApplicationContext();
@@ -130,19 +129,19 @@ public class HyperCeilerTabActivity extends NaviBaseActivity
             try {
                 LogServiceUtils.init(appCtx);
             } catch (Throwable t) {
-                AndroidLogUtils.logE(TAG, "LogServiceUtils: " + t);
+                AndroidLog.e(TAG, "LogServiceUtils: " + t);
             }
 
             try {
                 SearchHelper.init(appCtx, restored);
             } catch (Throwable t) {
-                AndroidLogUtils.logE(TAG, "SearchHelper: " + t);
+                AndroidLog.e(TAG, "SearchHelper: " + t);
             }
 
             try {
                 LogManager.setLogLevel();
             } catch (Throwable t) {
-                AndroidLogUtils.logE(TAG, "setLogLevel: " + t);
+                AndroidLog.e(TAG, "setLogLevel: " + t);
             }
 
             List<String> computedAppCrash = computeCrashList();
@@ -150,7 +149,7 @@ public class HyperCeilerTabActivity extends NaviBaseActivity
             mHandler.post(() -> {
                 appCrash = computedAppCrash;
                 mHandler.postDelayed(this::showSafeModeDialogIfNeeded, 600);
-                if (!ServiceManager.isModuleActivated()) DialogHelper.showXposedActivateDialog(this);
+                if (!isModuleActivated) DialogHelper.showXposedActivateDialog(this);
                 requestCta();
             });
         });
@@ -172,7 +171,7 @@ public class HyperCeilerTabActivity extends NaviBaseActivity
             }
             return result;
         } catch (Throwable t) {
-            AndroidLogUtils.logE(TAG, "CrashData: " + t);
+            AndroidLog.e(TAG, "CrashData: " + t);
             return Collections.emptyList();
         }
     }
@@ -232,8 +231,7 @@ public class HyperCeilerTabActivity extends NaviBaseActivity
     @Override
     public boolean onPreferenceStartFragment(@NonNull PreferenceFragmentCompat caller, @NonNull Preference pref) {
         if (caller instanceof NavigatorFragmentListener &&
-            Navigator.get(caller).getNavigationMode() == Navigator.Mode.NLC &&
-            isTablet()) {
+            Navigator.get(caller).getNavigationMode() == Navigator.Mode.NLC && isTablet()) {
             Bundle args = new Bundle();
             Bundle savedInstanceState = new Bundle();
             if (pref instanceof XmlPreference xmlPreference) {
@@ -293,18 +291,6 @@ public class HyperCeilerTabActivity extends NaviBaseActivity
             }
         }
     }
-
-    /*public void test() {
-        boolean ls = shellExec.append("ls").sync().isResult();
-        AndroidLogUtils.LogI(ITAG.TAG, "ls: " + ls);
-        AndroidLogUtils.LogI(ITAG.TAG, shellExec.getOutPut().toString() + shellExec.getError().toString());
-        boolean f = shellExec.append("for i in $(seq 1 500); do echo $i; done").isResult();
-        AndroidLogUtils.LogI(ITAG.TAG, "for: " + f);
-        AndroidLogUtils.LogI(ITAG.TAG, shellExec.getOutPut().toString());
-        boolean k = shellExec.append("for i in $(seq 1 500); do echo $i; done").sync().isResult();
-        AndroidLogUtils.LogI(ITAG.TAG, "fork: " + k);
-        AndroidLogUtils.LogI(ITAG.TAG, shellExec.getOutPut().toString());
-    }*/
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {

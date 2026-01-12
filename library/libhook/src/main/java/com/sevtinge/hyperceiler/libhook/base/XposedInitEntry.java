@@ -18,24 +18,31 @@
  */
 package com.sevtinge.hyperceiler.libhook.base;
 
-import static com.sevtinge.hyperceiler.libhook.utils.devices.MiDeviceAppUtilsKt.isPad;
-import static com.sevtinge.hyperceiler.libhook.utils.devices.SystemSDKKt.isAndroidVersion;
-import static com.sevtinge.hyperceiler.libhook.utils.devices.SystemSDKKt.isHyperOSVersion;
+import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isAndroidVersion;
+import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isHyperOSVersion;
 import static com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils.mPrefsMap;
+import static java.util.Arrays.asList;
 
 import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 
+import com.sevtinge.hyperceiler.libhook.app.others.VariousThirdApps;
+import com.sevtinge.hyperceiler.libhook.safecrash.CrashHook;
+import com.sevtinge.hyperceiler.libhook.safecrash.RescuePartyPlus;
+import com.sevtinge.hyperceiler.libhook.safecrash.SafeMode;
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.ResourcesTool;
 import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog;
+import com.sevtinge.hyperceiler.libhook.utils.pkg.CheckModifyUtils;
 import com.sevtinge.hyperceiler.libhook.utils.pkg.DebugModeUtils;
 import com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils;
+import com.sevtinge.hyperceiler.module.base.DataBase;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 
 import io.github.kyuubiran.ezxhelper.xposed.EzXposed;
 import io.github.libxposed.api.XposedInterface;
@@ -49,6 +56,13 @@ import io.github.libxposed.api.XposedModule;
 public class XposedInitEntry extends XposedModule {
 
     private static final String TAG = "HyperCeiler";
+    private final ArrayList<String> checkList = new ArrayList<>(asList(
+        "com.miui.securitycenter",
+        "com.android.camera",
+        "com.miui.home"
+    ));
+    public final VariousThirdApps mVariousThirdApps = new VariousThirdApps();
+    public static ResourcesTool mResHook;
     protected String processName;
     protected SharedPreferences remotePrefs;
     protected SharedPreferences.OnSharedPreferenceChangeListener mListener;
@@ -56,6 +70,8 @@ public class XposedInitEntry extends XposedModule {
     public XposedInitEntry(@NonNull XposedInterface base, @NonNull ModuleLoadedParam param) {
         super(base, param);
         processName = param.getProcessName();
+        mResHook = ResourcesTool.getInstance(base.getApplicationInfo().sourceDir);
+
         XposedLog.init(base);
         BaseLoad.init(base);
         EzXposed.initXposedModule(base);
@@ -65,6 +81,16 @@ public class XposedInitEntry extends XposedModule {
     public void onSystemServerLoaded(@NonNull final SystemServerLoadedParam lpparam) {
         // load preferences
         initPrefs();
+
+        // load CrashHook
+        try {
+            new CrashHook(lpparam);
+            RescuePartyPlus rescuePartyPlus = RescuePartyPlus.INSTANCE;
+            rescuePartyPlus.setHandler(SafeMode.INSTANCE);
+            rescuePartyPlus.init();
+        } catch (Exception e) {
+            XposedLog.e(TAG, "Crash Hook load failed, " + e);
+        }
 
         // Sync preferences changes
         loadPreferenceChange();
@@ -86,8 +112,16 @@ public class XposedInitEntry extends XposedModule {
 
     protected void invokeInit(PackageLoadedParam lpparam) {
         String packageName = lpparam.getPackageName();
-
         HashMap<String, DataBase> dataMap = DataBase.get();
+        HashSet<String> checkSet = new HashSet<>(checkList);
+        boolean isDebug = mPrefsMap.getBoolean("development_debug_mode");
+
+        ClassLoader loader = getClass().getClassLoader();
+        if (loader == null) {
+            XposedLog.e(TAG, "ClassLoader is null, skip loading modules for: " + packageName);
+            return;
+        }
+
         if (dataMap.values().stream().noneMatch(data -> data.mTargetPackage.equals(packageName))) {
             onNoMatchedPackage(lpparam);
             return;
@@ -98,29 +132,25 @@ public class XposedInitEntry extends XposedModule {
             if (data.mTargetSdk != -1 && !isAndroidVersion(data.mTargetSdk)) return;
             if (data.mTargetOSVersion != -1F && !isHyperOSVersion(data.mTargetOSVersion)) return;
 
-            int debugMode = DebugModeUtils.INSTANCE.getChooseResult(packageName);
-            if (debugMode != 0) {
-                if (data.isPad != debugMode) return;
-            } else {
-                if ((data.isPad == 1 && !isPad()) || (data.isPad == 2 && isPad())) return;
+            if (checkSet.contains(packageName)) {
+                boolean check = CheckModifyUtils.INSTANCE.getCheckResult(packageName);
+                boolean isVersion = DebugModeUtils.INSTANCE.getChooseResult(packageName) == 0;
+                if (check && !isDebug && isVersion) return;
             }
 
-            loadModule(className, lpparam);
+            try {
+                Class<?> clazz = loader.loadClass(className);
+                BaseLoad module = (BaseLoad) clazz.getDeclaredConstructor().newInstance();
+                module.onLoad(lpparam);
+            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
+                     InstantiationException | InvocationTargetException e) {
+                XposedLog.e(TAG, "Failed to load module: " + className, e);
+            }
         });
     }
 
     protected void onNoMatchedPackage(PackageLoadedParam lpparam) {
-    }
-
-    protected void loadModule(String className, PackageLoadedParam lpparam) {
-        try {
-            Class<?> clazz = Objects.requireNonNull(getClass().getClassLoader()).loadClass(className);
-            BaseLoad module = (BaseLoad) clazz.getDeclaredConstructor().newInstance();
-            module.onLoad(lpparam);
-        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
-                 InstantiationException | InvocationTargetException e) {
-            XposedLog.e(TAG, "Failed to load module: " + className, e);
-        }
+        mVariousThirdApps.onLoad(lpparam);
     }
 
 

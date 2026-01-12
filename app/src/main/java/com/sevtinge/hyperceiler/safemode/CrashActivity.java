@@ -30,10 +30,9 @@ import androidx.annotation.Nullable;
 
 import com.sevtinge.hyperceiler.common.utils.DialogHelper;
 import com.sevtinge.hyperceiler.core.R;
-import com.sevtinge.hyperceiler.hook.safe.CrashData;
-import com.sevtinge.hyperceiler.hook.safe.SafeMode;
-import com.sevtinge.hyperceiler.hook.utils.PropUtils;
-import com.sevtinge.hyperceiler.hook.utils.shell.ShellInit;
+import com.sevtinge.hyperceiler.libhook.safecrash.CrashData;
+import com.sevtinge.hyperceiler.libhook.safecrash.SafeMode;
+import com.sevtinge.hyperceiler.libhook.utils.shell.ShellInit;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -57,7 +56,7 @@ public class CrashActivity extends AppCompatActivity {
     @Override
     public void onCreate(@Nullable Bundle bundle) {
         super.onCreate(bundle);
-        ShellInit.init();
+        com.sevtinge.hyperceiler.libhook.utils.shell.ShellInit.init();
         if (swappedMap == null || swappedMap.isEmpty()) {
             swappedMap = CrashData.swappedData();
         }
@@ -67,7 +66,7 @@ public class CrashActivity extends AppCompatActivity {
         String code = intent.getStringExtra("key_pkg");
         boolean isNeedSetProp = intent.getBooleanExtra("key_is_need_set_prop", false);
         if (isNeedSetProp) {
-            PropUtils.setProp(SafeMode.PROP_REPORT_PACKAGE, code);
+            com.sevtinge.hyperceiler.libhook.utils.api.PropUtils.setProp(SafeMode.PROP_REPORT_PACKAGE, code);
         }
 
         longMsg = intent.getStringExtra("key_longMsg");
@@ -78,7 +77,7 @@ public class CrashActivity extends AppCompatActivity {
         throwMethodName = intent.getStringExtra("key_throwMethodName");
 
         Map<String, String> appNameMap = getAppNameMap();
-        String pkg = getReportCrashPkg(code);
+        String pkg = ""; // getReportCrashPkg(code);
         String appName = appNameMap.getOrDefault(pkg, pkg != null ? pkg : "unknown");
         String msg = formatSafeModeDesc(appName, pkg);
 
@@ -116,7 +115,7 @@ public class CrashActivity extends AppCompatActivity {
                   .replaceAll("^\\s+|\\s+$", "");
     }
 
-    private String getReportCrashPkg(String data) {
+    /*private String getReportCrashPkg(String data) {
         if (data == null || swappedMap == null) return null;
         String[] sp = data.split(",");
         StringBuilder result = new StringBuilder();
@@ -128,7 +127,7 @@ public class CrashActivity extends AppCompatActivity {
             }
         }
         return result.isEmpty() ? null : result.toString();
-    }
+    }*/
 
     @Override
     public void onDestroy() {
