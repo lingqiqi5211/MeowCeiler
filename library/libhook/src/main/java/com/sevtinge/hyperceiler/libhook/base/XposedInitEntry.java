@@ -27,8 +27,11 @@ import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 
-import com.sevtinge.hyperceiler.libhook.app.others.VariousThirdApps;
+import com.sevtinge.hyperceiler.libhook.app.CorePatch.CorePatch;
+import com.sevtinge.hyperceiler.libhook.app.Others.VariousThirdApps;
+import com.sevtinge.hyperceiler.libhook.rules.various.system.FlagSecure;
 import com.sevtinge.hyperceiler.libhook.safecrash.CrashMonitor;
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.ResourcesTool;
 import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog;
 import com.sevtinge.hyperceiler.libhook.utils.pkg.CheckModifyUtils;
@@ -80,11 +83,24 @@ public class XposedInitEntry extends XposedModule {
         // load preferences
         initPrefs();
 
+        // set xposed module
+        EzxHelpUtils.setXposedModule(this);
+
         // load CrashHook
         try {
             new CrashMonitor(lpparam);
         } catch (Exception e) {
-            XposedLog.e(TAG, "Crash Hook load failed, " + e);
+            XposedLog.e(TAG, "system", "Crash Hook load failed, " + e);
+        }
+
+        // load Third Hook
+        if (mPrefsMap.getBoolean("system_framework_core_patch_enable")) {
+            new CorePatch().onLoad(lpparam);
+            XposedLog.d(TAG, "system", "CorePatch loaded");
+        }
+        if (mPrefsMap.getBoolean("system_other_flag_secure")) {
+            new FlagSecure().onLoad(lpparam);
+            XposedLog.d(TAG, "system", "FlagSecure loaded");
         }
 
         // Sync preferences changes
@@ -118,7 +134,7 @@ public class XposedInitEntry extends XposedModule {
         }
 
         if (dataMap.values().stream().noneMatch(data -> data.mTargetPackage.equals(packageName))) {
-            onNoMatchedPackage(lpparam);
+            mVariousThirdApps.onLoad(lpparam);
             return;
         }
 
@@ -143,11 +159,6 @@ public class XposedInitEntry extends XposedModule {
             }
         });
     }
-
-    protected void onNoMatchedPackage(PackageLoadedParam lpparam) {
-        mVariousThirdApps.onLoad(lpparam);
-    }
-
 
     protected void initPrefs() {
         SharedPreferences readPrefs = getRemotePreferences(PrefsUtils.mPrefsName + "_remote");

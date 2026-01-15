@@ -18,13 +18,13 @@
  */
 package com.sevtinge.hyperceiler.libhook.rules.aiasst
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook
+import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKit
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
 import java.lang.reflect.Method
 
-object NewAiCaptions: IHook {
+object NewAiCaptions : BaseHook() {
     private val mSupportAiSubtitlesUtils by lazy {
         findClassIfExists("com.xiaomi.aiasst.vision.utils.SupportAiSubtitlesUtils")
     }

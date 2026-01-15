@@ -21,7 +21,7 @@ package com.sevtinge.hyperceiler.libhook.rules.barrage
 import android.view.View
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams
-import com.sevtinge.hyperceiler.libhook.callback.IHook
+import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectFieldOrNull
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.setObjectField
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
@@ -30,7 +30,7 @@ import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createBefo
 import java.lang.reflect.Method
 
 // https://github.com/YifePlayte/WOMMO/blob/main/app/src/main/java/com/yifeplayte/wommo/hook/hooks/singlepackage/barrage/BarrageNotTouchable.kt
-object BarrageNotTouchable : IHook {
+object BarrageNotTouchable : BaseHook() {
 
     override fun init() {
         loadClass($$"com.xiaomi.barrage.utils.BarrageWindowUtils$ComputeInternalInsetsHandler").methodFinder()

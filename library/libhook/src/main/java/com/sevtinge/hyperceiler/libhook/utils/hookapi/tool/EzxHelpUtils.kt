@@ -33,14 +33,35 @@ import io.github.kyuubiran.ezxhelper.core.util.ObjectUtil
 import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
 import io.github.libxposed.api.XposedInterface.MethodUnhooker
+import io.github.libxposed.api.XposedModule
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
+import java.lang.reflect.Member
 import java.lang.reflect.Method
+import java.lang.reflect.Modifier
+import java.util.Arrays
 import java.util.WeakHashMap
 
 object EzxHelpUtils {
 
+    @JvmStatic
+    lateinit var xposedModule: XposedModule
+        private set
     private val additionalFields = WeakHashMap<Any, MutableMap<String, Any?>>()
+
+    private external fun invokeOriginalMethodNative(
+        method: Member,
+        methodId: Int,
+        parameterTypes: Array<Class<*>>?,
+        returnType: Class<*>?,
+        thisObject: Any?,
+        args: Array<out Any?>
+    ): Any?
+
+    @JvmStatic
+    fun setXposedModule(module: XposedModule) {
+        xposedModule = module
+    }
 
     @JvmStatic
     fun findClass(name: String, classLoader: ClassLoader?): Class<*> {
@@ -200,7 +221,11 @@ object EzxHelpUtils {
     }
 
     @JvmStatic
-    fun findMethodExact(clazz: Class<*>, methodName: String, vararg parameterTypes: Class<*>): Method {
+    fun findMethodExact(
+        clazz: Class<*>,
+        methodName: String,
+        vararg parameterTypes: Class<*>
+    ): Method {
         return MethodFinder.fromClass(clazz)
             .filterByName(methodName)
             .filterByParamTypes(*parameterTypes)
@@ -208,11 +233,121 @@ object EzxHelpUtils {
     }
 
     @JvmStatic
-    fun findMethodExactIfExists(clazz: Class<*>, methodName: String, vararg parameterTypes: Class<*>): Method? {
+    fun findMethodExactIfExists(
+        clazz: Class<*>,
+        methodName: String,
+        vararg parameterTypes: Class<*>
+    ): Method? {
         return MethodFinder.fromClass(clazz)
             .filterByName(methodName)
             .filterByParamTypes(*parameterTypes)
             .firstOrNull()
+    }
+
+    /**
+     * 查找方法（精确匹配，如果不存在返回 null）
+     * 支持参数类型为 Class<?> 或 String
+     *
+     * @param clazz 目标类
+     * @param methodName 方法名
+     * @param parameterTypes 参数类型数组，可以是 Class<?> 或 String
+     * @return Method 对象，如果不存在返回 null
+     */
+    @JvmStatic
+    fun findMethodExactIfExists(
+        clazz: Class<*>,
+        methodName: String,
+        vararg parameterTypes: Any
+    ): Method? {
+        val paramTypes = parameterTypes.map {
+            when (it) {
+                is Class<*> -> it
+                is String -> {
+                    try {
+                        findClass(it, clazz.classLoader)
+                    } catch (_: Exception) {
+                        findClass(it, classLoader)
+                    }
+                }
+                else -> throw IllegalArgumentException("Parameter types must be Class<?> or String")
+            }
+        }.toTypedArray()
+        return findMethodExactIfExists(clazz, methodName, *paramTypes)
+    }
+
+    @JvmStatic
+    fun findMethodExactIfExists(
+        clazzName: String,
+        classLoader: ClassLoader,
+        methodName: String,
+        vararg parameterTypes: Any
+    ): Method? {
+        val clazz = findClass(clazzName, classLoader)
+        return findMethodExactIfExists(clazz, methodName, *parameterTypes)
+    }
+
+    /**
+     * 调用原始方法
+     *
+     * @param method 要调用的方法
+     * @param thisObject 对于非静态方法，传入 "this" 指针；对于静态方法传 null
+     * @param args 方法参数数组
+     * @return 方法返回值
+     * @throws NullPointerException 如果非静态方法的 receiver 为 null
+     * @throws IllegalAccessException 如果方法不可访问
+     * @throws IllegalArgumentException 如果参数数量或类型不匹配
+     * @throws InvocationTargetException 如果被调用的方法抛出异常
+     */
+    @JvmStatic
+    fun invokeOriginalMethod(method: Method, thisObject: Any?, vararg args: Any?): Any? {
+        return try {
+            val parameterTypes: Array<Class<*>>? = method.parameterTypes
+            val returnType: Class<*>? = method.returnType
+            invokeOriginalMethodNative(method, 0, parameterTypes, returnType, thisObject, args)
+        } catch (t: Throwable) {
+            XposedLog.e(TAG, "invokeOriginalMethod failed for ${formatMethodSignature(method)}", t)
+            throw t
+        }
+    }
+
+    /**
+     * 调用原始构造器
+     *
+     * @param constructor 要调用的构造器
+     * @param args 构造器参数数组
+     * @return 构造器返回的对象实例
+     * @throws IllegalAccessException 如果构造器不可访问
+     * @throws IllegalArgumentException 如果参数数量或类型不匹配
+     * @throws InvocationTargetException 如果构造器抛出异常
+     */
+    @JvmStatic
+    fun invokeOriginalConstructor(constructor: Constructor<*>, vararg args: Any?): Any {
+        return try {
+            val parameterTypes: Array<Class<*>> = constructor.parameterTypes
+            invokeOriginalMethodNative(constructor, 0, parameterTypes, null, null, args)
+                ?: throw NullPointerException("Constructor invocation returned null")
+        } catch (t: Throwable) {
+            XposedLog.e(TAG, "invokeOriginalConstructor failed for ${formatConstructorSignature(constructor)}", t)
+            throw t
+        }
+    }
+
+    /**
+     * 调用原始方法
+     *
+     * @param method 要调用的方法
+     * @param thisObject 对于非静态方法，传入 "this" 指针；对于静态方法传 null
+     * @param args 方法参数数组
+     * @return 方法返回值，如果发生异常返回 null
+     */
+    @JvmStatic
+    fun invokeOriginalMethodOrNull(method: Method, thisObject: Any?, vararg args: Any?): Any? {
+        return try {
+            invokeOriginalMethod(method, thisObject, *args)
+        } catch (t: Throwable) {
+            XposedLog.w(TAG, "invokeOriginalMethodOrNull failed for ${formatMethodSignature(method)}", t)
+            null
+        }
     }
 
     @JvmStatic
@@ -249,6 +384,51 @@ object EzxHelpUtils {
                 .filterByParamCount(args.size)
                 .first()
         }
+    }
+
+    /**
+     * 查找类中所有具有指定参数类型和返回类型的方法
+     *
+     * @param clazz 目标类
+     * @param returnType 返回类型，如果为 null 则不比较返回类型。使用 void.class 搜索返回 nothing 的方法
+     * @param parameterTypes 参数类型
+     * @return 匹配的方法数组，已设置为可访问
+     */
+    @JvmStatic
+    fun findMethodsByExactParameters(
+        clazz: Class<*>,
+        returnType: Class<*>?,
+        vararg parameterTypes: Class<*>?
+    ): Array<Method> {
+        val result = mutableListOf<Method>()
+
+        for (method in clazz.declaredMethods) {
+            if (returnType != null && returnType != method.returnType) {
+                continue
+            }
+
+            val methodParameterTypes = method.parameterTypes
+            if (parameterTypes.size != methodParameterTypes.size) {
+                continue
+            }
+
+            var match = true
+            for (i in parameterTypes.indices) {
+                if (parameterTypes[i] != methodParameterTypes[i]) {
+                    match = false
+                    break
+                }
+            }
+
+            if (!match) {
+                continue
+            }
+
+            method.isAccessible = true
+            result.add(method)
+        }
+
+        return result.toTypedArray()
     }
 
     @JvmStatic
@@ -444,14 +624,86 @@ object EzxHelpUtils {
      * @return MethodUnhooker 对象
      */
     @JvmStatic
-    fun findAndHookMethod(clazz: Class<*>, methodName: String, vararg args: Any): MethodUnhooker<*> {
+    fun findAndHookMethod(
+        clazz: Class<*>,
+        methodName: String,
+        vararg args: Any
+    ): MethodUnhooker<*> {
         require(args.isNotEmpty()) { "args must contain at least the callback" }
         val callback = args.last()
         require(callback is IMethodHook) { "Last argument must be IMethodHook" }
 
         val paramTypes = args.dropLast(1).map {
-            require(it is Class<*>) { "Parameter types must be Class<?>" }
-            it
+            when (it) {
+                is Class<*> -> it
+                is String -> {
+                    try {
+                        findClass(it, clazz.classLoader)
+                    } catch (_: Exception) {
+                        findClass(it, classLoader)
+                    }
+                }
+
+                else -> throw IllegalArgumentException("Parameter types must be Class<?> or String")
+            }
+        }.toTypedArray()
+
+        val method = findMethodExact(clazz, methodName, *paramTypes)
+        return hookMethod(method, callback)
+    }
+
+    @JvmStatic
+    fun findAndHookMethodReplace(
+        clazzName: String,
+        methodName: String,
+        vararg args: Any,
+    ): MethodUnhooker<*> {
+        val clazz = findClass(clazzName, classLoader)
+        return findAndHookMethodReplace(clazz, methodName, *args)
+    }
+
+    @JvmStatic
+    fun findAndHookMethodReplace(
+        clazzName: String,
+        classLoader: ClassLoader,
+        methodName: String,
+        vararg args: Any
+    ): MethodUnhooker<*> {
+        val clazz = findClass(clazzName, classLoader)
+        return findAndHookMethodReplace(clazz, methodName, *args)
+    }
+
+    /**
+     * 查找并 Hook 方法（替换模式）
+     *
+     * @param clazz 目标类
+     * @param methodName 方法名
+     * @param args 参数类型数组，最后一个元素必须是 IReplaceHook
+     * @return MethodUnhooker 对象
+     */
+    @JvmStatic
+    fun findAndHookMethodReplace(
+        clazz: Class<*>,
+        methodName: String,
+        vararg args: Any
+    ): MethodUnhooker<*> {
+        require(args.isNotEmpty()) { "args must contain at least the callback" }
+        val callback = args.last()
+        require(callback is IReplaceHook) { "Last argument must be IReplaceHook" }
+
+        val paramTypes = args.dropLast(1).map {
+            when (it) {
+                is Class<*> -> it
+                is String -> {
+                    try {
+                        findClass(it, clazz.classLoader)
+                    } catch (_: Exception) {
+                        findClass(it, classLoader)
+                    }
+                }
+
+                else -> throw IllegalArgumentException("Parameter types must be Class<?> or String")
+            }
         }.toTypedArray()
 
         val method = findMethodExact(clazz, methodName, *paramTypes)
@@ -476,6 +728,25 @@ object EzxHelpUtils {
         return hookConstructor(constructor, callback)
     }
 
+    @JvmStatic
+    fun findAndHookConstructor(
+        clazzName: String,
+        vararg args: Any
+    ): MethodUnhooker<*> {
+        val clazz = findClass(clazzName, classLoader)
+        return findAndHookConstructor(clazz, *args)
+    }
+
+    @JvmStatic
+    fun findAndHookConstructor(
+        clazzName: String,
+        classLoader: ClassLoader,
+        vararg args: Any
+    ): MethodUnhooker<*> {
+        val clazz = findClass(clazzName, classLoader)
+        return findAndHookConstructor(clazz, *args)
+    }
+
     /**
      * 查找并 Hook 构造器（Java 友好版本，callback 作为最后一个参数）
      *
@@ -490,8 +761,17 @@ object EzxHelpUtils {
         require(callback is IMethodHook) { "Last argument must be IMethodHook" }
 
         val paramTypes = args.dropLast(1).map {
-            require(it is Class<*>) { "Parameter types must be Class<?>" }
-            it
+            when (it) {
+                is Class<*> -> it
+                is String -> {
+                    try {
+                        findClass(it, clazz.classLoader)
+                    } catch (_: Exception) {
+                        findClass(it, classLoader)
+                    }
+                }
+                else -> throw IllegalArgumentException("Parameter types must be Class<?> or String")
+            }
         }.toTypedArray()
 
         val constructor = findConstructorExact(clazz, *paramTypes)
@@ -528,7 +808,11 @@ object EzxHelpUtils {
      * @return MethodUnhooker 对象列表
      */
     @JvmStatic
-    fun hookAllMethods(clazz: Class<*>, methodName: String, callback: IMethodHook): List<MethodUnhooker<*>> {
+    fun hookAllMethods(
+        clazz: Class<*>,
+        methodName: String,
+        callback: IMethodHook
+    ): List<MethodUnhooker<*>> {
         val methods = MethodFinder.fromClass(clazz)
             .filterByName(methodName)
             .toList()
@@ -540,8 +824,12 @@ object EzxHelpUtils {
 
         return methods.mapNotNull { method ->
             try {
+                if (Modifier.isAbstract(method.modifiers)) {
+                    XposedLog.w(TAG, "[${clazz.simpleName}#${method.name}] is abstract, skipping")
+                    return@mapNotNull null
+                }
                 hookMethod(method, callback)
-            } catch (t: Throwable) {
+            } catch (_: Throwable) {
                 null
             }
         }
@@ -598,100 +886,174 @@ object EzxHelpUtils {
             param.result = null
         }
     }
+
+    // ==================== deoptimize 相关 ====================
+
+    @JvmStatic
+    fun deoptimize(method: Method): Boolean {
+        return try {
+            xposedModule.deoptimize(method)
+        } catch (t: Throwable) {
+            XposedLog.e(TAG, "deoptimize $method failed, log: $t")
+            return false
+        }
+    }
+
+    @JvmStatic
+    fun deoptimizeMethods(clazz: Class<*>, vararg names: String?) {
+        val list = listOf(*names)
+        Arrays.stream(clazz.declaredMethods)
+            .filter {
+                method: Method? -> list.contains(method!!.name)
+            }
+            .forEach {
+                method: Method? -> this.deoptimize(method!!)
+            }
+    }
 }
 
 // ==================== Any 扩展函数 ====================
 
 fun Any.getObjectField(fieldName: String): Any? = EzxHelpUtils.getObjectField(this, fieldName)
 fun <T> Any.getObjectFieldAs(fieldName: String): T = getObjectField(fieldName) as T
-fun Any.setObjectField(fieldName: String, value: Any?) = EzxHelpUtils.setObjectField(this, fieldName, value)
+fun Any.setObjectField(fieldName: String, value: Any?) =
+    EzxHelpUtils.setObjectField(this, fieldName, value)
 
 fun Any.getBooleanField(fieldName: String): Boolean = EzxHelpUtils.getBooleanField(this, fieldName)
-fun Any.setBooleanField(fieldName: String, value: Boolean) = EzxHelpUtils.setBooleanField(this, fieldName, value)
+fun Any.setBooleanField(fieldName: String, value: Boolean) =
+    EzxHelpUtils.setBooleanField(this, fieldName, value)
+
 fun Any.getIntField(fieldName: String): Int = EzxHelpUtils.getIntField(this, fieldName)
-fun Any.setIntField(fieldName: String, value: Int) = EzxHelpUtils.setIntField(this, fieldName, value)
+fun Any.setIntField(fieldName: String, value: Int) =
+    EzxHelpUtils.setIntField(this, fieldName, value)
+
 fun Any.getLongField(fieldName: String): Long = EzxHelpUtils.getLongField(this, fieldName)
-fun Any.setLongField(fieldName: String, value: Long) = EzxHelpUtils.setLongField(this, fieldName, value)
+fun Any.setLongField(fieldName: String, value: Long) =
+    EzxHelpUtils.setLongField(this, fieldName, value)
+
 fun Any.getFloatField(fieldName: String): Float = EzxHelpUtils.getFloatField(this, fieldName)
-fun Any.setFloatField(fieldName: String, value: Float) = EzxHelpUtils.setFloatField(this, fieldName, value)
+fun Any.setFloatField(fieldName: String, value: Float) =
+    EzxHelpUtils.setFloatField(this, fieldName, value)
 
 fun Any.getObjectFieldOrNull(fieldName: String): Any? {
     return runCatching { getObjectField(fieldName) }.getOrNull()
 }
+
 fun <T> Any.getObjectFieldAsOrNull(fieldName: String): T? {
     return runCatching {
         getObjectField(fieldName) as? T
     }.getOrNull()
 }
+
 fun Any.getBooleanFieldOrNull(fieldName: String): Boolean? {
     return runCatching { getBooleanField(fieldName) }.getOrNull()
 }
+
 fun Any.getIntFieldOrNull(fieldName: String): Int? {
     return runCatching { getIntField(fieldName) }.getOrNull()
 }
+
 fun Any.getLongFieldOrNull(fieldName: String): Long? {
     return runCatching { getLongField(fieldName) }.getOrNull()
 }
+
 fun Any.getFloatFieldOrNull(fieldName: String): Float? {
     return runCatching { getFloatField(fieldName) }.getOrNull()
 }
 
-fun Any.callMethod(methodName: String, vararg args: Any?): Any? = EzxHelpUtils.callMethod(this, methodName, *args)
-fun <T> Any.callMethodAs(methodName: String, vararg args: Any?): T = callMethod(methodName, *args) as T
+fun Any.callMethod(methodName: String, vararg args: Any?): Any? =
+    EzxHelpUtils.callMethod(this, methodName, *args)
+
+fun <T> Any.callMethodAs(methodName: String, vararg args: Any?): T =
+    callMethod(methodName, *args) as T
+
+fun Any.callMethodOrNull(methodName: String, vararg args: Any?): Any? {
+    return runCatching {
+        EzxHelpUtils.callMethod(this, methodName, *args)
+    }.getOrNull()
+}
 
 fun Any.getFirstFieldByExactType(type: Class<*>): Any? =
     javaClass.findFirstFieldByExactType(type).get(this)
+
 fun <T> Any.getFirstFieldByExactTypeAs(type: Class<*>) =
     javaClass.findFirstFieldByExactType(type).get(this) as? T
 
-fun Any.getAdditionalInstanceField(field: String): Any? = EzxHelpUtils.getAdditionalInstanceField(this, field)
+fun Any.getAdditionalInstanceField(field: String): Any? =
+    EzxHelpUtils.getAdditionalInstanceField(this, field)
 
-fun <T> Any.getAdditionalInstanceFieldAs(field: String) = EzxHelpUtils.getAdditionalInstanceField(this, field) as T
+fun <T> Any.getAdditionalInstanceFieldAs(field: String) =
+    EzxHelpUtils.getAdditionalInstanceField(this, field) as T
+
 fun Any.setAdditionalInstanceField(
     field: String,
     value: Any?
 ): Any? = EzxHelpUtils.setAdditionalInstanceField(this, field, value)
+
 fun Any.removeAdditionalInstanceField(
     field: String
 ): Any? = EzxHelpUtils.removeAdditionalInstanceField(this, field)
 
 // ==================== Class 扩展函数 ====================
 
-fun Class<*>.getStaticObjectField(fieldName: String): Any? = EzxHelpUtils.getStaticObjectField(this, fieldName)
-fun <T> Class<*>.getStaticObjectFieldAs(fieldName: String): T = getStaticObjectField(fieldName) as T
-fun Class<*>.setStaticObjectField(fieldName: String, value: Any?) = EzxHelpUtils.setStaticObjectField(this, fieldName, value)
+fun Class<*>.getStaticObjectField(fieldName: String): Any? =
+    EzxHelpUtils.getStaticObjectField(this, fieldName)
 
-fun Class<*>.getStaticBooleanField(fieldName: String): Boolean = EzxHelpUtils.getStaticBooleanField(this, fieldName)
-fun Class<*>.setStaticBooleanField(fieldName: String, value: Boolean) = EzxHelpUtils.setStaticBooleanField(this, fieldName, value)
-fun Class<*>.getStaticIntField(fieldName: String): Int = EzxHelpUtils.getStaticIntField(this, fieldName)
-fun Class<*>.setStaticIntField(fieldName: String, value: Int) = EzxHelpUtils.setStaticIntField(this, fieldName, value)
-fun Class<*>.getStaticLongField(fieldName: String): Long = EzxHelpUtils.getStaticLongField(this, fieldName)
-fun Class<*>.setStaticLongField(fieldName: String, value: Long) = EzxHelpUtils.setStaticLongField(this, fieldName, value)
+fun <T> Class<*>.getStaticObjectFieldAs(fieldName: String): T = getStaticObjectField(fieldName) as T
+fun Class<*>.setStaticObjectField(fieldName: String, value: Any?) =
+    EzxHelpUtils.setStaticObjectField(this, fieldName, value)
+
+fun Class<*>.getStaticBooleanField(fieldName: String): Boolean =
+    EzxHelpUtils.getStaticBooleanField(this, fieldName)
+
+fun Class<*>.setStaticBooleanField(fieldName: String, value: Boolean) =
+    EzxHelpUtils.setStaticBooleanField(this, fieldName, value)
+
+fun Class<*>.getStaticIntField(fieldName: String): Int =
+    EzxHelpUtils.getStaticIntField(this, fieldName)
+
+fun Class<*>.setStaticIntField(fieldName: String, value: Int) =
+    EzxHelpUtils.setStaticIntField(this, fieldName, value)
+
+fun Class<*>.getStaticLongField(fieldName: String): Long =
+    EzxHelpUtils.getStaticLongField(this, fieldName)
+
+fun Class<*>.setStaticLongField(fieldName: String, value: Long) =
+    EzxHelpUtils.setStaticLongField(this, fieldName, value)
 
 fun Class<*>.getStaticObjectFieldOrNull(fieldName: String): Any? {
     return runCatching { getStaticObjectField(fieldName) }.getOrNull()
 }
+
 fun <T> Class<*>.getStaticObjectFieldAsOrNull(fieldName: String): T? {
     return runCatching {
         getStaticObjectField(fieldName) as? T
     }.getOrNull()
 }
+
 fun Class<*>.getStaticBooleanFieldOrNull(fieldName: String): Boolean? {
     return runCatching { getStaticBooleanField(fieldName) }.getOrNull()
 }
+
 fun Class<*>.getStaticIntFieldOrNull(fieldName: String): Int? {
     return runCatching { getStaticIntField(fieldName) }.getOrNull()
 }
+
 fun Class<*>.getStaticLongFieldOrNull(fieldName: String): Long? {
     return runCatching { getStaticLongField(fieldName) }.getOrNull()
 }
 
-fun Class<*>.callStaticMethod(methodName: String, vararg args: Any?): Any? = EzxHelpUtils.callStaticMethod(this, methodName, *args)
-fun <T> Class<*>.callStaticMethodAs(methodName: String, vararg args: Any?): T = callStaticMethod(methodName, *args) as T
+fun Class<*>.callStaticMethod(methodName: String, vararg args: Any?): Any? =
+    EzxHelpUtils.callStaticMethod(this, methodName, *args)
+
+fun <T> Class<*>.callStaticMethodAs(methodName: String, vararg args: Any?): T =
+    callStaticMethod(methodName, *args) as T
 
 fun <T> Class<*>.newInstance(vararg args: Any?): T = EzxHelpUtils.newInstance(this, *args) as T
 
-fun Class<*>.findFieldByExactType(type: Class<*>): Field = EzxHelpUtils.findFirstFieldByExactType(this, type)
+fun Class<*>.findFieldByExactType(type: Class<*>): Field =
+    EzxHelpUtils.findFirstFieldByExactType(this, type)
+
 fun Class<*>.findFirstFieldByExactType(type: Class<*>): Field =
     EzxHelpUtils.findFirstFieldByExactType(this, type)
 
@@ -699,13 +1061,17 @@ fun Class<*>.findFirstFieldByExactType(type: Class<*>): Field =
 // ==================== String 扩展函数 ====================
 
 fun String.toClass(classLoader: ClassLoader?): Class<*> = EzxHelpUtils.findClass(this, classLoader)
-fun String.toClassOrNull(classLoader: ClassLoader?): Class<*>? = EzxHelpUtils.findClassIfExists(this, classLoader)
+fun String.toClassOrNull(classLoader: ClassLoader?): Class<*>? =
+    EzxHelpUtils.findClassIfExists(this, classLoader)
 
 // ==================== Hook 扩展函数 ====================
 
 fun Method.hook(callback: IMethodHook): MethodUnhooker<*> = EzxHelpUtils.hookMethod(this, callback)
-fun Method.hookReplace(callback: IReplaceHook): MethodUnhooker<*> = EzxHelpUtils.hookMethod(this, callback)
-fun Constructor<*>.hook(callback: IMethodHook): MethodUnhooker<*> = EzxHelpUtils.hookConstructor(this, callback)
+fun Method.hookReplace(callback: IReplaceHook): MethodUnhooker<*> =
+    EzxHelpUtils.hookMethod(this, callback)
+
+fun Constructor<*>.hook(callback: IMethodHook): MethodUnhooker<*> =
+    EzxHelpUtils.hookConstructor(this, callback)
 
 fun Class<*>.hookAllMethods(methodName: String, callback: IMethodHook): List<MethodUnhooker<*>> =
     EzxHelpUtils.hookAllMethods(this, methodName, callback)

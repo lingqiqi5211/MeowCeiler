@@ -23,7 +23,7 @@ import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowManager;
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook;
+import com.sevtinge.hyperceiler.libhook.base.BaseHook;
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKit;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.IDexKit;
@@ -40,7 +40,9 @@ import java.lang.reflect.Method;
 import io.github.kyuubiran.ezxhelper.xposed.common.AfterHookParam;
 import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam;
 
-public class MaxScreenBrightness implements IHook {
+;
+
+public class MaxScreenBrightness extends BaseHook {
 
     @Override
     public void init() {

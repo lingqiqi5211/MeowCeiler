@@ -18,11 +18,9 @@
  */
 package com.sevtinge.hyperceiler.libhook.rules.camera;
 
-import static com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils.mPrefsMap;
-
 import android.util.SparseArray;
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook;
+import com.sevtinge.hyperceiler.libhook.base.BaseHook;
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKit;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.IDexKitList;
@@ -42,7 +40,8 @@ import java.util.List;
 
 import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam;
 
-public class CustomWatermark implements IHook {
+
+public class CustomWatermark extends BaseHook {
     @Override
     public void init() {
         List<Method> methods = DexKit.findMemberList("Watermark", new IDexKitList() {

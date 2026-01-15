@@ -24,7 +24,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.text.TextPaint;
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook;
+import com.sevtinge.hyperceiler.libhook.base.BaseHook;
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKit;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.IDexKit;
@@ -47,7 +47,9 @@ import java.lang.reflect.Method;
 
 import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam;
 
-public class BlackLeica implements IHook {
+;
+
+public class BlackLeica extends BaseHook {
     Method method1 = null;
     Class<?> clazz1 = null;
 

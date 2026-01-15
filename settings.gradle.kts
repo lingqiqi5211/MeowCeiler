@@ -1,8 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-include(":library:libhook")
-
-
 data class GprCredentials(val user: String, val key: String)
 
 fun loadGprCredentials(): GprCredentials {
@@ -71,6 +68,7 @@ rootProject.name = "HyperCeiler"
 
 include(
     "app",
+    ":library:hook",
     ":library:libhook",
     ":library:core",
     ":library:provision",

@@ -18,16 +18,14 @@
  */
 package com.sevtinge.hyperceiler.libhook.safecrash
 
-import android.app.ActivityOptions
 import android.app.ApplicationErrorReport
 import android.content.Context
-import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.VersionedPackage
 import android.os.SystemProperties
 import android.provider.Settings
 import com.sevtinge.hyperceiler.libhook.callback.ICrashHandler
-import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper
+import com.sevtinge.hyperceiler.libhook.callback.IMethodHook
 import com.sevtinge.hyperceiler.libhook.utils.api.ProjectApi
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.PackageWatchdog
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils
@@ -37,6 +35,7 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.removeAdditionalInsta
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.setAdditionalInstanceField
 import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
+import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createBeforeHook
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createBeforeHooks
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
@@ -70,37 +69,64 @@ class CrashMonitor(lpparam: XposedModuleInterface.SystemServerLoadedParam) {
         val bgControllerClass = "com.android.server.wm.BackgroundActivityStartController"
         val balVerdictClass = $$"$$bgControllerClass$BalVerdict"
 
-        // 适配 Android 版本差异
-        val paramTypes = if (DeviceHelper.System.isMoreAndroidVersion(36)) {
+        /*val paramTypes = if (DeviceHelper.System.isMoreAndroidVersion(36)) {
             arrayOf(
-                Int::class.java, Int::class.java, String::class.java, Int::class.java, Int::class.java,
-                "com.android.server.wm.WindowProcessController", "com.android.server.am.PendingIntentRecord",
-                Boolean::class.java, "com.android.server.wm.ActivityRecord", Intent::class.java, ActivityOptions::class.java
+                Int::class.java, Int::class.java, String::class.java, Int::class.java,
+                "com.android.server.wm.WindowProcessController",
+                "com.android.server.am.PendingIntentRecord",
+                Boolean::class.java,
+                "com.android.server.wm.ActivityRecord",
+                Intent::class.java,
+                ActivityOptions::class.java
             )
         } else {
             arrayOf(
                 Int::class.java, Int::class.java, String::class.java, Int::class.java, Int::class.java,
-                "com.android.server.wm.WindowProcessController", "com.android.server.am.PendingIntentRecord",
-                "android.app.BackgroundStartPrivileges", "com.android.server.wm.ActivityRecord", Intent::class.java, ActivityOptions::class.java
+                "com.android.server.wm.WindowProcessController",
+                "com.android.server.am.PendingIntentRecord",
+                "android.app.BackgroundStartPrivileges",
+                "com.android.server.wm.ActivityRecord",
+                Intent::class.java,
+                ActivityOptions::class.java
             )
-        }
+        }*/
 
         EzxHelpUtils.findClassIfExists(bgControllerClass, classLoader)?.let { clazz ->
-            EzxHelpUtils.findAndHookMethod(clazz, "checkBackgroundActivityStart", *paramTypes, object : com.sevtinge.hyperceiler.libhook.callback.IMethodHook {
-                override fun before(param: io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam) {
-                    val pkg = param.args[2] as? String
+            try {
+                clazz.methodFinder()
+                    .filterByName("checkBackgroundActivityStart")
+                    .first()
+                    .createBeforeHook { param ->
+                        val pkg = param.args[2] as? String
+                        if (pkg == ProjectApi.mAppModulePkg) {
+                            val balAllowDefault = EzxHelpUtils.getStaticObjectField(
+                                EzxHelpUtils.findClass(balVerdictClass, classLoader),
+                                "BAL_ALLOW_DEFAULT"
+                            )
+                            if (balAllowDefault != null) {
+                                param.result = balAllowDefault
+                            } else {
+                                XposedLog.w(TAG, "BAL_ALLOW_DEFAULT is null, skipping hook")
+                            }
+                        }
+                    }
+            } catch (e: Exception) {
+                XposedLog.e(TAG, "Failed to hook checkBackgroundActivityStart", e)
+            }
+        }
+
+        EzxHelpUtils.hookAllMethods("com.android.server.wm.ActivityStarterImpl", classLoader, "isAllowedStartActivity",
+            object : IMethodHook {
+                override fun before(param: BeforeHookParam) {
+                    val pkg = param.args.firstOrNull { it is String } as? String
                     if (pkg == ProjectApi.mAppModulePkg) {
-                        val balAllowDefault = EzxHelpUtils.getStaticObjectField(
-                            EzxHelpUtils.findClass(balVerdictClass, classLoader), "BAL_ALLOW_DEFAULT"
-                        )
-                        param.result = balAllowDefault
+                        param.result = true
                     }
                 }
             })
-        }
 
-        EzxHelpUtils.hookAllMethods("com.android.server.wm.ActivityStarterImpl", classLoader, "isAllowedStartActivity", object : com.sevtinge.hyperceiler.libhook.callback.IMethodHook {
-            override fun before(param: io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam) {
+        EzxHelpUtils.hookAllMethods("com.android.server.wm.ActivityStarterImpl", classLoader, "isAllowedStartActivity", object : IMethodHook {
+            override fun before(param: BeforeHookParam) {
                 val pkg = param.args.firstOrNull { it is String } as? String
                 if (pkg == ProjectApi.mAppModulePkg) {
                     param.result = true
@@ -113,8 +139,9 @@ class CrashMonitor(lpparam: XposedModuleInterface.SystemServerLoadedParam) {
      * Hook AppErrors.handleAppCrashInActivityController
      */
     private fun hookAppErrors(classLoader: ClassLoader) {
-        val appErrorsClass = EzxHelpUtils.findClassIfExists("com.android.server.am.AppErrors", classLoader)
-            ?: throw ClassNotFoundException("com.android.server.am.AppErrors not found")
+        val appErrorsClass =
+            EzxHelpUtils.findClassIfExists("com.android.server.am.AppErrors", classLoader)
+                ?: throw ClassNotFoundException("com.android.server.am.AppErrors not found")
 
         appErrorsClass.methodFinder()
             .filterByName("handleAppCrashInActivityController")
@@ -148,7 +175,8 @@ class CrashMonitor(lpparam: XposedModuleInterface.SystemServerLoadedParam) {
      */
     private fun hookRescueParty(classLoader: ClassLoader) {
         PackageWatchdog.setClassLoader(classLoader)
-        val watchdogClass = EzxHelpUtils.findClass("com.android.server.PackageWatchdogImpl", classLoader)
+        val watchdogClass =
+            EzxHelpUtils.findClass("com.android.server.PackageWatchdogImpl", classLoader)
 
         // 拦截 setCrashApplicationLevel
         watchdogClass.methodFinder()
@@ -190,10 +218,12 @@ class CrashMonitor(lpparam: XposedModuleInterface.SystemServerLoadedParam) {
             .toList()
             .createBeforeHooks { param ->
                 val watchdog = param.thisObject
-                val flagPkg = watchdog.getAdditionalInstanceFieldAs<String?>("flag_pkg") ?: return@createBeforeHooks
+                val flagPkg = watchdog.getAdditionalInstanceFieldAs<String?>("flag_pkg")
+                    ?: return@createBeforeHooks
 
                 watchdog.removeAdditionalInstanceField("flag_pkg")
-                val versionedPackage = param.args[1] as? VersionedPackage ?: return@createBeforeHooks
+                val versionedPackage =
+                    param.args[1] as? VersionedPackage ?: return@createBeforeHooks
 
                 if (versionedPackage.packageName == flagPkg) {
                     val mitigationCount = param.args[0] as Int

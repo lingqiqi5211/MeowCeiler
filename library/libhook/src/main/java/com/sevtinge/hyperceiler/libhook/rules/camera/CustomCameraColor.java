@@ -19,9 +19,7 @@
 
 package com.sevtinge.hyperceiler.libhook.rules.camera;
 
-import static com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils.mPrefsMap;
-
-import com.sevtinge.hyperceiler.libhook.callback.IHook;
+import com.sevtinge.hyperceiler.libhook.base.BaseHook;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKit;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.IDexKit;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils;
@@ -39,7 +37,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-public class CustomCameraColor implements IHook {
+public class CustomCameraColor extends BaseHook {
     @Override
     public void init() {
         Method method = DexKit.findMember("CameraColorGetter", new IDexKit() {

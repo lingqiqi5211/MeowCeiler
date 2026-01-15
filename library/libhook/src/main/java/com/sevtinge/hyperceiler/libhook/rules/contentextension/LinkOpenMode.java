@@ -18,8 +18,6 @@
 */
 package com.sevtinge.hyperceiler.libhook.rules.contentextension;
 
-import static com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils.mPrefsMap;
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -28,15 +26,14 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.text.TextUtils;
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook;
+import com.sevtinge.hyperceiler.libhook.base.BaseHook;
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook;
 
 import java.util.List;
 
 import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam;
 
-public class LinkOpenMode implements IHook {
-
+public class LinkOpenMode extends BaseHook {
     Class<?> mAppsUtils;
 
     @Override

@@ -28,7 +28,7 @@ import android.provider.Settings;
 
 import androidx.annotation.Nullable;
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook;
+import com.sevtinge.hyperceiler.libhook.base.BaseHook;
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils;
 import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog;
@@ -36,7 +36,9 @@ import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog;
 import io.github.kyuubiran.ezxhelper.xposed.common.AfterHookParam;
 import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam;
 
-public class Taplus implements IHook {
+;
+
+public class Taplus extends BaseHook {
     public boolean mListening = false;
 
     @Override

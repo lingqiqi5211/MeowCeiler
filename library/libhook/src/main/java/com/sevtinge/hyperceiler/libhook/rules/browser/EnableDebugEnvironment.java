@@ -20,7 +20,7 @@ package com.sevtinge.hyperceiler.libhook.rules.browser;
 
 import static com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.AppsTool.getPackageVersionCode;
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook;
+import com.sevtinge.hyperceiler.libhook.base.BaseHook;
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKit;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.IDexKit;
@@ -35,7 +35,9 @@ import java.lang.reflect.Method;
 
 import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam;
 
-public class EnableDebugEnvironment implements IHook {
+;
+
+public class EnableDebugEnvironment extends BaseHook {
     @Override
     public void init() {
         Method method = DexKit.findMember("DebugMode", new IDexKit() {

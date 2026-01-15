@@ -18,14 +18,14 @@
 */
 package com.sevtinge.hyperceiler.libhook.rules.aiasst
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook
+import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKit
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
 import java.lang.reflect.Method
 
-object UnlockAllCaptions : IHook {
+object UnlockAllCaptions : BaseHook() {
     private val mBuildConfigUtils by lazy {
         findClassIfExists("com.xiaomi.aiasst.vision.common.BuildConfigUtils")
     }

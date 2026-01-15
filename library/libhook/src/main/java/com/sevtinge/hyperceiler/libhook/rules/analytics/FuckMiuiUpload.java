@@ -21,15 +21,17 @@ package com.sevtinge.hyperceiler.libhook.rules.analytics;
 
 import android.content.Context;
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook;
+import com.sevtinge.hyperceiler.libhook.base.BaseHook;
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook;
 import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog;
 
 import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam;
 
+;
+
 // from https://github.com/gykkuo/MIUI_NoGuard/blob/master/app/src/main/java/cn/fyyr/noguardpls/MainHook.java
 // Todo: 使用 DexKit 重写此 Hook
-public class FuckMiuiUpload implements IHook {
+public class FuckMiuiUpload extends BaseHook {
     @Override
     public void init() {
         int needmod = 0;

@@ -18,12 +18,14 @@
 */
 package com.sevtinge.hyperceiler.libhook.rules.camera;
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook;
+import com.sevtinge.hyperceiler.libhook.base.BaseHook;
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook;
 
 import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam;
 
-public class UnlockTrackEyes implements IHook {
+;
+
+public class UnlockTrackEyes extends BaseHook {
     @Override
     public void init() {
         hookAllMethods("com.android.camera2.CameraCapabilities", "isSupportTrackEye", new IMethodHook() {

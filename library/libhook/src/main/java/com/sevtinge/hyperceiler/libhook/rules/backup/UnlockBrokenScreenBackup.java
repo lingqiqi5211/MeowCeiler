@@ -20,13 +20,15 @@ package com.sevtinge.hyperceiler.libhook.rules.backup;
 
 import android.os.Bundle;
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook;
+import com.sevtinge.hyperceiler.libhook.base.BaseHook;
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils;
 
 import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam;
 
-public class UnlockBrokenScreenBackup implements IHook {
+;
+
+public class UnlockBrokenScreenBackup extends BaseHook {
     @Override
     public void init() {
         findAndHookMethod("com.miui.backup.settings.MoreSettingsFragment", "onCreatePreferences", Bundle.class, String.class, new IMethodHook() {

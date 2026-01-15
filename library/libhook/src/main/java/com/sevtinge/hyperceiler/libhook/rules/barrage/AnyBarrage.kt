@@ -21,14 +21,14 @@ package com.sevtinge.hyperceiler.libhook.rules.barrage
 
 import android.app.Notification
 import android.service.notification.StatusBarNotification
-import com.sevtinge.hyperceiler.libhook.callback.IHook
+import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectFieldAs
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
 
 
-object AnyBarrage : IHook {
+object AnyBarrage : BaseHook() {
     override fun init() {
         loadClass("com.xiaomi.barrage.service.NotificationMonitorService").methodFinder()
             .filterByName("filterNotification")

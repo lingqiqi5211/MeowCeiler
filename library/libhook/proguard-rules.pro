@@ -19,3 +19,21 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
+
+# --- Other ---
+-keep class com.hchen.superlyricapi.** { *; }
+-keep class org.luckypray.dexkit.** { *; }
+-keep class org.lsposed.** { *; }
+-keep class io.github.kyuubiran.ezxhelper.** { *; }
+
+# --- HyperCeiler Core ---
+-keep class com.sevtinge.hyperceiler.libhook.app.** { *; }
+-keep class com.sevtinge.hyperceiler.libhook.base.** { *; }
+-keep class com.sevtinge.hyperceiler.libhook.rules.** { *; }
+
+# --- Tool ---
+-keep class com.sevtinge.hyperceiler.libhook.utils.hookapi.blur.** { *; }
+-keep class com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.** { *; }
+-keep class com.sevtinge.hyperceiler.libhook.utils.hookapi.miuiStringToast.res.** { *; }
+-keep class com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.ResourcesTool { *; }

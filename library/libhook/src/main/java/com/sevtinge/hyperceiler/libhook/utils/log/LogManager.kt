@@ -24,6 +24,7 @@ import com.sevtinge.hyperceiler.libhook.utils.api.ProjectApi.isBeta
 import com.sevtinge.hyperceiler.libhook.utils.api.ProjectApi.isCanary
 import com.sevtinge.hyperceiler.libhook.utils.api.ProjectApi.isRelease
 import com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils.mPrefsMap
+
 import com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils.mSharedPreferences
 import com.sevtinge.hyperceiler.libhook.utils.shell.ShellUtils.rootExecCmd
 import java.io.BufferedReader

@@ -18,8 +18,7 @@
  */
 package com.sevtinge.hyperceiler.libhook.rules.camera
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook
-import com.sevtinge.hyperceiler.libhook.callback.IHook.TAG
+import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKit
 import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
@@ -30,7 +29,7 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
 // thank HolyBear
-object CloudWatermark : IHook {
+object CloudWatermark : BaseHook() {
 
     private val cloudMethod by lazy {
         // 仅支持 6.2 及以上版本，用于强制获取云下发的新水印内容
@@ -82,7 +81,11 @@ object CloudWatermark : IHook {
                 }
             }
         }.onFailure {
-            XposedLog.w(TAG, lpparam.packageName, "hook deleteCloud failed, maybe not support this version")
+            XposedLog.w(
+                TAG,
+                lpparam.packageName,
+                "hook deleteCloud failed, maybe not support this version"
+            )
         }
 
         JSONObject::class.java.methodFinder()

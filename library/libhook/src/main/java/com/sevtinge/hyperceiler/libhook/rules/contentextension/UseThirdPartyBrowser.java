@@ -23,11 +23,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook;
+import com.sevtinge.hyperceiler.libhook.base.BaseHook;
 import com.sevtinge.hyperceiler.libhook.callback.IReplaceHook;
 import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog;
 
-public class UseThirdPartyBrowser implements IHook {
+;
+
+public class UseThirdPartyBrowser extends BaseHook {
 
     @Override
     public void init() {
@@ -35,7 +37,7 @@ public class UseThirdPartyBrowser implements IHook {
         final Class<?> clazz = findClass("com.miui.contentextension.utils.AppsUtils");
         // getClassInfo(clazz);
 
-        findAndHookMethod(clazz, "getIntentWithBrowser", String.class, (IReplaceHook) param -> {
+        findAndReplaceMethod(clazz, "getIntentWithBrowser", String.class, (IReplaceHook) param -> {
             XposedLog.i(TAG, getPackageName(), "hooked url " + param.getArgs()[0].toString());
             Uri uri = Uri.parse(param.getArgs()[0].toString());
             Intent intent = new Intent();
@@ -44,7 +46,7 @@ public class UseThirdPartyBrowser implements IHook {
             return intent;
         });
 
-        findAndHookMethod(clazz, "openGlobalSearch", Context.class, String.class, String.class, (IReplaceHook) param -> {
+        findAndReplaceMethod(clazz, "openGlobalSearch", Context.class, String.class, String.class, (IReplaceHook) param -> {
             XposedLog.i(TAG, getPackageName(), "hooked all-search on, word is " + param.getArgs()[1].toString() + ", from " + param.getArgs()[2].toString());
             try {
                 Intent intent = new Intent();

@@ -18,13 +18,13 @@
  */
 package com.sevtinge.hyperceiler.libhook.rules.camera
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook
+import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKit
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
-object UnlockSuperHighQuality : IHook {
+object UnlockSuperHighQuality : BaseHook() {
     private val unlockMethod by lazy<Method> {
         DexKit.findMember("SuperHighQuality") {
             it.findMethod {

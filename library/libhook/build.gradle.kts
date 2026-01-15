@@ -69,7 +69,6 @@ dependencies {
     api(libs.expansion)
     compileOnlyApi(projects.library.hiddenApi)
 
-    // compileOnlyApi(libs.xposed.api)
     // libxposed API 100
     compileOnlyApi(files("libs/api-100.aar"))
     api(files("libs/service-100.aar"))

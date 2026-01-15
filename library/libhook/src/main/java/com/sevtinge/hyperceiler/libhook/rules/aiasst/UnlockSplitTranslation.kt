@@ -18,14 +18,14 @@
  */
 package com.sevtinge.hyperceiler.libhook.rules.aiasst
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook
+import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKit
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
 import org.luckypray.dexkit.query.enums.StringMatchType
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
-object UnlockSplitTranslation : IHook {
+object UnlockSplitTranslation : BaseHook() {
 
     private val hook by lazy {
         DexKit.findMember("unlockSplitTranslation") { dexKitBridge ->

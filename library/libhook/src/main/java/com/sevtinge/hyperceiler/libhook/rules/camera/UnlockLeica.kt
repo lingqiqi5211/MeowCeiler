@@ -18,8 +18,7 @@
  */
 package com.sevtinge.hyperceiler.libhook.rules.camera
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook
-import com.sevtinge.hyperceiler.libhook.callback.IHook.TAG
+import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKit
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.AppsTool.getPackageVersionCode
 import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog
@@ -29,7 +28,7 @@ import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
-object UnlockLeica : IHook {
+object UnlockLeica : BaseHook() {
     // 这破玩意写了十几个小时，得出的结论是，跨一个大版本就需要改一下特征点
     // 手上只有 5.3 和 6.1 两个版本，其他版本我不保证能解锁
     // 目前兼容到 6.2 版本
@@ -160,7 +159,11 @@ object UnlockLeica : IHook {
         unlockMethod3.declaringClass.methodFinder()
             .filterByName(unlockMethod3.name.decrementLetters())
             .single().createHook {
-                XposedLog.d(TAG, packageName, "uM3: ${unlockMethod3.name}, uM3-1: ${unlockMethod3.name.decrementLetters()}")
+                XposedLog.d(
+                    TAG,
+                    packageName,
+                    "uM3: ${unlockMethod3.name}, uM3-1: ${unlockMethod3.name.decrementLetters()}"
+                )
                 returnConstant(true)
             }
 

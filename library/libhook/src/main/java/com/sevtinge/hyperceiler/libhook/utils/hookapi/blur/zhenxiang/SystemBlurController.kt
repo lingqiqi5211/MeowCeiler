@@ -28,6 +28,7 @@ import com.android.internal.graphics.drawable.BackgroundBlurDrawable
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isMoreAndroidVersion
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.blur.zhenxiang.model.CornersRadius
 import com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils.mPrefsMap
+
 import java.util.function.Consumer
 
 class SystemBlurController(

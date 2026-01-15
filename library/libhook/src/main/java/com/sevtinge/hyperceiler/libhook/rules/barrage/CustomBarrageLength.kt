@@ -18,14 +18,14 @@
 */
 package com.sevtinge.hyperceiler.libhook.rules.barrage
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook
-import com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils.mPrefsMap
+import com.sevtinge.hyperceiler.libhook.base.BaseHook
+
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
 
 //from StarVoyager by @hosizoraru
-object CustomBarrageLength : IHook {
+object CustomBarrageLength : BaseHook() {
     private val barrageLength by lazy {
         mPrefsMap.getInt("barrage_length", 36)
     }

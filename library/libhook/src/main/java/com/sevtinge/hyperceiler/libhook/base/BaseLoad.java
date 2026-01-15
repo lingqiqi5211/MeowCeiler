@@ -20,7 +20,6 @@ package com.sevtinge.hyperceiler.libhook.base;
 
 import static com.sevtinge.hyperceiler.libhook.base.XposedInitEntry.mResHook;
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook;
 import com.sevtinge.hyperceiler.libhook.utils.api.ContextUtils;
 import com.sevtinge.hyperceiler.libhook.utils.api.ProjectApi;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKit;
@@ -50,7 +49,7 @@ public abstract class BaseLoad {
     private static volatile String sPackageName;
     private static volatile PackageLoadedParam sLpparam;
     private static volatile XposedInterface sXposed;
-    private static String TAG = "BaseLoad";
+    private static volatile String sCurrentHookTag = "BaseLoad";
 
     public final PrefsMap<String, Object> mPrefsMap = PrefsUtils.mPrefsMap;
     private final boolean mNeedDexKit;
@@ -99,7 +98,7 @@ public abstract class BaseLoad {
 
     public static String getTag() {
         synchronized (sLock) {
-            return TAG;
+            return sCurrentHookTag;
         }
     }
 
@@ -113,6 +112,7 @@ public abstract class BaseLoad {
             sClassLoader = lpparam.getClassLoader();
             sPackageName = lpparam.getPackageName();
             sLpparam = lpparam;
+            sCurrentHookTag = this.getClass().getSimpleName();
         }
 
         // 把模块资源加载到目标应用
@@ -126,13 +126,13 @@ public abstract class BaseLoad {
                 }, isAndroid);
             }
         } catch (Throwable e) {
-            XposedLog.e(TAG, "get context failed! " + e);
+            XposedLog.e(getTag(), "get context failed! " + e);
         }
 
         try {
             // 按需初始化 DexKit
             if (mNeedDexKit) {
-                DexKit.ready(lpparam, TAG);
+                DexKit.ready(lpparam, getTag());
             }
 
             // 执行具体 Hook 逻辑
@@ -145,29 +145,26 @@ public abstract class BaseLoad {
         }
     }
 
-    protected void initHook(IHook hook) {
+    protected void initHook(BaseHook hook) {
         initHook(hook, () -> true);
     }
 
-    protected void initHook(IHook hook, boolean isInit) {
+    protected void initHook(BaseHook hook, boolean isInit) {
         initHook(hook, () -> isInit);
     }
 
-    protected void initHook(IHook hook, BooleanSupplier condition) {
+    protected void initHook(BaseHook hook, BooleanSupplier condition) {
         if (hook == null) return;
-        synchronized (sLock) {
-            TAG = hook.getClass().getSimpleName();
-        }
 
         try {
             if (condition.getAsBoolean()) {
                 hook.init();
-                XposedLog.i(TAG, getPackageName(), "Hook Success");
+                XposedLog.i(hook.TAG, getPackageName(), "Hook Success");
             }
         } catch (Throwable t) {
             StringWriter sw = new StringWriter();
             t.printStackTrace(new PrintWriter(sw));
-            XposedLog.e(TAG, getPackageName(), "Hook Failed: " + sw);
+            XposedLog.e(hook.TAG, getPackageName(), "Hook Failed: " + sw);
         }
     }
 }

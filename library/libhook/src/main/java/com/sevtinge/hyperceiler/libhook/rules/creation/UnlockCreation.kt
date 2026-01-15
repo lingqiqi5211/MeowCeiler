@@ -18,11 +18,11 @@
 */
 package com.sevtinge.hyperceiler.libhook.rules.creation
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook
+import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.LazyClass.clazzMiuiBuild
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.setStaticObject
 
-object UnlockCreation : IHook {
+object UnlockCreation : BaseHook() {
     override fun init() {
         setStaticObject(clazzMiuiBuild, "IS_TABLET", true)
     }

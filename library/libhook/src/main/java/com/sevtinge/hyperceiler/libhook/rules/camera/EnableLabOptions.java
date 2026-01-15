@@ -18,7 +18,7 @@
 */
 package com.sevtinge.hyperceiler.libhook.rules.camera;
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook;
+import com.sevtinge.hyperceiler.libhook.base.BaseHook;
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKit;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.IDexKit;
@@ -34,7 +34,9 @@ import java.util.Objects;
 
 import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam;
 
-public class EnableLabOptions implements IHook {
+;
+
+public class EnableLabOptions extends BaseHook {
     @Override
     public void init() {
         Method method = DexKit.findMember("LabOptions", new IDexKit() {

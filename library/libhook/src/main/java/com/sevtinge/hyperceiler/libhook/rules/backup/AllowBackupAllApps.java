@@ -18,12 +18,14 @@
 */
 package com.sevtinge.hyperceiler.libhook.rules.backup;
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook;
+import com.sevtinge.hyperceiler.libhook.base.BaseHook;
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook;
 
 import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam;
 
-public class AllowBackupAllApps implements IHook {
+;
+
+public class AllowBackupAllApps extends BaseHook {
     @Override
     public void init() {
         findAndHookMethod("com.miui.backup.Customization", "isSkipDataApp", String.class, new IMethodHook() {

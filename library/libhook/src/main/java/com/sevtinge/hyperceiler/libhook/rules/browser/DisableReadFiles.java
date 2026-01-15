@@ -20,12 +20,14 @@ package com.sevtinge.hyperceiler.libhook.rules.browser;
 
 import android.net.Uri;
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook;
+import com.sevtinge.hyperceiler.libhook.base.BaseHook;
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook;
 
 import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam;
 
-public class DisableReadFiles implements IHook {
+;
+
+public class DisableReadFiles extends BaseHook {
     @Override
     public void init() {
         findAndHookMethod("com.android.browser.provider.AdBlockRuleProvider", "openFile", Uri.class, String.class, new IMethodHook(){

@@ -21,12 +21,14 @@ package com.sevtinge.hyperceiler.libhook.rules.contacts;
 
 import static com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils.setBooleanField;
 
-import com.sevtinge.hyperceiler.libhook.callback.IHook;
+import com.sevtinge.hyperceiler.libhook.base.BaseHook;
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook;
 
 import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam;
 
-public class DisableNetworkAssistantOfflineInfoManager implements IHook {
+;
+
+public class DisableNetworkAssistantOfflineInfoManager extends BaseHook {
     @Override
     public void init() {
         hookAllConstructors("com.mobile.businesshall.bean.OffLineData$BaseData", new IMethodHook() {
