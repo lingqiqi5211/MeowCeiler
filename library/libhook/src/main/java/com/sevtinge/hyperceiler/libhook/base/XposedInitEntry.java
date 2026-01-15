@@ -28,9 +28,7 @@ import android.content.SharedPreferences;
 import androidx.annotation.NonNull;
 
 import com.sevtinge.hyperceiler.libhook.app.others.VariousThirdApps;
-import com.sevtinge.hyperceiler.libhook.safecrash.CrashHook;
-import com.sevtinge.hyperceiler.libhook.safecrash.RescuePartyPlus;
-import com.sevtinge.hyperceiler.libhook.safecrash.SafeMode;
+import com.sevtinge.hyperceiler.libhook.safecrash.CrashMonitor;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.ResourcesTool;
 import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog;
 import com.sevtinge.hyperceiler.libhook.utils.pkg.CheckModifyUtils;
@@ -84,10 +82,7 @@ public class XposedInitEntry extends XposedModule {
 
         // load CrashHook
         try {
-            new CrashHook(lpparam);
-            RescuePartyPlus rescuePartyPlus = RescuePartyPlus.INSTANCE;
-            rescuePartyPlus.setHandler(SafeMode.INSTANCE);
-            rescuePartyPlus.init();
+            new CrashMonitor(lpparam);
         } catch (Exception e) {
             XposedLog.e(TAG, "Crash Hook load failed, " + e);
         }

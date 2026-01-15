@@ -47,7 +47,7 @@ import com.sevtinge.hyperceiler.common.utils.LanguageHelper;
 import com.sevtinge.hyperceiler.common.utils.search.SearchHelper;
 import com.sevtinge.hyperceiler.holiday.HolidayHelper;
 import com.sevtinge.hyperceiler.libhook.callback.IResult;
-import com.sevtinge.hyperceiler.libhook.safecrash.CrashData;
+import com.sevtinge.hyperceiler.libhook.safecrash.CrashScope;
 import com.sevtinge.hyperceiler.libhook.utils.api.BackupUtils;
 import com.sevtinge.hyperceiler.libhook.utils.api.ThreadPoolManager;
 import com.sevtinge.hyperceiler.libhook.utils.log.AndroidLog;
@@ -157,7 +157,7 @@ public class HyperCeilerTabActivity extends NaviBaseActivity
 
     private List<String> computeCrashList() {
         try {
-            List<?> raw = CrashData.toPkgList();
+            List<?> raw = CrashScope.getCrashingPackages();
             if (raw.isEmpty()) {
                 return Collections.emptyList();
             }
