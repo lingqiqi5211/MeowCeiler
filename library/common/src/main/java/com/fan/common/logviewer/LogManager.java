@@ -1,9 +1,9 @@
 package com.fan.common.logviewer;
 
-// LogManager.java
-
 import android.content.Context;
 import android.util.Log;
+
+import com.sevtinge.hyperceiler.libhook.utils.log.AndroidLog;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,300 +14,208 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 日志管理器 - 单例模式
+ * 功能：
+ * 1. 管理应用日志和 Xposed 日志
+ * 2. 日志持久化
+ * 3. 日志导出
+ * 4. 日志级别管理
+ */
 public class LogManager {
-
     private static LogManager sInstance;
-    private final List<LogEntry> mLogEntries;
-    private final List<LogEntry> mSystemLogEntries;
-    private final List<LogEntry> mXposedLogEntries;
-    private Context mApplicationContext;
-    private boolean mIsInitialized = false;
+    private final List<LogEntry> mLogEntries = new ArrayList<>();
+    private final List<LogEntry> mXposedLogEntries = new ArrayList<>();
+    private Context mContext;
+    private boolean mInitialized = false;
 
-    private static final String sLogFileName = "custom_logs.txt";
-    private static final String sSystemLogFileName = "system_logs.txt";
+    private static final String LOG_FILE = "app_logs.txt";
+    private static final String LOG_CONFIG_FILE = "log_config";
+    private static final String TAG = "LogManager";
 
-    // 私有构造函数
-    private LogManager() {
-        // 延迟初始化，等待setApplicationContext调用
-        mLogEntries = new ArrayList<>();
-        mSystemLogEntries = new ArrayList<>();
-        mXposedLogEntries = new ArrayList<>();
-    }
+    private LogManager() {}
 
     /**
-     * 推荐方式：通过Application初始化
+     * 一键初始化（在 Application.onCreate() 中调用）
      */
-    public static void initialize(Context context) {
+    public static void init(Context context) {
         if (sInstance == null) {
             synchronized (LogManager.class) {
                 if (sInstance == null) {
                     sInstance = new LogManager();
-                    sInstance.setApplicationContext(context.getApplicationContext());
+                    sInstance.doInit(context.getApplicationContext());
                 }
             }
         }
     }
 
     /**
-     * 兼容方式：传统getInstance（内部会检查是否已初始化）
-     */
-    public static LogManager getInstance(Context context) {
-        if (sInstance == null) {
-            synchronized (LogManager.class) {
-                if (sInstance == null) {
-                    sInstance = new LogManager();
-                    sInstance.setApplicationContext(context.getApplicationContext());
-                }
-            }
-        }
-        return sInstance;
-    }
-
-    /**
-     * 获取实例（必须在initialize之后调用）
+     * 获取实例
      */
     public static LogManager getInstance() {
         if (sInstance == null) {
-            throw new IllegalStateException("LogManager must be initialized first. " +
-                    "Call LogManager.initialize(context) in your Application class.");
+            throw new IllegalStateException(
+                "LogManager not initialized. Call LogManager.init(context) first.");
         }
         return sInstance;
     }
 
-    private void setApplicationContext(Context applicationContext) {
-        this.mApplicationContext = applicationContext;
-        this.mIsInitialized = true;
+    private void doInit(Context context) {
+        this.mContext = context;
+        this.mInitialized = true;
         loadHistoryLogs();
 
-        // 记录初始化日志
-        addLog(new LogEntry("I", "LogManager", "LogManager initialized with Application Context",
-                "System", true));
+        // 设置 AndroidLog 监听器，转发日志到 LogManager
+        AndroidLog.setLogListener((level, tag, message) -> {
+            try {
+                LogEntry entry = new LogEntry(level, "App", "[" + tag + "] " + message, tag, true);
+                addLog(entry);
+            } catch (Throwable ignored) {
+            }
+        });
+
+        addLog(new LogEntry("I", "LogManager", "LogManager initialized", "System", true));
     }
 
-    // 确保在使用前已初始化
-    private void checkInitialization() {
-        if (!mIsInitialized || mApplicationContext == null) {
-            throw new IllegalStateException("LogManager not properly initialized. " +
-                    "Make sure to call initialize() in your Application class.");
-        }
+    // ===== 日志操作 =====
+    public void addLog(LogEntry entry) {
+        if (!mInitialized) return;
+        mLogEntries.add(entry);
+        saveLogAsync(entry);
     }
 
-    // 添加自定义日志
-    // 修改所有需要Context的方法，添加检查
-    public void addLog(LogEntry logEntry) {
-        checkInitialization();
-        mLogEntries.add(logEntry);
-        saveLogToFile(logEntry, sLogFileName);
+    public void addLogs(List<LogEntry> entries) {
+        if (!mInitialized) return;
+        mLogEntries.addAll(entries);
+        saveLogsAsync(entries);
     }
 
-    // 批量添加日志
-    public void addLogs(List<LogEntry> logEntries) {
-        checkInitialization();
-        mLogEntries.addAll(logEntries);
-        saveLogsToFile(logEntries, sLogFileName);
+    public void addXposedLog(LogEntry entry) {
+        mXposedLogEntries.add(entry);
     }
 
-    // 添加 Xposed 日志（仅内存，不保存到文件）
-    public void addXposedLog(LogEntry logEntry) {
-        mXposedLogEntries.add(logEntry);
+    public void addXposedLogs(List<LogEntry> entries) {
+        mXposedLogEntries.addAll(entries);
     }
 
-    // 批量添加 Xposed 日志（仅内存，不保存到文件）
-    public void addXposedLogs(List<LogEntry> logEntries) {
-        mXposedLogEntries.addAll(logEntries);
+    public void clearLogs() {
+        mLogEntries.clear();
+        deleteLogFile();
     }
 
-    // 清空 Xposed 日志
     public void clearXposedLogs() {
         mXposedLogEntries.clear();
     }
 
-    // 获取系统日志
-    public void captureSystemLogs() {
-        checkInitialization();
+    // ===== 获取数据 =====
+    public List<LogEntry> getLogEntries() {
+        return new ArrayList<>(mLogEntries);
+    }
+
+    public List<LogEntry> getXposedLogEntries() {
+        return new ArrayList<>(mXposedLogEntries);
+    }
+
+    // ===== 文件操作 =====
+    private void saveLogAsync(LogEntry entry) {
         new Thread(() -> {
             try {
-                Process process = Runtime.getRuntime().exec("logcat -d -v time");
-                BufferedReader bufferedReader = new BufferedReader(
-                        new InputStreamReader(process.getInputStream()));
-
-                String line;
-                mSystemLogEntries.clear();
-                while ((line = bufferedReader.readLine()) != null) {
-                    LogEntry logEntry = parseLogcatLine(line);
-                    if (logEntry != null) {
-                        mSystemLogEntries.add(logEntry);
-                    }
-                }
-                saveSystemLogsToFile();
+                FileOutputStream fos = mContext.openFileOutput(LOG_FILE, Context.MODE_APPEND);
+                String line = formatLogLine(entry);
+                fos.write(line.getBytes());
+                fos.close();
             } catch (IOException e) {
-                Log.e("LogManager", "Error reading logcat", e);
+                Log.e(TAG, "Save log failed", e);
             }
         }).start();
     }
 
-    private LogEntry parseLogcatLine(String line) {
-        // 简化解析，实际需要更复杂的解析逻辑
-        if (line.contains(" E ")) {
-            return new LogEntry("E", "System", line, "System", true);
-        } else if (line.contains(" W ")) {
-            return new LogEntry("W", "System", line, "System", true);
-        } else if (line.contains(" I ")) {
-            return new LogEntry("I", "System", line, "System", true);
-        } else if (line.contains(" D ")) {
-            return new LogEntry("D", "System", line, "System", true);
-        } else {
-            return new LogEntry("V", "System", line, "System", true);
-        }
-    }
-
-    // 清空日志
-    public void clearCustomLogs() {
-        mLogEntries.clear();
-        deleteLogFile(sLogFileName);
-    }
-
-    public void clearSystemLogs() {
-        mSystemLogEntries.clear();
-        deleteLogFile(sSystemLogFileName);
-    }
-
-    // 导出日志
-    public boolean exportLogs(String fileName, boolean includeSystemLogs) {
-        checkInitialization();
-        try {
-            File exportFile = new File(mApplicationContext.getExternalFilesDir(null), fileName);
-            FileOutputStream outputStream = new FileOutputStream(exportFile);
-
-            // 写入自定义日志
-            for (LogEntry entry : mLogEntries) {
-                String logLine = String.format("%s %s/%s: %s\n",
-                        entry.getFormattedTime(),
-                        entry.getModule(),
-                        entry.getLevel(),
-                        entry.getMessage());
-                outputStream.write(logLine.getBytes());
-            }
-
-            // 写入系统日志
-            if (includeSystemLogs) {
-                for (LogEntry entry : mSystemLogEntries) {
-                    String logLine = String.format("%s %s\n",
-                            entry.getFormattedTime(),
-                            entry.getMessage());
-                    outputStream.write(logLine.getBytes());
-                }
-            }
-
-            outputStream.close();
-            return true;
-        } catch (IOException e) {
-            Log.e("LogManager", "Export failed", e);
-            return false;
-        }
-    }
-
-    private void saveLogToFile(LogEntry logEntry, String fileName) {
+    private void saveLogsAsync(List<LogEntry> entries) {
         new Thread(() -> {
             try {
-                FileOutputStream outputStream = mApplicationContext.openFileOutput(
-                        fileName, Context.MODE_APPEND);
-                String logLine = String.format("%d|%s|%s|%s|%s|%b\n",
-                        logEntry.getTimestamp(),
-                        logEntry.getLevel(),
-                        logEntry.getModule(),
-                        logEntry.getMessage(),
-                        logEntry.getTag(),
-                        logEntry.isNewLine());
-                outputStream.write(logLine.getBytes());
-                outputStream.close();
-            } catch (IOException e) {
-                Log.e("LogManager", "Save log failed", e);
-            }
-        }).start();
-    }
-
-    private void saveSystemLogsToFile() {
-        new Thread(() -> {
-            try {
-                FileOutputStream outputStream = mApplicationContext.openFileOutput(
-                        sSystemLogFileName, Context.MODE_PRIVATE);
-                for (LogEntry entry : mSystemLogEntries) {
-                    String logLine = String.format("%d|%s|%s|%s|%s|%b\n",
-                            entry.getTimestamp(),
-                            entry.getLevel(),
-                            entry.getModule(),
-                            entry.getMessage(),
-                            entry.getTag(),
-                            entry.isNewLine());
-                    outputStream.write(logLine.getBytes());
+                FileOutputStream fos = mContext.openFileOutput(LOG_FILE, Context.MODE_APPEND);
+                for (LogEntry entry : entries) {
+                    String line = formatLogLine(entry);
+                    fos.write(line.getBytes());
                 }
-                outputStream.close();
+                fos.close();
             } catch (IOException e) {
-                Log.e("LogManager", "Save system logs failed", e);
+                Log.e(TAG, "Save logs failed", e);
             }
         }).start();
     }
 
     private void loadHistoryLogs() {
-        loadLogsFromFile(sLogFileName, mLogEntries);
-        loadLogsFromFile(sSystemLogFileName, mSystemLogEntries);
-    }
-
-    private void loadLogsFromFile(String fileName, List<LogEntry> targetList) {
         try {
-            FileInputStream inputStream = mApplicationContext.openFileInput(fileName);
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(inputStream));
-
+            FileInputStream fis = mContext.openFileInput(LOG_FILE);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
             String line;
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.split("\\|");
-                if (parts.length == 6) {
-                    LogEntry logEntry = new LogEntry(
-                            parts[1], parts[2], parts[3], parts[4], Boolean.parseBoolean(parts[5])
-                    );
-                    targetList.add(logEntry);
+                LogEntry entry = parseLogLine(line);
+                if (entry != null) {
+                    mLogEntries.add(entry);
                 }
             }
             reader.close();
-        } catch (IOException e) {
+        } catch (IOException ignored) {
             // 文件不存在是正常的
         }
     }
 
-    private void deleteLogFile(String fileName) {
-        File file = new File(mApplicationContext.getFilesDir(), fileName);
+    private void deleteLogFile() {
+        File file = new File(mContext.getFilesDir(), LOG_FILE);
         if (file.exists()) {
             file.delete();
         }
     }
 
-    // 批量保存日志到文件
-    private void saveLogsToFile(List<LogEntry> logEntries, String fileName) {
-        new Thread(() -> {
-            try {
-                FileOutputStream outputStream = mApplicationContext.openFileOutput(
-                        fileName, Context.MODE_APPEND);
-                for (LogEntry logEntry : logEntries) {
-                    String logLine = String.format("%d|%s|%s|%s|%s|%b\n",
-                            logEntry.getTimestamp(),
-                            logEntry.getLevel(),
-                            logEntry.getModule(),
-                            logEntry.getMessage(),
-                            logEntry.getTag(),
-                            logEntry.isNewLine());
-                    outputStream.write(logLine.getBytes());
-                }
-                outputStream.close();
-            } catch (IOException e) {
-                Log.e("LogManager", "Save logs failed", e);
-            }
-        }).start();
+    private String formatLogLine(LogEntry entry) {
+        return String.format("%d|%s|%s|%s|%s|%b\n",
+            entry.getTimestamp(),
+            entry.getLevel(),
+            entry.getModule(),
+            entry.getMessage(),
+            entry.getTag(),
+            entry.isNewLine());
     }
 
-    // Getters
-    public List<LogEntry> getLogEntries() { return mLogEntries; }
-    public List<LogEntry> getSystemLogEntries() { return mSystemLogEntries; }
-    public List<LogEntry> getXposedLogEntries() { return mXposedLogEntries; }
+    private LogEntry parseLogLine(String line) {
+        String[] parts = line.split("\\|");
+        if (parts.length == 6) {
+            try {
+                return new LogEntry(
+                    Long.parseLong(parts[0]),
+                    parts[1], parts[2], parts[3], parts[4],
+                    Boolean.parseBoolean(parts[5])
+                );
+            } catch (Exception e) {
+                Log.e(TAG, "Parse log line failed", e);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 导出日志
+     */
+    public boolean exportLogs(String fileName) {
+        try {
+            File exportFile = new File(mContext.getExternalFilesDir(null), fileName);
+            FileOutputStream fos = new FileOutputStream(exportFile);
+
+            for (LogEntry entry : mLogEntries) {
+                String line = String.format("%s %s/%s: %s\n",
+                    entry.getFormattedTime(),
+                    entry.getModule(),
+                    entry.getLevel(),
+                    entry.getMessage());
+                fos.write(line.getBytes());
+            }
+            fos.close();
+            return true;
+        } catch (IOException e) {
+            Log.e(TAG, "Export failed", e);
+            return false;
+        }
+    }
 }

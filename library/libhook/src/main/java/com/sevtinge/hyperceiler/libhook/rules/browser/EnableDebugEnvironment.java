@@ -45,7 +45,7 @@ public class EnableDebugEnvironment extends BaseHook {
             public BaseData dexkit(DexKitBridge bridge) throws ReflectiveOperationException {
                 MethodData methodData = bridge.findMethod(FindMethod.create()
                         .matcher(MethodMatcher.create()
-                                .usingStrings("pref_key_debug_mode_" + getPackageVersionCode(getLpparam().getApplicationInfo().sourceDir, getClassLoader()))
+                                .usingStrings("pref_key_debug_mode_" + getPackageVersionCode(getLpparam()))
                                 .name("getDebugMode")
                                 .returnType(boolean.class)
                         )).singleOrNull();

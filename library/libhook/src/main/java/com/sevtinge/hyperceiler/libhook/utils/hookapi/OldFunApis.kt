@@ -16,7 +16,7 @@
 
   * Copyright (C) 2023-2026 HyperCeiler Contributions
 */
-package com.sevtinge.hyperceiler.hook.utils.api
+package com.sevtinge.hyperceiler.libhook.utils.hookapi
 
 import android.content.res.Resources.getSystem
 import android.view.Window
@@ -151,8 +151,7 @@ fun Any.method(
             .filter { it.parameterTypes.size == argTypes.argTypes.size }
             .apply { if (returnType != null) filter { returnType == it.returnType } }
             .filter { it.parameterTypes.sameAs(*argTypes.argTypes) }
-            .filter { it.isStatic == isStatic }
-            .firstOrNull()?.let { it.isAccessible = true; return it }
+            .firstOrNull { it.isStatic == isStatic }?.let { it.isAccessible = true; return it }
     } while (c.superclass?.also { c = it } != null)
     throw NoSuchMethodException("Name:$methodName, Static: $isStatic, ArgTypes:${argTypes.argTypes.joinToString(",")}")
 }
@@ -195,16 +194,3 @@ fun Any.invokeMethod(
 
 val Int.dp: Int get() = (this.toFloat().dp).toInt()
 val Float.dp: Float get() = this / getSystem().displayMetrics.density
-
-/**
- * 扩展函数 用于反射调用 XposedBridge 的 deoptimizeMethod 方法
- * @param member 需要去优化的成员方法
- */
-/*fun Member.deoptimizeMethod() {
-    invokeStaticMethodBestMatch(
-        de.robv.android.xposed.XposedBridge::class.java,
-        "deoptimizeMethod",
-        null,
-        this
-    )
-}*/

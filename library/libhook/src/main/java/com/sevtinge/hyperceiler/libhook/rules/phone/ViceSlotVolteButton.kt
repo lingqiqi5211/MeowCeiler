@@ -20,8 +20,8 @@ package com.sevtinge.hyperceiler.libhook.rules.phone
 
 import android.provider.Settings
 import com.sevtinge.hyperceiler.libhook.base.BaseHook
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.OtherTool.FlAG_ONLY_ANDROID
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.OtherTool.findContext
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.AppsTool.FlAG_ONLY_ANDROID
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.AppsTool.findContext
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook

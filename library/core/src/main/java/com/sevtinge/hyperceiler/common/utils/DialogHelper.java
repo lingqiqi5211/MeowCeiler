@@ -20,7 +20,7 @@ package com.sevtinge.hyperceiler.common.utils;
 
 import static com.sevtinge.hyperceiler.common.utils.CtaUtils.setCtaValue;
 import static com.sevtinge.hyperceiler.libhook.utils.api.DisplayUtils.dp2px;
-import static com.sevtinge.hyperceiler.libhook.utils.log.LogManager.LOGGER_CHECKER_ERR_CODE;
+import static com.sevtinge.hyperceiler.libhook.utils.log.LoggerHealthChecker.LOGGER_CHECKER_ERR_CODE;
 import static com.sevtinge.hyperceiler.libhook.utils.shell.ShellUtils.checkRootPermission;
 
 import android.app.Activity;

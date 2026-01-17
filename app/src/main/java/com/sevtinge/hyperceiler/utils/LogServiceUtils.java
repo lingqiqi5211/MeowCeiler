@@ -42,6 +42,6 @@ public class LogServiceUtils {
 
     private static boolean showLogServiceWarn() {
         return !IS_LOGGER_ALIVE && isModuleActivated && !isRelease() &&
-            !PrefsUtils.mSharedPreferences.getBoolean("prefs_key_development_close_log_alert_dialog", false);
+            !PrefsUtils.mPrefsMap.getBoolean("prefs_key_development_close_log_alert_dialog", false);
     }
 }

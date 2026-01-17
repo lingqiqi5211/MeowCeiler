@@ -29,7 +29,6 @@ import io.github.kyuubiran.ezxhelper.core.finder.FieldFinder
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder
 import io.github.kyuubiran.ezxhelper.core.helper.ObjectHelper.`-Static`.objectHelper
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil
-import io.github.kyuubiran.ezxhelper.core.util.ObjectUtil
 import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
 import io.github.libxposed.api.XposedInterface.MethodUnhooker
@@ -48,6 +47,8 @@ object EzxHelpUtils {
     lateinit var xposedModule: XposedModule
         private set
     private val additionalFields = WeakHashMap<Any, MutableMap<String, Any?>>()
+
+    private val methodCache = WeakHashMap<String, Method?>()
 
     private external fun invokeOriginalMethodNative(
         method: Member,
@@ -186,50 +187,141 @@ object EzxHelpUtils {
 
     @JvmStatic
     fun callMethod(instance: Any, methodName: String, vararg args: Any?): Any? {
-        return ObjectUtil.invokeMethodBestMatch(instance, methodName, null, *args)
+        return findMethodBestMatch(instance::class.java, methodName, *args)
+            .invoke(instance, *args)
     }
 
     @JvmStatic
     fun callStaticMethod(clazz: Class<*>, methodName: String, vararg args: Any?): Any? {
-        return ClassUtil.invokeStaticMethodBestMatch(clazz, methodName, null, *args)
+        return findStaticMethodBestMatch(clazz, methodName, *args)
     }
 
     @JvmStatic
-    fun findMethodBestMatch(clazz: Class<*>, methodName: String, vararg args: Any?): Method {
-        val parameterTypes = args.map {
-            when (it) {
-                is Class<*> -> it
-                else -> it?.javaClass
+    fun getParameterTypesExact(vararg args: Any?): Array<Class<*>> {
+        return Array(args.size) { i ->
+            when (val arg = args[i]) {
+                is Class<*> -> arg
+                else -> arg!!.javaClass
             }
-        }.toTypedArray()
-
-        return if (parameterTypes.all { it != null }) {
-            MethodFinder.fromClass(clazz)
-                .filterByName(methodName)
-                .filterByParamTypes(*parameterTypes.filterNotNull().toTypedArray())
-                .firstOrNull()
-                ?: MethodFinder.fromClass(clazz)
-                    .filterByName(methodName)
-                    .filterByParamCount(parameterTypes.size)
-                    .first()
-        } else {
-            MethodFinder.fromClass(clazz)
-                .filterByName(methodName)
-                .filterByParamCount(parameterTypes.size)
-                .first()
         }
     }
 
     @JvmStatic
-    fun findMethodExact(
+    fun getParameterClasses(clazz: Class<*>, vararg args: Any?): Array<Class<*>> {
+        return args.dropLast(1).map {
+            when (it) {
+                is Class<*> -> it
+                is String -> {
+                    try {
+                        findClass(it, clazz.classLoader)
+                    } catch (_: Exception) {
+                        findClass(it, classLoader)
+                    }
+                }
+
+                else -> throw IllegalArgumentException("Parameter types must be Class<?> or String")
+            }
+        }.toTypedArray()
+    }
+
+
+    /**
+     * 查找方法（最佳匹配）
+     *
+     * @param clazz 声明、继承或覆盖该方法的类
+     * @param methodName 方法名
+     * @param parameterTypes 方法参数的类型
+     * @return 最佳匹配方法的引用
+     * @throws NoSuchMethodError 如果找不到合适的方法
+     */
+    @JvmStatic
+    fun findMethodBestMatch(
         clazz: Class<*>,
         methodName: String,
         vararg parameterTypes: Class<*>
     ): Method {
-        return MethodFinder.fromClass(clazz)
-            .filterByName(methodName)
-            .filterByParamTypes(*parameterTypes)
-            .first()
+        val fullMethodName =
+            "${clazz.name}#$methodName${getParametersString(*parameterTypes)}#bestmatch"
+
+        synchronized(methodCache) {
+            if (methodCache.containsKey(fullMethodName)) {
+                val method = methodCache[fullMethodName]
+                    ?: throw NoSuchMethodError(fullMethodName)
+                return method
+            }
+        }
+
+        fun cacheAndReturn(method: Method): Method {
+            method.isAccessible = true
+            synchronized(methodCache) {
+                methodCache[fullMethodName] = method
+            }
+            return method
+        }
+
+        try {
+            val exactMethod = findMethodExactIfExists(clazz, methodName, *parameterTypes)
+            return cacheAndReturn(exactMethod)
+        } catch (_: NoSuchMethodError) {
+        }
+
+        var bestMatch: Method? = null
+        var clz: Class<*>? = clazz
+        var considerPrivateMethods = true
+
+        while (clz != null) {
+            for (method in clz.declaredMethods) {
+                if (!considerPrivateMethods && Modifier.isPrivate(method.modifiers)) {
+                    continue
+                }
+
+                if (method.name == methodName && isAssignable(parameterTypes, method.parameterTypes)) {
+                    if (bestMatch == null || compareParameterTypes(
+                            method.parameterTypes,
+                            bestMatch.parameterTypes,
+                            parameterTypes
+                        ) < 0
+                    ) {
+                        bestMatch = method
+                    }
+                }
+            }
+            considerPrivateMethods = false
+            clz = clz.superclass
+        }
+
+        if (bestMatch != null) {
+            return cacheAndReturn(bestMatch)
+        } else {
+            synchronized(methodCache) {
+                methodCache[fullMethodName] = null
+            }
+            throw NoSuchMethodError(fullMethodName)
+        }
+    }
+
+    @JvmStatic
+    fun findMethodBestMatch(
+        clazz: Class<*>,
+        methodName: String,
+        vararg args: Any?
+    ): Method {
+        val parameterTypes = getParameterTypesExact(*args)
+        return findMethodBestMatch(clazz, methodName, *parameterTypes)
+    }
+
+    @JvmStatic
+    fun findStaticMethodBestMatch(
+        clazz: Class<*>,
+        methodName: String,
+        vararg args: Any?
+    ): Any? {
+        val method = findMethodBestMatch(clazz, methodName, *args)
+        return try {
+            method.invoke(null, *args)
+        } catch (t: Throwable) {
+            XposedLog.e(TAG, "invokeStaticMethodBestMatch failed for ${formatMethodSignature(method)}", t)
+        }
     }
 
     @JvmStatic
@@ -237,11 +329,33 @@ object EzxHelpUtils {
         clazz: Class<*>,
         methodName: String,
         vararg parameterTypes: Class<*>
-    ): Method? {
-        return MethodFinder.fromClass(clazz)
+    ): Method {
+        val fullMethodName = "${clazz.name}#$methodName${getParametersString(*parameterTypes)}#exact"
+
+        synchronized(methodCache) {
+            if (methodCache.containsKey(fullMethodName)) {
+                return methodCache[fullMethodName] ?: throw NoSuchMethodError(fullMethodName)
+            }
+        }
+
+        val clz: Class<*> = clazz
+        val method = MethodFinder.fromClass(clz)
             .filterByName(methodName)
             .filterByParamTypes(*parameterTypes)
             .firstOrNull()
+
+        if (method != null) {
+            method.isAccessible = true
+            synchronized(methodCache) {
+                methodCache[fullMethodName] = method
+            }
+            return method
+        }
+
+        synchronized(methodCache) {
+            methodCache[fullMethodName] = null
+        }
+        throw NoSuchMethodError(fullMethodName)
     }
 
     /**
@@ -258,20 +372,8 @@ object EzxHelpUtils {
         clazz: Class<*>,
         methodName: String,
         vararg parameterTypes: Any
-    ): Method? {
-        val paramTypes = parameterTypes.map {
-            when (it) {
-                is Class<*> -> it
-                is String -> {
-                    try {
-                        findClass(it, clazz.classLoader)
-                    } catch (_: Exception) {
-                        findClass(it, classLoader)
-                    }
-                }
-                else -> throw IllegalArgumentException("Parameter types must be Class<?> or String")
-            }
-        }.toTypedArray()
+    ): Method {
+        val paramTypes = getParameterTypesExact(*parameterTypes)
         return findMethodExactIfExists(clazz, methodName, *paramTypes)
     }
 
@@ -365,12 +467,7 @@ object EzxHelpUtils {
 
     @JvmStatic
     fun findConstructorBestMatch(clazz: Class<*>, vararg args: Any?): Constructor<*> {
-        val parameterTypes = args.mapNotNull {
-            when (it) {
-                is Class<*> -> it
-                else -> it?.javaClass
-            }
-        }.toTypedArray()
+        val parameterTypes = getParameterTypesExact(*args)
 
         return if (parameterTypes.size == args.size) {
             ConstructorFinder.fromClass(clazz)
@@ -589,7 +686,7 @@ object EzxHelpUtils {
         vararg parameterTypes: Class<*>,
         callback: IMethodHook
     ): MethodUnhooker<*> {
-        val method = findMethodExact(clazz, methodName, *parameterTypes)
+        val method = findMethodExactIfExists(clazz, methodName, *parameterTypes)
         return hookMethod(method, callback)
     }
 
@@ -633,22 +730,8 @@ object EzxHelpUtils {
         val callback = args.last()
         require(callback is IMethodHook) { "Last argument must be IMethodHook" }
 
-        val paramTypes = args.dropLast(1).map {
-            when (it) {
-                is Class<*> -> it
-                is String -> {
-                    try {
-                        findClass(it, clazz.classLoader)
-                    } catch (_: Exception) {
-                        findClass(it, classLoader)
-                    }
-                }
-
-                else -> throw IllegalArgumentException("Parameter types must be Class<?> or String")
-            }
-        }.toTypedArray()
-
-        val method = findMethodExact(clazz, methodName, *paramTypes)
+        val paramTypes = getParameterClasses(clazz, *args)
+        val method = findMethodExactIfExists(clazz, methodName, *paramTypes)
         return hookMethod(method, callback)
     }
 
@@ -691,22 +774,8 @@ object EzxHelpUtils {
         val callback = args.last()
         require(callback is IReplaceHook) { "Last argument must be IReplaceHook" }
 
-        val paramTypes = args.dropLast(1).map {
-            when (it) {
-                is Class<*> -> it
-                is String -> {
-                    try {
-                        findClass(it, clazz.classLoader)
-                    } catch (_: Exception) {
-                        findClass(it, classLoader)
-                    }
-                }
-
-                else -> throw IllegalArgumentException("Parameter types must be Class<?> or String")
-            }
-        }.toTypedArray()
-
-        val method = findMethodExact(clazz, methodName, *paramTypes)
+        val paramTypes = getParameterClasses(clazz, *args)
+        val method = findMethodExactIfExists(clazz, methodName, *paramTypes)
         return hookMethod(method, callback)
     }
 
@@ -760,20 +829,7 @@ object EzxHelpUtils {
         val callback = args.last()
         require(callback is IMethodHook) { "Last argument must be IMethodHook" }
 
-        val paramTypes = args.dropLast(1).map {
-            when (it) {
-                is Class<*> -> it
-                is String -> {
-                    try {
-                        findClass(it, clazz.classLoader)
-                    } catch (_: Exception) {
-                        findClass(it, classLoader)
-                    }
-                }
-                else -> throw IllegalArgumentException("Parameter types must be Class<?> or String")
-            }
-        }.toTypedArray()
-
+        val paramTypes = getParameterClasses(clazz, *args)
         val constructor = findConstructorExact(clazz, *paramTypes)
         return hookConstructor(constructor, callback)
     }
@@ -910,6 +966,90 @@ object EzxHelpUtils {
                 method: Method? -> this.deoptimize(method!!)
             }
     }
+}
+
+/**
+ * 检查参数类型是否可分配
+ *
+ * @param parameterTypes 实际参数类型
+ * @param methodParameterTypes 方法形式参数类型
+ * @return 如果所有参数都可分配则返回 true
+ */
+private fun isAssignable(
+    parameterTypes: Array<out Class<*>>,
+    methodParameterTypes: Array<Class<*>>
+): Boolean {
+    if (parameterTypes.size != methodParameterTypes.size) {
+        return false
+    }
+
+    for (i in parameterTypes.indices) {
+        if (!methodParameterTypes[i].isAssignableFrom(parameterTypes[i])) {
+            return false
+        }
+    }
+
+    return true
+}
+
+/**
+ * 比较参数类型的匹配程度
+ *
+ * 返回值：
+ * - 负数：method1 比 method2 更匹配
+ * - 0：两者匹配程度相同
+ * - 正数：method2 比 method1 更匹配
+ *
+ * @param method1ParameterTypes 第一个方法的参数类型
+ * @param method2ParameterTypes 第二个方法的参数类型
+ * @param actualParameterTypes 实际参数类型
+ * @return 比较结果
+ */
+private fun compareParameterTypes(
+    method1ParameterTypes: Array<Class<*>>,
+    method2ParameterTypes: Array<Class<*>>,
+    actualParameterTypes: Array<out Class<*>>
+): Int {
+    for (i in actualParameterTypes.indices) {
+        val method1ParamType = method1ParameterTypes[i]
+        val method2ParamType = method2ParameterTypes[i]
+        val actualParamType = actualParameterTypes[i]
+
+        if (method1ParamType == method2ParamType) {
+            continue
+        }
+
+        // 如果 method1 的参数类型与实际类型相同，则 method1 更匹配
+        if (method1ParamType == actualParamType) {
+            return -1
+        }
+
+        // 如果 method2 的参数类型与实际类型相同，则 method2 更匹配
+        if (method2ParamType == actualParamType) {
+            return 1
+        }
+
+        // 检查继承关系：更具体的类型更匹配
+        if (method1ParamType.isAssignableFrom(method2ParamType)) {
+            return 1
+        }
+
+        if (method2ParamType.isAssignableFrom(method1ParamType)) {
+            return -1
+        }
+    }
+
+    return 0
+}
+
+/**
+ * 获取参数类型字符串表示
+ *
+ * @param parameterTypes 参数类型数组
+ * @return 格式化的参数字符串，如 "(String,int)"
+ */
+private fun getParametersString(vararg parameterTypes: Class<*>): String {
+    return parameterTypes.joinToString(",", "(", ")") { it.simpleName }
 }
 
 // ==================== Any 扩展函数 ====================
@@ -1078,3 +1218,15 @@ fun Class<*>.hookAllMethods(methodName: String, callback: IMethodHook): List<Met
 
 fun Class<*>.hookAllConstructors(callback: IMethodHook): List<MethodUnhooker<*>> =
     EzxHelpUtils.hookAllConstructors(this, callback)
+
+
+val Member.isStatic: Boolean
+    inline get() = Modifier.isStatic(modifiers)
+val Member.isFinal: Boolean
+    inline get() = Modifier.isFinal(modifiers)
+val Member.isPublic: Boolean
+    inline get() = Modifier.isPublic(modifiers)
+val Member.isNotStatic: Boolean
+    inline get() = !isStatic
+val Class<*>.isAbstract: Boolean
+    inline get() = !isPrimitive && Modifier.isAbstract(modifiers)

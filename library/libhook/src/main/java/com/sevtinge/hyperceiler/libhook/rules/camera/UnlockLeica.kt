@@ -36,7 +36,7 @@ object UnlockLeica : BaseHook() {
     // 后面如果能优化的话再说
     // 2025.5.1 ~ 2025.9.17
     val isNewCamera by lazy {
-        getPackageVersionCode(lpparam.applicationInfo.sourceDir, classLoader) >= 600000000
+        getPackageVersionCode(lpparam) >= 600000000
     }
 
     private val unlockMethod1 by lazy<Method> {

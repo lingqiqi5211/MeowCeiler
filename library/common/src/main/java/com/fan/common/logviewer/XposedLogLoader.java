@@ -16,13 +16,10 @@
 
  * Copyright (C) 2023-2026 HyperCeiler Contributions
  */
-package com.sevtinge.hyperceiler.utils.log;
+package com.fan.common.logviewer;
 
-import android.content.Context;
 import android.util.Log;
 
-import com.fan.common.logviewer.LogEntry;
-import com.fan.common.logviewer.LogManager;
 import com.sevtinge.hyperceiler.libhook.utils.shell.ShellUtils;
 
 import java.io.BufferedReader;
@@ -41,8 +38,8 @@ public class XposedLogLoader {
     private static final Pattern TIME_PATTERN = Pattern.compile("\\[\\s*(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3})");
     private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.US);
 
-    public static void loadLogs(Context context, Runnable callback) {
-        LogManager logManager = LogManager.getInstance(context);
+    public static void loadLogs(Runnable callback) {
+        LogManager logManager = LogManager.getInstance();
         logManager.clearXposedLogs();
 
         new Thread(() -> {
@@ -98,8 +95,8 @@ public class XposedLogLoader {
         }).start();
     }
 
-    public static void loadLogsSync(Context context) {
-        LogManager logManager = LogManager.getInstance(context);
+    public static void loadLogsSync() {
+        LogManager logManager = LogManager.getInstance();
         logManager.clearXposedLogs();
 
         try {
@@ -195,7 +192,7 @@ public class XposedLogLoader {
 
     private static boolean isValidPackageName(String name) {
         if (name == null || name.isEmpty()) return false;
-        if ("android".equals(name)) return true;
+        if ("system".equals(name)) return true;
         if (!name.contains(".")) return false;
 
         String[] parts = name.split("\\.");

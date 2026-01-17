@@ -33,7 +33,7 @@ import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam;
 public class BypassRiskCheck extends BaseHook {
     @Override
     public void init() {
-        boolean isNew = getPackageVersionCode(getLpparam().getApplicationInfo().sourceDir, getClassLoader()) >= 40005740;
+        boolean isNew = getPackageVersionCode(getLpparam()) >= 40005740;
         if (isNew) {
             hookAllMethods("com.xiaomi.market.business_ui.main.mine.app_security.check_page.risk_app.AppSecurityRiskAppView", "updateResultStatus", new IMethodHook() {
                 @Override

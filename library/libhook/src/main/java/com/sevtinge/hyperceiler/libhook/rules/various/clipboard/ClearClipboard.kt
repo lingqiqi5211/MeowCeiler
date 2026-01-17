@@ -27,7 +27,7 @@ import android.widget.TextView
 import com.sevtinge.hyperceiler.libhook.R
 import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isMoreSmallVersion
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.OtherTool
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.AppsTool
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callMethod
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callStaticMethod
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectField
@@ -62,7 +62,7 @@ class ClearClipboard : BaseHook() {
                 it.thisObject.getObjectFieldAs<ImageView>("addButton").apply {
                     addButton = this
                     addButtonIcon = drawable
-                    removeIcon = OtherTool.getModuleRes(context)
+                    removeIcon = AppsTool.getModuleRes(context)
                         .getDrawable(R.drawable.ic_remove, context.theme)
 
                     callMethod("setVisibility", 0)

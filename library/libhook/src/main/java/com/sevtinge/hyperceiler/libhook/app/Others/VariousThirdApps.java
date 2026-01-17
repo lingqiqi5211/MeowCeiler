@@ -30,7 +30,7 @@ import com.sevtinge.hyperceiler.libhook.rules.various.clipboard.ClipboardLimit;
 import com.sevtinge.hyperceiler.libhook.rules.various.clipboard.LoadInputMethodDex;
 import com.sevtinge.hyperceiler.libhook.rules.various.clipboard.SoGouClipboard;
 import com.sevtinge.hyperceiler.libhook.rules.various.clipboard.UnlockIme;
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.OtherTool;
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.AppsTool;
 import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog;
 
 import java.util.ArrayList;
@@ -45,7 +45,7 @@ public class VariousThirdApps extends BaseLoad {
     @Override
     public void onPackageLoaded() {
         if (mAppsUsingInputMethod.isEmpty()) {
-            mAppsUsingInputMethod = getAppsUsingInputMethod(OtherTool.findContext(OtherTool.FlAG_ONLY_ANDROID));
+            mAppsUsingInputMethod = getAppsUsingInputMethod(AppsTool.findContext(AppsTool.FlAG_ONLY_ANDROID));
         }
         mPackageName = getPackageName();
         if (mPrefsMap.getBoolean("various_phrase_clipboardlist")) {

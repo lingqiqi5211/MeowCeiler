@@ -28,26 +28,20 @@ object XposedLog {
     private const val TAG = "HyperCeiler"
 
     @Volatile
-    private var sXposed: XposedInterface? = null
-
-    @Volatile
     @JvmField
     var logLevel: Int = 3
+
+    @Volatile
+    private var sXposed: XposedInterface? = null
 
     @JvmStatic
     fun init(xposed: XposedInterface) {
         sXposed = xposed
     }
 
-    @JvmStatic
-    fun setLogLevel(level: Int) {
-        logLevel = level
-    }
-
-    private fun logRaw(msg: String? = null, t: Throwable? = null) {
-        if (msg == null && t == null) return
+    private fun logRaw(msg: String, t: Throwable? = null) {
         val xposed = sXposed
-        if (msg != null) {
+        if (msg.isNotEmpty()) {
             if (xposed != null) {
                 xposed.log(msg)
             } else {
@@ -63,148 +57,120 @@ object XposedLog {
         }
     }
 
+    // ============ Debug: 4 ============
     @JvmStatic
     fun d(msg: String) {
-        if (logLevel < 4) return
-        logRaw("[$TAG][D]: $msg")
+        if (!LoggerUtils.shouldLog(logLevel, 4)) return
+        logRaw(LoggerUtils.formatMessage(TAG, "D", msg))
     }
 
     @JvmStatic
     fun d(tag: String, msg: String) {
-        if (logLevel < 4) return
-        logRaw("[$TAG][D][$tag]: $msg")
+        if (!LoggerUtils.shouldLog(logLevel, 4)) return
+        logRaw(LoggerUtils.formatMessageWithTag(TAG, "D", tag, msg))
     }
 
     @JvmStatic
     fun d(tag: String, msg: String, t: Throwable) {
-        if (logLevel < 4) return
-        logRaw("[$TAG][D][$tag]: $msg", t)
+        if (!LoggerUtils.shouldLog(logLevel, 4)) return
+        logRaw(LoggerUtils.formatMessageWithTag(TAG, "D", tag, msg), t)
     }
 
     @JvmStatic
     fun d(tag: String, pkg: String?, msg: String) {
-        if (logLevel < 4) return
-        if (pkg != null) {
-            logRaw("[$TAG][D][$pkg][$tag]: $msg")
-        } else {
-            logRaw("[$TAG][D][$tag]: $msg")
-        }
+        if (!LoggerUtils.shouldLog(logLevel, 4)) return
+        logRaw(LoggerUtils.formatMessageWithPkg(TAG, "D", pkg, tag, msg))
     }
 
+    // ============ Info: 3 ============
     @JvmStatic
     fun i(msg: String) {
-        if (logLevel < 3) return
-        logRaw("[$TAG][I]: $msg")
+        if (!LoggerUtils.shouldLog(logLevel, 3)) return
+        logRaw(LoggerUtils.formatMessage(TAG, "I", msg))
     }
 
     @JvmStatic
     fun i(tag: String, msg: String) {
-        if (logLevel < 3) return
-        logRaw("[$TAG][I][$tag]: $msg")
+        if (!LoggerUtils.shouldLog(logLevel, 3)) return
+        logRaw(LoggerUtils.formatMessageWithTag(TAG, "I", tag, msg))
     }
 
     @JvmStatic
     fun i(tag: String, pkg: String?, msg: String) {
-        if (logLevel < 3) return
-        if (pkg != null) {
-            logRaw("[$TAG][I][$pkg][$tag]: $msg")
-        } else {
-            logRaw("[$TAG][I][$tag]: $msg")
-        }
+        if (!LoggerUtils.shouldLog(logLevel, 3)) return
+        logRaw(LoggerUtils.formatMessageWithPkg(TAG, "I", pkg, tag, msg))
     }
 
+    // ============ Warn: 2 ============
     @JvmStatic
     fun w(msg: String) {
-        if (logLevel < 2) return
-        logRaw("[$TAG][W]: $msg")
+        if (!LoggerUtils.shouldLog(logLevel, 2)) return
+        logRaw(LoggerUtils.formatMessage(TAG, "W", msg))
     }
 
     @JvmStatic
     fun w(tag: String, msg: String) {
-        if (logLevel < 2) return
-        logRaw("[$TAG][W][$tag]: $msg")
+        if (!LoggerUtils.shouldLog(logLevel, 2)) return
+        logRaw(LoggerUtils.formatMessageWithTag(TAG, "W", tag, msg))
     }
 
     @JvmStatic
     fun w(tag: String, msg: String, t: Throwable) {
-        if (logLevel < 2) return
-        logRaw("[$TAG][W][$tag]: $msg", t)
+        if (!LoggerUtils.shouldLog(logLevel, 2)) return
+        logRaw(LoggerUtils.formatMessageWithTag(TAG, "W", tag, msg), t)
     }
 
     @JvmStatic
     fun w(tag: String, pkg: String?, msg: String) {
-        if (logLevel < 2) return
-        if (pkg != null) {
-            logRaw("[$TAG][W][$pkg][$tag]: $msg")
-        } else {
-            logRaw("[$TAG][W][$tag]: $msg")
-        }
+        if (!LoggerUtils.shouldLog(logLevel, 2)) return
+        logRaw(LoggerUtils.formatMessageWithPkg(TAG, "W", pkg, tag, msg))
     }
 
     @JvmStatic
     fun w(tag: String, pkg: String?, msg: String, t: Throwable) {
-        if (logLevel < 2) return
-        if (pkg != null) {
-            logRaw("[$TAG][W][$pkg][$tag]: $msg", t)
-        } else {
-            logRaw("[$TAG][W][$tag]: $msg", t)
-        }
+        if (!LoggerUtils.shouldLog(logLevel, 2)) return
+        logRaw(LoggerUtils.formatMessageWithPkg(TAG, "W", pkg, tag, msg), t)
     }
 
+    // ============ Error: 1 ============
     @JvmStatic
     fun e(msg: String) {
-        if (logLevel < 1) return
-        logRaw("[$TAG][E]: $msg")
+        if (!LoggerUtils.shouldLog(logLevel, 1)) return
+        logRaw(LoggerUtils.formatMessage(TAG, "E", msg))
     }
 
     @JvmStatic
     fun e(tag: String, msg: String) {
-        if (logLevel < 1) return
-        logRaw("[$TAG][E][$tag]: $msg")
+        if (!LoggerUtils.shouldLog(logLevel, 1)) return
+        logRaw(LoggerUtils.formatMessageWithTag(TAG, "E", tag, msg))
     }
 
     @JvmStatic
     fun e(tag: String, t: Throwable) {
-        if (logLevel < 1) return
-        logRaw("[$TAG][E][$tag]: ${t.message}", )
+        if (!LoggerUtils.shouldLog(logLevel, 1)) return
+        logRaw(LoggerUtils.formatMessageWithTag(TAG, "E", tag, t.message ?: t.toString()), t)
     }
 
     @JvmStatic
     fun e(tag: String, msg: String, t: Throwable) {
-        if (logLevel < 1) return
-        logRaw("[$TAG][E][$tag]: $msg", t)
+        if (!LoggerUtils.shouldLog(logLevel, 1)) return
+        logRaw(LoggerUtils.formatMessageWithTag(TAG, "E", tag, msg), t)
     }
 
     @JvmStatic
     fun e(tag: String, pkg: String?, msg: String) {
-        if (logLevel < 1) return
-        if (pkg != null) {
-            logRaw("[$TAG][E][$pkg][$tag]: $msg")
-        } else {
-            logRaw("[$TAG][E][$tag]: $msg")
-        }
+        if (!LoggerUtils.shouldLog(logLevel, 1)) return
+        logRaw(LoggerUtils.formatMessageWithPkg(TAG, "E", pkg, tag, msg))
     }
 
     @JvmStatic
     fun e(tag: String, pkg: String?, msg: String, t: Throwable) {
-        if (logLevel < 1) return
-        if (pkg != null) {
-            logRaw("[$TAG][E][$pkg][$tag]: $msg", t)
-        } else {
-            logRaw("[$TAG][E][$tag]: $msg", t)
-        }
+        if (!LoggerUtils.shouldLog(logLevel, 1)) return
+        logRaw(LoggerUtils.formatMessageWithPkg(TAG, "E", pkg, tag, msg), t)
     }
-
 
     @JvmStatic
     fun logLevelDesc(): String {
-        return when (logLevel) {
-            0 -> "Disable"
-            1 -> "Error"
-            2 -> "Warn"
-            3 -> "Info"
-            4 -> "Debug"
-            else -> "Unknown"
-        }
+        return LoggerUtils.logLevelDesc(logLevel)
     }
 }

@@ -33,8 +33,8 @@ import com.sevtinge.hyperceiler.libhook.R
 import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.utils.api.DisplayUtils.dp2px
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKit
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.AppsTool.getModuleRes
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils.findMethodsByExactParameters
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.OtherTool.getModuleRes
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callMethod
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callMethodOrNull
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectField

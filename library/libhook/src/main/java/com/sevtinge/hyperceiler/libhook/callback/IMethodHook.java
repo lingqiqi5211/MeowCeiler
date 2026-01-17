@@ -69,7 +69,7 @@ public interface IMethodHook {
      *
      * @param param Hook 参数，可用于获取/修改返回值等
      */
-    default void after(AfterHookParam param) throws PackageManager.NameNotFoundException, InvocationTargetException, IllegalAccessException, InstantiationException {
+    default void after(AfterHookParam param) throws Exception {
     }
 
     /**

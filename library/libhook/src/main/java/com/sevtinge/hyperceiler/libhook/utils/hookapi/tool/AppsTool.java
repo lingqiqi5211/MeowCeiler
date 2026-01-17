@@ -18,11 +18,17 @@
  */
 package com.sevtinge.hyperceiler.libhook.utils.hookapi.tool;
 
+import static com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils.mPrefsMap;
+
 import android.annotation.SuppressLint;
+import android.app.Application;
 import android.app.backup.BackupManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
@@ -33,10 +39,19 @@ import android.os.FileObserver;
 import android.os.UserHandle;
 import android.util.Log;
 import android.util.LruCache;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import com.sevtinge.hyperceiler.libhook.R;
+import com.sevtinge.hyperceiler.libhook.utils.api.ContextUtils;
 import com.sevtinge.hyperceiler.libhook.utils.api.ProjectApi;
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.blur.MiBlurUtils;
 import com.sevtinge.hyperceiler.libhook.utils.log.AndroidLog;
+import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog;
 import com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils;
 import com.sevtinge.hyperceiler.libhook.utils.shell.ShellInit;
 
@@ -45,8 +60,16 @@ import java.util.ArrayList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import io.github.libxposed.api.XposedModuleInterface;
+
 public class AppsTool {
 
+    // 尝试全部
+    public static final int FLAG_ALL = ContextUtils.FLAG_ALL;
+    // 仅获取当前应用
+    public static final int FLAG_CURRENT_APP = ContextUtils.FLAG_CURRENT_APP;
+    // 获取 Android 系统
+    public static final int FlAG_ONLY_ANDROID = ContextUtils.FlAG_ONLY_ANDROID;
     private static final String TAG = "AppsTool";
 
     public static LruCache<String, Bitmap> memoryCache = new LruCache<>((int) (Runtime.getRuntime().maxMemory() / 1024) / 2) {
@@ -59,9 +82,109 @@ public class AppsTool {
             }
         }
     };
+    @SuppressLint("StaticFieldLeak")
+    public static TextView mPct = null;
 
     public static synchronized Context getProtectedContext(Context context) {
         return context.createDeviceProtectedStorageContext();
+    }
+
+    public static Resources getModuleRes(Context context)
+            throws PackageManager.NameNotFoundException {
+        return ResourcesTool.getInstance().loadModuleRes(context);
+    }
+
+    public static Context findContext(@ContextUtils.Duration int flag) {
+        Context context = null;
+        try {
+            switch (flag) {
+                case FLAG_ALL -> context = currentApplication() != null ? currentApplication() : getSystemContext();
+                case FLAG_CURRENT_APP -> context = currentApplication();
+                case FlAG_ONLY_ANDROID -> context = getSystemContext();
+            }
+            return context;
+        } catch (Throwable ignore) {
+        }
+        return null;
+    }
+
+    private static Context currentApplication() {
+        Class<?> activityThreadClass = EzxHelpUtils.findClass("android.app.ActivityThread", null);
+        return (Application) EzxHelpUtils.callStaticMethod(activityThreadClass, "currentApplication");
+    }
+
+    private static Context getSystemContext() {
+        Context context = null;
+        Class<?> activityThreadClass = EzxHelpUtils.findClass("android.app.ActivityThread", null);
+        Object currentActivityThread = EzxHelpUtils.callStaticMethod(activityThreadClass, "currentActivityThread");
+        if (currentActivityThread != null)
+            context = (Context) EzxHelpUtils.callMethod(currentActivityThread, "getSystemContext");
+        if (context == null)
+            context = (Context) EzxHelpUtils.callMethod(currentActivityThread, "getSystemUiContext");
+        return context;
+    }
+
+    public static void initPct(ViewGroup container, int source) {
+        Resources res = container.getContext().getResources();
+        if (mPct == null) {
+            Context context = container.getContext();
+            float density = res.getDisplayMetrics().density;
+
+            mPct = new TextView(context);
+            mPct.setTextSize(TypedValue.COMPLEX_UNIT_SP, 40);
+            mPct.setGravity(Gravity.CENTER);
+
+            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+            );
+            lp.topMargin = Math.round(mPrefsMap.getInt("system_ui_others_showpct_top", 54) * density *
+                (res.getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 0.7f : 1.0f));
+            lp.gravity = Gravity.CENTER_HORIZONTAL | Gravity.TOP;
+            mPct.setPadding(
+                Math.round(20 * density),
+                Math.round(10 * density),
+                Math.round(18 * density),
+                Math.round(12 * density)
+            );
+            mPct.setLayoutParams(lp);
+
+            try {
+                Resources modRes = getModuleRes(context);
+                mPct.setTextColor(ColorStateList.valueOf(Color.parseColor("#FFFFFFFF")));
+                mPct.setBackground(modRes.getDrawable(R.drawable.input_background, context.getTheme()));
+            } catch (Throwable err) {
+               XposedLog.e("ShowPct", err);
+            }
+
+            if (mPrefsMap.getBoolean("system_showpct_use_blur")) {
+                try {
+                    int blurRadius = isDarkMode(getSystemContext()) ? 220 : 320;
+                    int alpha = isDarkMode(getSystemContext()) ? 140 : 160;
+
+                    MiBlurUtils.clearMiBackgroundBlendColor(mPct);
+                    MiBlurUtils.setPassWindowBlurEnabled(mPct, true);
+                    MiBlurUtils.setMiViewBlurMode(mPct, 1);
+                    MiBlurUtils.setMiBackgroundBlurMode(mPct, 1);
+                    MiBlurUtils.setMiBackgroundBlurRadius(mPct, blurRadius);
+                    MiBlurUtils.addMiBackgroundBlendColor(mPct, Color.argb(alpha, 0, 0, 0), 101);
+                } catch (Throwable e) {
+                    XposedLog.e("ShowPct", e);
+                }
+            }
+            container.addView(mPct);
+        }
+        mPct.setTag(source);
+        mPct.setVisibility(View.GONE);
+    }
+
+    public static void removePct(TextView mPctText) {
+        if (mPctText != null) {
+            mPctText.setVisibility(View.GONE);
+            ViewGroup p = (ViewGroup) mPctText.getParent();
+            p.removeView(mPctText);
+            mPct = null;
+        }
     }
 
     public static class MimeType {
@@ -163,6 +286,11 @@ public class AppsTool {
             AndroidLog.e("getPackageVersionName", e.toString());
             return "null";
         }
+    }
+
+    public static int getPackageVersionCode(XposedModuleInterface.PackageLoadedParam loadedParam) {
+        String sourceDir = loadedParam.getApplicationInfo().sourceDir;
+        return getPackageVersionCode(sourceDir, loadedParam.getClassLoader());
     }
 
     public static int getPackageVersionCode(String sourceDir, ClassLoader classLoader) {

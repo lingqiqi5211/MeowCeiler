@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.fan.common.base.BaseActivity;
 import com.fan.common.widget.SearchEditText;
 import com.fan.common.widget.SpinnerItemView;
+import com.sevtinge.hyperceiler.libhook.utils.log.AndroidLog;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -52,10 +53,6 @@ public class LogViewerActivity extends BaseActivity
         sXposedLogLoader = loader;
     }
 
-    private AppLogger mAppLogger;
-    private ModuleLogger mNetworkLogger;
-    private ModuleLogger mDatabaseLogger;
-
     private NestedHeaderLayout mNestedHeaderLayout;
     private RecyclerView mRecyclerView;
     private LogAdapter mLogAdapter;
@@ -87,7 +84,7 @@ public class LogViewerActivity extends BaseActivity
     protected void onCreate() {
         super.onCreate();
 
-        mLogManager = LogManager.getInstance(this);
+        mLogManager = LogManager.getInstance();
 
         // 先加载 Xposed 日志，加载完成后再初始化界面
         loadXposedLogsAndInit();
@@ -98,15 +95,11 @@ public class LogViewerActivity extends BaseActivity
             // 异步加载 Xposed 日志
             sXposedLogLoader.loadLogs(this, () -> {
                 // 在主线程上初始化界面
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    initViews();
-                    setupLoggers();
-                });
+                new Handler(Looper.getMainLooper()).post(this::initViews);
             });
         } else {
             // 没有注册加载器，直接初始化
             initViews();
-            setupLoggers();
         }
     }
 
@@ -318,7 +311,7 @@ public class LogViewerActivity extends BaseActivity
                 if (mLogAdapter == null) return;
 
                 try {
-                    // 安全地获取选中的模块 - 这是修复的关键！
+                    // 安全地获取选中的模块
                     if (position >= 0 && position < mModuleList.size()) {
                         String selectedModule = mModuleList.get(position);
                         mLogAdapter.setModuleFilter(selectedModule);
@@ -337,8 +330,7 @@ public class LogViewerActivity extends BaseActivity
                     // 安全回退
                     if (mLogAdapter != null) {
                         mLogAdapter.setModuleFilter("ALL");
-                    }
-                    if (mModuleSpinner != null) {
+                    }if (mModuleSpinner != null) {
                         mModuleSpinner.setSelection(0);
                     }
                 }
@@ -352,13 +344,6 @@ public class LogViewerActivity extends BaseActivity
                 }
             }
         });
-    }
-
-    private void setupLoggers() {
-        // 从Application获取或直接使用静态方法
-        mAppLogger = AppLogger.getInstance();
-        mNetworkLogger = new ModuleLogger("Network");
-        mDatabaseLogger = new ModuleLogger("Database");
     }
 
     public void refreshLogs() {
@@ -394,18 +379,13 @@ public class LogViewerActivity extends BaseActivity
         return "app_" + sdf.format(new Date()) + ".log";
     }
 
-    private void addTestLog() {
-        mAppLogger.debug("Test log entry at " + System.currentTimeMillis());
-        refreshLogs();
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == sExportRequestCode && resultCode == Activity.RESULT_OK) {
             if (data != null && data.getData() != null) {
-                LogManager.getInstance().exportLogs("exported_logs.txt", true);
+                LogManager.getInstance().exportLogs("exported_logs.txt");
             }
         }
     }
@@ -419,11 +399,11 @@ public class LogViewerActivity extends BaseActivity
     protected boolean onMenuItemClick(MenuItem item) {
         int itemId = item.getItemId();
         if (itemId == com.fan.common.R.id.menu_clear_custom) {
-            LogManager.getInstance().clearCustomLogs();
+            LogManager.getInstance().clearLogs();
             refreshLogs();
             return true;
         } else if (itemId == com.fan.common.R.id.menu_clear_system) {
-            LogManager.getInstance().clearSystemLogs();
+            LogManager.getInstance().clearXposedLogs();
             refreshLogs();
             return true;
         } else if (itemId == com.fan.common.R.id.menu_export) {
@@ -440,26 +420,9 @@ public class LogViewerActivity extends BaseActivity
         return super.onMenuItemClick(item);
     }
 
-
-    private void addTestLogs() {
-        AppLogger appLogger = AppLogger.getInstance();
-        ModuleLogger networkLogger = new ModuleLogger("Network");
-        ModuleLogger databaseLogger = new ModuleLogger("Database");
-
-        // 添加各种类型的测试日志
-        appLogger.verbose("This is a verbose message with detailed information");
-        appLogger.debug("Debug information for development");
-        appLogger.info("Application initialized successfully");
-        appLogger.warn("Warning: Low memory detected");
-        appLogger.error("Error: Network connection failed");
-
-        networkLogger.info("Network request started");
-        networkLogger.debug("Sending request to: https://api.example.com");
-        networkLogger.error("Network timeout after 30 seconds");
-
-        databaseLogger.info("Database connection established");
-        databaseLogger.debug("Executing query: SELECT * FROM users");
-        databaseLogger.warn("Slow query detected: took 2.5 seconds");
+    private void addTestLog() {
+        AndroidLog.d("LogViewerActivity", "Test log entry at " + System.currentTimeMillis());
+        refreshLogs();
     }
 
     @Override
@@ -476,14 +439,14 @@ public class LogViewerActivity extends BaseActivity
     private void showLogDetailDialog(LogEntry logEntry) {
         String title = getString(com.sevtinge.hyperceiler.core.R.string.log_detail_title);
         String message = "[" + getString(com.sevtinge.hyperceiler.core.R.string.log_detail_time) + "]: " + logEntry.getFormattedTime() +
-                "\n[" + getString(com.sevtinge.hyperceiler.core.R.string.log_detail_level) + "]: " + logEntry.getLevel() +
-                "\n[" + getString(com.sevtinge.hyperceiler.core.R.string.log_detail_tag) + "]: " + logEntry.getTag() +
-                "\n[" + getString(com.sevtinge.hyperceiler.core.R.string.log_detail_message) + "]:\n" + logEntry.getMessage();
+            "\n[" + getString(com.sevtinge.hyperceiler.core.R.string.log_detail_level) + "]: " + logEntry.getLevel() +
+            "\n[" + getString(com.sevtinge.hyperceiler.core.R.string.log_detail_tag) + "]: " + logEntry.getTag() +
+            "\n[" + getString(com.sevtinge.hyperceiler.core.R.string.log_detail_message) + "]:\n" + logEntry.getMessage();
 
         new fan.appcompat.app.AlertDialog.Builder(this)
-                .setTitle(title)
-                .setMessage(message)
-                .setPositiveButton(android.R.string.ok, (dialog, which) -> dialog.dismiss())
-                .show();
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton(android.R.string.ok, (dialog, which) -> dialog.dismiss())
+            .show();
     }
 }

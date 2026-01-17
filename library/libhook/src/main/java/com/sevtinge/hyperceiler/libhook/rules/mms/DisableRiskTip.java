@@ -75,7 +75,7 @@ public class DisableRiskTip extends BaseHook {
                 param.setResult(false);
             }
         });
-        if (getPackageVersionCode(getLpparam().getApplicationInfo().sourceDir, getClassLoader()) >= 170000000) {
+        if (getPackageVersionCode(getLpparam()) >= 170000000) {
             findAndHookMethod("com.miui.smsextra.internal.sdk.xiaomi.YellowPagePhone", "isRiskyNumber", new IMethodHook() {
                 @Override
                 public void before(BeforeHookParam param) {

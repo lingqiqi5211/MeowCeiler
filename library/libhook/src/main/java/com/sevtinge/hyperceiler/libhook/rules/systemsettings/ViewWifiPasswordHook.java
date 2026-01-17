@@ -18,7 +18,7 @@
  */
 package com.sevtinge.hyperceiler.libhook.rules.systemsettings;
 
-import static com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.OtherTool.getModuleRes;
+import static com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.AppsTool.getModuleRes;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

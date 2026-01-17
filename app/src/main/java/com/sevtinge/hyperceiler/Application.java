@@ -26,16 +26,14 @@ import android.os.Process;
 
 import androidx.annotation.NonNull;
 
-import com.fan.common.logviewer.LogAppProxy;
-import com.fan.common.logviewer.LogEntry;
 import com.fan.common.logviewer.LogManager;
 import com.fan.common.logviewer.LogViewerActivity;
+import com.fan.common.logviewer.XposedLogLoader;
 import com.sevtinge.hyperceiler.common.utils.LSPosedScopeHelper;
 import com.sevtinge.hyperceiler.libhook.utils.log.AndroidLog;
 import com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils;
 import com.sevtinge.hyperceiler.model.data.AppInfoCache;
 import com.sevtinge.hyperceiler.safemode.ExceptionCrashActivity;
-import com.sevtinge.hyperceiler.utils.log.XposedLogLoader;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -60,16 +58,13 @@ public class Application extends android.app.Application implements XposedServic
     @Override
     public void onCreate() {
         super.onCreate();
-        LogAppProxy.onCreate(this);
-        LogViewerActivity.setXposedLogLoader(XposedLogLoader::loadLogs);
 
-        AndroidLog.setLogListener((level, tag, message) -> {
-            try {
-                LogManager logManager = LogManager.getInstance();
-                logManager.addLog(new LogEntry(level, "App", "[" + tag + "] " + message, tag, true));
-            } catch (Throwable ignored) {
-            }
-        });
+        // 初始化日志系统
+        LogManager.init(this);
+        com.sevtinge.hyperceiler.libhook.utils.log.LogManager.init(this.getCacheDir().getAbsolutePath());
+
+        // 注册 Xposed 日志加载器
+        LogViewerActivity.setXposedLogLoader((context, callback) -> XposedLogLoader.loadLogs(callback));
 
         new Thread(() -> AppInfoCache.getInstance(this).initAllAppInfos()).start();
 

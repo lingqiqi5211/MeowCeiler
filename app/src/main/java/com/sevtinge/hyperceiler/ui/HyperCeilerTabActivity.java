@@ -51,7 +51,6 @@ import com.sevtinge.hyperceiler.libhook.safecrash.CrashScope;
 import com.sevtinge.hyperceiler.libhook.utils.api.BackupUtils;
 import com.sevtinge.hyperceiler.libhook.utils.api.ThreadPoolManager;
 import com.sevtinge.hyperceiler.libhook.utils.log.AndroidLog;
-import com.sevtinge.hyperceiler.libhook.utils.log.LogManager;
 import com.sevtinge.hyperceiler.libhook.utils.pkg.CheckModifyUtils;
 import com.sevtinge.hyperceiler.libhook.utils.shell.ShellInit;
 import com.sevtinge.hyperceiler.main.NaviBaseActivity;
@@ -113,7 +112,6 @@ public class HyperCeilerTabActivity extends NaviBaseActivity
             return t;
         });
 
-        LogManager.init();
         applyGrayScaleFilter(this);
         HolidayHelper.init(this);
         LanguageHelper.init(this);
@@ -136,12 +134,6 @@ public class HyperCeilerTabActivity extends NaviBaseActivity
                 SearchHelper.init(appCtx, restored);
             } catch (Throwable t) {
                 AndroidLog.e(TAG, "SearchHelper: " + t);
-            }
-
-            try {
-                LogManager.setLogLevel();
-            } catch (Throwable t) {
-                AndroidLog.e(TAG, "setLogLevel: " + t);
             }
 
             List<String> computedAppCrash = computeCrashList();

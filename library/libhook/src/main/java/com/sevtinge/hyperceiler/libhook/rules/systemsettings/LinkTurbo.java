@@ -19,7 +19,7 @@
 package com.sevtinge.hyperceiler.libhook.rules.systemsettings;
 
 import static com.sevtinge.hyperceiler.libhook.utils.api.ContextUtils.FlAG_ONLY_ANDROID;
-import static com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.OtherTool.findContext;
+import static com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.AppsTool.findContext;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
@@ -68,7 +68,7 @@ public class LinkTurbo extends BaseHook {
                 }
                 for (int i = 0; i < mPackage.size(); i++) {
                     if (i < mPackage.size() - 1) {
-                        if (i == 0) packageAll = new StringBuilder(mPackage.get(0) + ",");
+                        if (i == 0) packageAll = new StringBuilder(mPackage.getFirst() + ",");
                         packageAll.append(mPackage.get(i)).append(",");
                     } else {
                         packageAll = (packageAll == null ? new StringBuilder() : packageAll).append(mPackage.get(i));
