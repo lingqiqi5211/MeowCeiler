@@ -1,5 +1,6 @@
 package com.sevtinge.hyperceiler.libhook.rules.various.corepatch;
 
+import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isAndroidVersion;
 import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isMoreAndroidVersion;
 import static com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils.findClassIfExists;
 import static com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils.hookMethod;
@@ -101,26 +102,28 @@ public class DigestCreakPatch extends CorePatchHelper {
 
         // Android 12+
         try {
-            var pmService = findClassIfExists("com.android.server.pm.PackageManagerService",
-                lpparam.getClassLoader());
-            if (pmService != null) {
-                var doesSignatureMatchForPermissions = EzxHelpUtils.findMethodExactIfExists(pmService, "doesSignatureMatchForPermissions",
-                    String.class, "com.android.internal.pm.parsing.pkg.ParsedPackage", int.class);
-                if (doesSignatureMatchForPermissions != null) {
-                    hookMethod(doesSignatureMatchForPermissions, new IMethodHook() {
-                        @Override
-                        public void after(AfterHookParam param) {
-                            if (prefs.getBoolean("prefs_key_system_framework_core_patch_digest_creak", true) && prefs.getBoolean("prefs_key_system_framework_core_patch_use_pre_signature", false)) {
-                                //If we decide to crack this then at least make sure they are same apks, avoid another one that tries to impersonate.
-                                if (param.getResult().equals(false)) {
-                                    String pPname = (String) EzxHelpUtils.callMethod(param.getArgs()[1], "getPackageName");
-                                    if (pPname.contentEquals((String) param.getArgs()[0])) {
-                                        param.setResult(true);
+            if (isAndroidVersion(31) || isAndroidVersion(32)) {
+                var pmService = findClassIfExists("com.android.server.pm.PackageManagerService",
+                    lpparam.getClassLoader());
+                if (pmService != null) {
+                    var doesSignatureMatchForPermissions = EzxHelpUtils.findMethodExactIfExists(pmService, "doesSignatureMatchForPermissions",
+                        String.class, "com.android.internal.pm.parsing.pkg.ParsedPackage", int.class);
+                    if (doesSignatureMatchForPermissions != null) {
+                        hookMethod(doesSignatureMatchForPermissions, new IMethodHook() {
+                            @Override
+                            public void after(AfterHookParam param) {
+                                if (prefs.getBoolean("prefs_key_system_framework_core_patch_digest_creak", true) && prefs.getBoolean("prefs_key_system_framework_core_patch_use_pre_signature", false)) {
+                                    //If we decide to crack this then at least make sure they are same apks, avoid another one that tries to impersonate.
+                                    if (param.getResult().equals(false)) {
+                                        String pPname = (String) EzxHelpUtils.callMethod(param.getArgs()[1], "getPackageName");
+                                        if (pPname.contentEquals((String) param.getArgs()[0])) {
+                                            param.setResult(true);
+                                        }
                                     }
                                 }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
             }
         } catch (Throwable t) {

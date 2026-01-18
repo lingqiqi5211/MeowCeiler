@@ -18,11 +18,10 @@
  */
 package com.sevtinge.hyperceiler.libhook.base;
 
-import static com.sevtinge.hyperceiler.libhook.base.XposedInitEntry.mResHook;
-
 import com.sevtinge.hyperceiler.libhook.utils.api.ContextUtils;
 import com.sevtinge.hyperceiler.libhook.utils.api.ProjectApi;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKit;
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.ResourcesTool;
 import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog;
 import com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsMap;
 import com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils;
@@ -50,6 +49,7 @@ public abstract class BaseLoad {
     private static volatile PackageLoadedParam sLpparam;
     private static volatile XposedInterface sXposed;
     private static volatile String sCurrentHookTag = "BaseLoad";
+    public static ResourcesTool mResHook;
 
     public final PrefsMap<String, Object> mPrefsMap = PrefsUtils.mPrefsMap;
     private final boolean mNeedDexKit;
@@ -113,6 +113,7 @@ public abstract class BaseLoad {
             sPackageName = lpparam.getPackageName();
             sLpparam = lpparam;
             sCurrentHookTag = this.getClass().getSimpleName();
+            mResHook = ResourcesTool.getInstance(getXposed().getApplicationInfo().sourceDir);
         }
 
         // 把模块资源加载到目标应用

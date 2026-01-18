@@ -1,5 +1,6 @@
 package com.sevtinge.hyperceiler.libhook.rules.various.corepatch;
 
+import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isAndroidVersion;
 import static com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils.deoptimizeMethods;
 import static com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils.findClassIfExists;
 import static com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils.findMethodExactIfExists;
@@ -39,18 +40,20 @@ public class AuthCreakPatch extends CorePatchHelper {
 
         // Android 13+
         try {
-            var assertMinSignatureSchemeIsValid = findMethodExactIfExists("com.android.server.pm.ScanPackageUtils", lpparam.getClassLoader(),
-                "assertMinSignatureSchemeIsValid",
-                "com.android.server.pm.parsing.pkg.AndroidPackage", int.class);
-            if (assertMinSignatureSchemeIsValid != null) {
-                hookMethod(assertMinSignatureSchemeIsValid, new IMethodHook() {
-                    @Override
-                    public void after(AfterHookParam param) {
-                        if (prefs.getBoolean("prefs_key_system_framework_core_patch_auth_creak", true)) {
-                            param.setResult(null);
+            if (isAndroidVersion(33)) {
+                var assertMinSignatureSchemeIsValid = findMethodExactIfExists("com.android.server.pm.ScanPackageUtils", lpparam.getClassLoader(),
+                    "assertMinSignatureSchemeIsValid",
+                    "com.android.server.pm.parsing.pkg.AndroidPackage", int.class);
+                if (assertMinSignatureSchemeIsValid != null) {
+                    hookMethod(assertMinSignatureSchemeIsValid, new IMethodHook() {
+                        @Override
+                        public void after(AfterHookParam param) {
+                            if (prefs.getBoolean("prefs_key_system_framework_core_patch_auth_creak", true)) {
+                                param.setResult(null);
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
 
             Class<?> strictJarVerifier = findClass("android.util.jar.StrictJarVerifier", lpparam.getClassLoader());

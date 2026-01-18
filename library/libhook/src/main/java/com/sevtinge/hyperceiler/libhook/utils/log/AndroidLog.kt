@@ -19,6 +19,7 @@
 package com.sevtinge.hyperceiler.libhook.utils.log
 
 import android.util.Log
+import com.sevtinge.hyperceiler.libhook.utils.log.LogManager.logLevel
 
 /**
  * Android 日志工具类
@@ -27,10 +28,6 @@ import android.util.Log
  */
 object AndroidLog {
     private const val TAG = "HyperCeiler"
-
-    @Volatile
-    @JvmField
-    var logLevel: Int = 3
 
     interface LogListener {
         fun onLog(level: String, tag: String, message: String)

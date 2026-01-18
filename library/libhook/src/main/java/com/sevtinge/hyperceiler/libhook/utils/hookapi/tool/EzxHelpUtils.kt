@@ -49,15 +49,9 @@ object EzxHelpUtils {
     private val additionalFields = WeakHashMap<Any, MutableMap<String, Any?>>()
 
     private val methodCache = WeakHashMap<String, Method?>()
+    private val constructorCache = WeakHashMap<String, Constructor<*>?>()
 
-    private external fun invokeOriginalMethodNative(
-        method: Member,
-        methodId: Int,
-        parameterTypes: Array<Class<*>>?,
-        returnType: Class<*>?,
-        thisObject: Any?,
-        args: Array<out Any?>
-    ): Any?
+    private const val TAG = "EzxHelpUtils"
 
     @JvmStatic
     fun setXposedModule(module: XposedModule) {
@@ -198,30 +192,38 @@ object EzxHelpUtils {
 
     @JvmStatic
     fun getParameterTypesExact(vararg args: Any?): Array<Class<*>> {
-        return Array(args.size) { i ->
-            when (val arg = args[i]) {
-                is Class<*> -> arg
-                else -> arg!!.javaClass
+        return args.map {
+            when (it) {
+                is Class<*> -> it
+                else -> it!!::class.java
             }
-        }
+        }.toTypedArray()
     }
 
     @JvmStatic
     fun getParameterClasses(clazz: Class<*>, vararg args: Any?): Array<Class<*>> {
-        return args.dropLast(1).map {
-            when (it) {
-                is Class<*> -> it
-                is String -> {
-                    try {
-                        findClass(it, clazz.classLoader)
-                    } catch (_: Exception) {
-                        findClass(it, classLoader)
+        return args.filterNot { it is IMethodHook || it is IReplaceHook }
+            .mapIndexed { index, arg ->
+                when (arg) {
+                    null -> throw IllegalArgumentException(
+                        "Parameter type at index $index must not be null"
+                    )
+                    is Class<*> -> arg
+                    is String -> runCatching {
+                        findClass(arg, clazz.classLoader)
+                    }.recoverCatching {
+                        findClass(arg, classLoader)
+                    }.getOrElse { e ->
+                        throw IllegalArgumentException(
+                            "Failed to find class '$arg'", e
+                        )
                     }
+                    else -> throw IllegalArgumentException(
+                        "Parameter type at index $index must be Class<?> or String, " +
+                            "but got ${arg.javaClass.simpleName}"
+                    )
                 }
-
-                else -> throw IllegalArgumentException("Parameter types must be Class<?> or String")
-            }
-        }.toTypedArray()
+            }.toTypedArray()
     }
 
 
@@ -373,7 +375,7 @@ object EzxHelpUtils {
         methodName: String,
         vararg parameterTypes: Any
     ): Method {
-        val paramTypes = getParameterTypesExact(*parameterTypes)
+        val paramTypes = getParameterClasses(clazz, *parameterTypes)
         return findMethodExactIfExists(clazz, methodName, *paramTypes)
     }
 
@@ -383,7 +385,7 @@ object EzxHelpUtils {
         classLoader: ClassLoader,
         methodName: String,
         vararg parameterTypes: Any
-    ): Method? {
+    ): Method {
         val clazz = findClass(clazzName, classLoader)
         return findMethodExactIfExists(clazz, methodName, *parameterTypes)
     }
@@ -403,83 +405,97 @@ object EzxHelpUtils {
     @JvmStatic
     fun invokeOriginalMethod(method: Method, thisObject: Any?, vararg args: Any?): Any? {
         return try {
-            val parameterTypes: Array<Class<*>>? = method.parameterTypes
-            val returnType: Class<*>? = method.returnType
-            invokeOriginalMethodNative(method, 0, parameterTypes, returnType, thisObject, args)
+            xposedModule.invokeOrigin(method, thisObject, *args)
         } catch (t: Throwable) {
             XposedLog.e(TAG, "invokeOriginalMethod failed for ${formatMethodSignature(method)}", t)
             throw t
         }
     }
 
-    /**
-     * 调用原始构造器
-     *
-     * @param constructor 要调用的构造器
-     * @param args 构造器参数数组
-     * @return 构造器返回的对象实例
-     * @throws IllegalAccessException 如果构造器不可访问
-     * @throws IllegalArgumentException 如果参数数量或类型不匹配
-     * @throws InvocationTargetException 如果构造器抛出异常
-     */
-    @JvmStatic
-    fun invokeOriginalConstructor(constructor: Constructor<*>, vararg args: Any?): Any {
-        return try {
-            val parameterTypes: Array<Class<*>> = constructor.parameterTypes
-            invokeOriginalMethodNative(constructor, 0, parameterTypes, null, null, args)
-                ?: throw NullPointerException("Constructor invocation returned null")
-        } catch (t: Throwable) {
-            XposedLog.e(TAG, "invokeOriginalConstructor failed for ${formatConstructorSignature(constructor)}", t)
-            throw t
-        }
-    }
-
-    /**
-     * 调用原始方法
-     *
-     * @param method 要调用的方法
-     * @param thisObject 对于非静态方法，传入 "this" 指针；对于静态方法传 null
-     * @param args 方法参数数组
-     * @return 方法返回值，如果发生异常返回 null
-     */
-    @JvmStatic
-    fun invokeOriginalMethodOrNull(method: Method, thisObject: Any?, vararg args: Any?): Any? {
-        return try {
-            invokeOriginalMethod(method, thisObject, *args)
-        } catch (t: Throwable) {
-            XposedLog.w(TAG, "invokeOriginalMethodOrNull failed for ${formatMethodSignature(method)}", t)
-            null
-        }
-    }
-
     @JvmStatic
     fun newInstance(clazz: Class<*>, vararg args: Any?): Any {
-        val ctor = findConstructorBestMatch(clazz, *args)
+        val parameterTypes = getParameterTypesExact(*args)
+        val ctor = findConstructorBestMatch(clazz, *parameterTypes)
         return ctor.newInstance(*args)
     }
 
+    /**
+     * 查找构造器（精确匹配）
+     *
+     * @param clazz 目标类
+     * @param parameterTypes 参数类型数组
+     * @return 精确匹配的构造器
+     * @throws NoSuchMethodError 如果找不到
+     */
     @JvmStatic
-    fun findConstructorExact(clazz: Class<*>, vararg parameterTypes: Class<*>): Constructor<*> {
+    fun findConstructorExact(
+        clazz: Class<*>,
+        vararg parameterTypes: Class<*>
+    ): Constructor<*> {
         return ConstructorFinder.fromClass(clazz)
             .filterByParamTypes(*parameterTypes)
-            .first()
+            .firstOrNull()
+            ?: throw NoSuchMethodError(
+                "${clazz.name}${getParametersString(*parameterTypes)}#exact"
+            )
     }
 
+    /**
+     * 查找构造器（最佳匹配）
+     *
+     * @param clazz 目标类
+     * @param parameterTypes 参数类型数组
+     * @return 最佳匹配的构造器
+     * @throws NoSuchMethodError 如果找不到合适的构造器
+     */
     @JvmStatic
-    fun findConstructorBestMatch(clazz: Class<*>, vararg args: Any?): Constructor<*> {
-        val parameterTypes = getParameterTypesExact(*args)
+    fun findConstructorBestMatch(
+        clazz: Class<*>,
+        vararg parameterTypes: Class<*>
+    ): Constructor<*> {
+        val fullConstructorName =
+            "${clazz.name}${getParametersString(*parameterTypes)}#bestmatch"
 
-        return if (parameterTypes.size == args.size) {
-            ConstructorFinder.fromClass(clazz)
-                .filterByParamTypes(*parameterTypes)
-                .firstOrNull()
-                ?: ConstructorFinder.fromClass(clazz)
-                    .filterByParamCount(parameterTypes.size)
-                    .first()
+        synchronized(constructorCache) {
+            if (constructorCache.containsKey(fullConstructorName)) {
+                return constructorCache[fullConstructorName]    ?: throw NoSuchMethodError(fullConstructorName)
+            }}
+
+        fun cacheAndReturn(constructor: Constructor<*>): Constructor<*> {
+            constructor.isAccessible = true
+            synchronized(constructorCache) {
+                constructorCache[fullConstructorName] = constructor
+            }
+            return constructor
+        }
+
+        try {
+            val exactConstructor = findConstructorExact(clazz, *parameterTypes)
+            return cacheAndReturn(exactConstructor)
+        } catch (_: NoSuchMethodError) {}
+
+        var bestMatch: Constructor<*>? = null
+
+        for (constructor in clazz.declaredConstructors) {
+            if (isAssignable(parameterTypes, constructor.parameterTypes)) {
+                if (bestMatch == null || compareParameterTypes(
+                        constructor.parameterTypes,
+                        bestMatch.parameterTypes,
+                        parameterTypes
+                    ) < 0
+                ) {
+                    bestMatch = constructor
+                }
+            }
+        }
+
+        if (bestMatch != null) {
+            return cacheAndReturn(bestMatch)
         } else {
-            ConstructorFinder.fromClass(clazz)
-                .filterByParamCount(args.size)
-                .first()
+            synchronized(constructorCache) {
+                constructorCache[fullConstructorName] = null
+            }
+            throw NoSuchMethodError(fullConstructorName)
         }
     }
 
@@ -552,8 +568,6 @@ object EzxHelpUtils {
 
 
     // ==================== Hook 方法 ====================
-
-    private const val TAG = "EzxHelpUtils"
 
     /**
      * 格式化方法签名用于日志输出
@@ -713,7 +727,7 @@ object EzxHelpUtils {
     }
 
     /**
-     * 查找并 Hook 方法（Java 友好版本，callback 作为最后一个参数）
+     * 查找并 Hook 方法
      *
      * @param clazz 目标类
      * @param methodName 方法名
@@ -973,24 +987,56 @@ object EzxHelpUtils {
  *
  * @param parameterTypes 实际参数类型
  * @param methodParameterTypes 方法形式参数类型
+ * @param autoboxing 是否允许自动装箱/拆箱
  * @return 如果所有参数都可分配则返回 true
  */
 private fun isAssignable(
     parameterTypes: Array<out Class<*>>,
-    methodParameterTypes: Array<Class<*>>
+    methodParameterTypes: Array<Class<*>>,
+    autoboxing: Boolean = true
 ): Boolean {
     if (parameterTypes.size != methodParameterTypes.size) {
         return false
     }
 
     for (i in parameterTypes.indices) {
-        if (!methodParameterTypes[i].isAssignableFrom(parameterTypes[i])) {
-            return false
+        val paramType = parameterTypes[i]
+        val methodParamType = methodParameterTypes[i]
+
+        // 直接赋值
+        if (methodParamType.isAssignableFrom(paramType)) {
+            continue
         }
+
+        // 自动装箱/拆箱支持
+        if (autoboxing && isAutoboxingCompatible(paramType, methodParamType)) {
+            continue
+        }
+
+        return false
     }
 
     return true
 }
+
+/**
+ * 检查两个类型是否兼容（支持自动装箱/拆箱）
+ */
+private fun isAutoboxingCompatible(from: Class<*>, to: Class<*>): Boolean {
+    val primitiveToBoxed = mapOf(
+        java.lang.Integer.TYPE to Integer::class.java,
+        java.lang.Long.TYPE to java.lang.Long::class.java,
+        java.lang.Float.TYPE to java.lang.Float::class.java,
+        java.lang.Double.TYPE to java.lang.Double::class.java,
+        java.lang.Boolean.TYPE to java.lang.Boolean::class.java,
+        java.lang.Byte.TYPE to java.lang.Byte::class.java,
+        java.lang.Short.TYPE to java.lang.Short::class.java,
+        java.lang.Character.TYPE to java.lang.Character::class.java
+    )
+
+    return (primitiveToBoxed[from] == to) || (primitiveToBoxed[to] == from)
+}
+
 
 /**
  * 比较参数类型的匹配程度
@@ -1019,17 +1065,14 @@ private fun compareParameterTypes(
             continue
         }
 
-        // 如果 method1 的参数类型与实际类型相同，则 method1 更匹配
         if (method1ParamType == actualParamType) {
             return -1
         }
 
-        // 如果 method2 的参数类型与实际类型相同，则 method2 更匹配
         if (method2ParamType == actualParamType) {
             return 1
         }
 
-        // 检查继承关系：更具体的类型更匹配
         if (method1ParamType.isAssignableFrom(method2ParamType)) {
             return 1
         }

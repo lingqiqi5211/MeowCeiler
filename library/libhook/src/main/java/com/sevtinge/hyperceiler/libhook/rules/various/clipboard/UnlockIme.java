@@ -167,7 +167,7 @@ public class UnlockIme extends BaseHook {
                 callStaticMethod(clazz, "customizeBottomViewColor", true, navBarColor, color | -0x1000000, color | 0x66000000);
             }
         } catch (Throwable e) {
-            XposedLog.e(TAG, "call customizeBottomViewColor: " + e);
+            XposedLog.w(TAG, "call customizeBottomViewColor: " + e);
         }
     }
 

@@ -25,6 +25,7 @@ import android.app.Application;
 import android.app.backup.BackupManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
@@ -89,8 +90,7 @@ public class AppsTool {
         return context.createDeviceProtectedStorageContext();
     }
 
-    public static Resources getModuleRes(Context context)
-            throws PackageManager.NameNotFoundException {
+    public static Resources getModuleRes(Context context) {
         return ResourcesTool.getInstance().loadModuleRes(context);
     }
 
@@ -275,33 +275,13 @@ public class AppsTool {
         return stackTrace[4].getMethodName();
     }
 
-    public static String getPackageVersionName(String sourceDir, ClassLoader classLoader) {
+    public static int getPackageVersionCode(XposedModuleInterface.PackageLoadedParam param) {
         try {
-            Class<?> parserCls = EzxHelpUtils.findClass("android.content.pm.PackageParser", classLoader);
-            Object parser = parserCls.getDeclaredConstructor().newInstance();
-            File apkPath = new File(sourceDir);
-            Object pkg = EzxHelpUtils.callMethod(parser, "parsePackage", apkPath, 0);
-            return (String) EzxHelpUtils.getObjectField(pkg, "mVersionName");
+            PackageManager pm = findContext(FlAG_ONLY_ANDROID).getPackageManager();
+            PackageInfo pi = pm.getPackageInfo(param.getPackageName(), 0);
+            return Math.toIntExact(pi != null ? pi.getLongVersionCode() : -1);
         } catch (Throwable e) {
-            AndroidLog.e("getPackageVersionName", e.toString());
-            return "null";
-        }
-    }
-
-    public static int getPackageVersionCode(XposedModuleInterface.PackageLoadedParam loadedParam) {
-        String sourceDir = loadedParam.getApplicationInfo().sourceDir;
-        return getPackageVersionCode(sourceDir, loadedParam.getClassLoader());
-    }
-
-    public static int getPackageVersionCode(String sourceDir, ClassLoader classLoader) {
-        try {
-            Class<?> parserCls = EzxHelpUtils.findClass("android.content.pm.PackageParser", classLoader);
-            Object parser = parserCls.getDeclaredConstructor().newInstance();
-            File apkPath = new File(sourceDir);
-            Object pkg = EzxHelpUtils.callMethod(parser, "parsePackage", apkPath, 0);
-            return EzxHelpUtils.getIntField(pkg, "mVersionCode");
-        } catch (Throwable e) {
-            AndroidLog.e("getPackageVersionCode", e.toString());
+            AndroidLog.e("getPackageVersionCode", param.getPackageName(), e.toString());
             return -1;
         }
     }

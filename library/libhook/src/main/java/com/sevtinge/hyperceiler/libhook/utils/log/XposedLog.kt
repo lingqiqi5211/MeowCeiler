@@ -19,6 +19,7 @@
 package com.sevtinge.hyperceiler.libhook.utils.log
 
 import android.util.Log
+import com.sevtinge.hyperceiler.libhook.utils.log.LogManager.logLevel
 import io.github.libxposed.api.XposedInterface
 
 /**
@@ -26,10 +27,6 @@ import io.github.libxposed.api.XposedInterface
  */
 object XposedLog {
     private const val TAG = "HyperCeiler"
-
-    @Volatile
-    @JvmField
-    var logLevel: Int = 3
 
     @Volatile
     private var sXposed: XposedInterface? = null
@@ -52,7 +49,7 @@ object XposedLog {
             if (xposed != null) {
                 xposed.log(Log.getStackTraceString(t))
             } else {
-                Log.e(TAG, "", t)
+                Log.e(TAG, "get xposed failed", t)
             }
         }
     }

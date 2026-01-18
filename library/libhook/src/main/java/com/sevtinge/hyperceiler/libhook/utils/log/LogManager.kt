@@ -27,8 +27,8 @@ object LogManager {
     @JvmField
     var IS_LOGGER_ALIVE: Boolean = false
 
-    var logLevel: Int = 3
-        private set
+    val logLevel: Int
+        get() = readLogLevelFromFile()
 
     @JvmStatic
     fun init(appPrivateDir: String) {
@@ -37,35 +37,18 @@ object LogManager {
 
         // 检查日志服务
         IS_LOGGER_ALIVE = LoggerHealthChecker.isLoggerAlive()
-
-        // 读取日志级别
-        logLevel = LogConfigManager.readLogLevel()
-
-        // 同步日志级别到其他日志类
-        XposedLog.logLevel = logLevel
-        AndroidLog.logLevel = logLevel
     }
 
     @JvmStatic
     fun setLogLevel(level: Int) {
         val effectiveLogLevel = LogLevelManager.getEffectiveLogLevel(level)
         LogConfigManager.writeLogLevel(effectiveLogLevel)
-        logLevel = effectiveLogLevel
-
-        // 同步到其他日志类
-        XposedLog.logLevel = logLevel
-        AndroidLog.logLevel = logLevel
     }
 
     @JvmStatic
     fun setLogLevel(level: Int, basePath: String?) {
         val effectiveLogLevel = LogLevelManager.getEffectiveLogLevel(level)
         LogConfigManager.writeLogLevel(basePath, effectiveLogLevel)
-        logLevel = effectiveLogLevel
-
-        // 同步到其他日志类
-        XposedLog.logLevel = logLevel
-        AndroidLog.logLevel = logLevel
     }
 
     @JvmStatic

@@ -63,9 +63,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import fan.appcompat.app.AlertDialog;
 import fan.navigator.Navigator;
@@ -97,53 +94,36 @@ public class HyperCeilerTabActivity extends NaviBaseActivity
     private Handler mHandler;
     private volatile List<String> appCrash = Collections.emptyList();
 
-    private ExecutorService mInitExecutor;
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        final boolean restored = (savedInstanceState != null);
+        final android.content.Context appCtx = getApplicationContext();
 
         mHandler = new Handler(Looper.getMainLooper());
-
-        mInitExecutor = Executors.newSingleThreadExecutor(r -> {
-            Thread t = new Thread(r, "HyperCeiler-init");
-            t.setDaemon(true);
-            t.setPriority(Thread.NORM_PRIORITY - 1);
-            return t;
-        });
 
         applyGrayScaleFilter(this);
         HolidayHelper.init(this);
         LanguageHelper.init(this);
         PermissionUtils.init(this);
         ShellInit.init(this);
+        LogServiceUtils.init(appCtx);
 
-        final boolean restored = (savedInstanceState != null);
-        final android.content.Context appCtx = getApplicationContext();
+        CHECK_LIST.parallelStream().forEach(this::checkAppMod);
 
-        mInitExecutor.execute(() -> {
-            CHECK_LIST.parallelStream().forEach(this::checkAppMod);
+        try {
+            SearchHelper.init(appCtx, restored);
+        } catch (Throwable t) {
+            AndroidLog.e(TAG, "SearchHelper: " + t);
+        }
 
-            try {
-                LogServiceUtils.init(appCtx);
-            } catch (Throwable t) {
-                AndroidLog.e(TAG, "LogServiceUtils: " + t);
-            }
+        List<String> computedAppCrash = computeCrashList();
 
-            try {
-                SearchHelper.init(appCtx, restored);
-            } catch (Throwable t) {
-                AndroidLog.e(TAG, "SearchHelper: " + t);
-            }
-
-            List<String> computedAppCrash = computeCrashList();
-
-            mHandler.post(() -> {
-                appCrash = computedAppCrash;
-                mHandler.postDelayed(this::showSafeModeDialogIfNeeded, 600);
-                if (!isModuleActivated) DialogHelper.showXposedActivateDialog(this);
-                requestCta();
-            });
+        mHandler.post(() -> {
+            appCrash = computedAppCrash;
+            mHandler.postDelayed(this::showSafeModeDialogIfNeeded, 600);
+            if (!isModuleActivated) DialogHelper.showXposedActivateDialog(this);
+            requestCta();
         });
     }
 
@@ -342,18 +322,5 @@ public class HyperCeilerTabActivity extends NaviBaseActivity
         ThreadPoolManager.shutdown();
         mUninstallApp.clear();
         mDisableOrHiddenApp.clear();
-
-        if (mInitExecutor != null) {
-            mInitExecutor.shutdown();
-            try {
-                if (!mInitExecutor.awaitTermination(500, TimeUnit.MILLISECONDS)) {
-                    mInitExecutor.shutdownNow();
-                }
-            } catch (InterruptedException e) {
-                mInitExecutor.shutdownNow();
-                Thread.currentThread().interrupt();
-            }
-            mInitExecutor = null;
-        }
     }
 }

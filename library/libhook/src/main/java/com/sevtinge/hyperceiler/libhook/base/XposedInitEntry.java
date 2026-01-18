@@ -32,7 +32,6 @@ import com.sevtinge.hyperceiler.libhook.app.Others.VariousThirdApps;
 import com.sevtinge.hyperceiler.libhook.rules.various.system.FlagSecure;
 import com.sevtinge.hyperceiler.libhook.safecrash.CrashMonitor;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils;
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.ResourcesTool;
 import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog;
 import com.sevtinge.hyperceiler.libhook.utils.pkg.CheckModifyUtils;
 import com.sevtinge.hyperceiler.libhook.utils.pkg.DebugModeUtils;
@@ -63,7 +62,6 @@ public class XposedInitEntry extends XposedModule {
         "com.miui.home"
     ));
     public final VariousThirdApps mVariousThirdApps = new VariousThirdApps();
-    public static ResourcesTool mResHook;
     protected String processName;
     protected SharedPreferences remotePrefs;
     protected SharedPreferences.OnSharedPreferenceChangeListener mListener;
@@ -71,7 +69,6 @@ public class XposedInitEntry extends XposedModule {
     public XposedInitEntry(@NonNull XposedInterface base, @NonNull ModuleLoadedParam param) {
         super(base, param);
         processName = param.getProcessName();
-        mResHook = ResourcesTool.getInstance(base.getApplicationInfo().sourceDir);
 
         XposedLog.init(base);
         BaseLoad.init(base);

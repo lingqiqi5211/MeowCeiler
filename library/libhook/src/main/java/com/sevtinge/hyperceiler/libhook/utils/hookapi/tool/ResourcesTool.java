@@ -65,10 +65,12 @@ public class ResourcesTool {
     private final java.util.Set<Integer> resMap = ConcurrentHashMap.newKeySet();
     private final CopyOnWriteArrayList<XposedInterface.MethodUnhooker<?>> unhooks = new CopyOnWriteArrayList<>();
     private final ConcurrentHashMap<ResKey, Pair<ReplacementType, Object>> replacements = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, ResKey> resIdCache = new ConcurrentHashMap<>();
+    private record ResKey(String pkg, String type, String name) {}
 
-    private record ResKey(String pkg, String type, String name) {
-    }
-
+    /**
+     * 资源替换类型
+     */
     protected enum ReplacementType {
         ID,
         DENSITY,
@@ -79,11 +81,15 @@ public class ResourcesTool {
         this.mModulePath = modulePath;
         resourcesArrayList.clear();
         resMap.clear();
+        resIdCache.clear();
         unhooks.clear();
         applyHooks();
         isInit = true;
     }
 
+    /**
+     * 获取单例实例（需要先调用getInstance(String)初始化）
+     */
     public static ResourcesTool getInstance(String modulePath) {
         if (sInstance == null) {
             synchronized (ResourcesTool.class) {
@@ -95,24 +101,42 @@ public class ResourcesTool {
         return sInstance;
     }
 
+    /**
+     * 获取单例实例
+     */
     public static synchronized ResourcesTool getInstance() {
         if (sInstance == null) {
-            XposedLog.e(TAG, "ResourcesTool not initialized. Call getInstance(String modulePath) first.");
+            XposedLog.w(TAG, "ResourcesTool not initialized. Call getInstance(String modulePath) first.");
         }
         return sInstance;
     }
 
+    /**
+     * 检查是否已初始化
+     */
     public boolean isInit() {
         return isInit;
     }
 
+    // ==================== 资源加载 ====================
+
+    /**
+     * 生成虚拟资源 ID
+     */
     public static int getFakeResId(String resourceName) {
         return 0x7e00f000 | (resourceName.hashCode() & 0x00ffffff);
     }
 
+    /**
+     * 加载模块资源到指定 Resources 对象
+     *
+     * @param resources 目标 Resources 对象
+     * @param doOnMainLooper 是否在主线程执行
+     * @return 加载后的Resources对象，失败返回 null
+     */
     public Resources loadModuleRes(Resources resources, boolean doOnMainLooper) {
         if (resources == null) {
-            XposedLog.w(TAG, "Context can't be null!");
+            XposedLog.w(TAG, "Resources can't be null!");
             return null;
         }
         boolean loaded = loadResAboveApi30(resources, doOnMainLooper);
@@ -126,24 +150,36 @@ public class ResourcesTool {
         return resources;
     }
 
+    /**
+     * 加载模块资源到指定Resources对象（默认不在主线程执行）
+     */
     public Resources loadModuleRes(Resources resources) {
         return loadModuleRes(resources, false);
     }
 
+    /**
+     * 加载模块资源到指定 Context 的 Resources
+     */
     public Resources loadModuleRes(Context context, boolean doOnMainLooper) {
         return loadModuleRes(context.getResources(), doOnMainLooper);
     }
 
+    /**
+     * 加载模块资源到指定 Context 的 Resources（默认不在主线程执行）
+     */
     public Resources loadModuleRes(Context context) {
         return loadModuleRes(context, false);
     }
 
+    /**
+     * API 30+ 资源加载实现
+     */
     private boolean loadResAboveApi30(Resources resources, boolean doOnMainLooper) {
         if (resourcesLoader == null) {
             synchronized (this) {
                 if (resourcesLoader == null) {
                     try (ParcelFileDescriptor pfd = ParcelFileDescriptor.open(new File(mModulePath),
-                            ParcelFileDescriptor.MODE_READ_ONLY)) {
+                        ParcelFileDescriptor.MODE_READ_ONLY)) {
                         ResourcesProvider provider = ResourcesProvider.loadFromApk(pfd);
                         ResourcesLoader loader = new ResourcesLoader();
                         loader.addProvider(provider);
@@ -152,8 +188,7 @@ public class ResourcesTool {
                         XposedLog.e(TAG, "Failed to add resource! debug: above api 30.", ex);
                         return false;
                     }
-                }
-            }
+                }}
         }
         if (doOnMainLooper) {
             if (Looper.myLooper() == Looper.getMainLooper()) {
@@ -163,15 +198,16 @@ public class ResourcesTool {
                     if (mHandler == null) {
                         mHandler = new Handler(Looper.getMainLooper());
                     }
-                }
-                mHandler.post(() -> addLoaders(resources));
+                }mHandler.post(() -> addLoaders(resources));
                 return true;
             }
         } else {
             return addLoaders(resources);
-        }
-    }
+        }}
 
+    /**
+     * 添加 ResourcesLoader 到 Resources 对象
+     */
     private boolean addLoaders(Resources resources) {
         try {
             resources.addLoaders(resourcesLoader);
@@ -187,6 +223,9 @@ public class ResourcesTool {
         return true;
     }
 
+    /**
+     * API 30 以下的资源加载实现
+     */
     @SuppressLint("DiscouragedPrivateApi")
     private boolean loadResBelowApi30(Resources resources) {
         try {
@@ -197,14 +236,16 @@ public class ResourcesTool {
             if (cookie == null || cookie == 0) {
                 XposedLog.w(TAG, "Method 'addAssetPath' result 0, maybe load res failed!");
                 return false;
-            }
-        } catch (Throwable ex) {
+            }} catch (Throwable ex) {
             XposedLog.e(TAG, "Failed to add resource! debug: below api 30.", ex);
             return false;
         }
         return true;
     }
 
+    /**
+     * 应用所有资源相关的 Hook
+     */
     private synchronized void applyHooks() {
         if (hooksApplied) return;
         hooksApplied = true;
@@ -215,46 +256,50 @@ public class ResourcesTool {
             return;
         }
 
+        hookResourcesMethods();
+        hookTypedArrayMethods();
+    }
+
+    /**
+     * Hook Resources 类的方法
+     */
+    private void hookResourcesMethods() {
         Method[] resMethods = Resources.class.getDeclaredMethods();
         for (Method method : resMethods) {
             String name = method.getName();
             Class<?>[] paramTypes = method.getParameterTypes();
-            switch (name) {
-                case "getInteger", "getLayout", "getBoolean", "getDimension",
-                     "getDimensionPixelOffset", "getDimensionPixelSize", "getText", "getFloat",
-                     "getIntArray", "getStringArray", "getTextArray", "getAnimation" -> {
-                    if (paramTypes.length == 1 && paramTypes[0].equals(int.class)) {
-                        try {
-                            XposedInterface.MethodUnhooker<?> unhook = EzxHelpUtils.hookMethod(method, ResHooker);
-                            unhooks.add(unhook);
-                        } catch (Throwable t) {
-                            XposedLog.e(TAG, "Failed to hook " + name, t);
-                        }
-                    }
-                }
-                case "getColor" -> {
-                    if (paramTypes.length == 2 && paramTypes[0].equals(int.class)) {
-                        try {
-                            XposedInterface.MethodUnhooker<?> unhook = EzxHelpUtils.hookMethod(method, ResHooker);
-                            unhooks.add(unhook);
-                        } catch (Throwable t) {
-                            XposedLog.e(TAG, "Failed to hook " + name, t);
-                        }
-                    }
-                }
-                case "getFraction", "getDrawableForDensity" -> {
-                    if (paramTypes.length == 3 && paramTypes[0].equals(int.class)) {
-                        try {
-                            XposedInterface.MethodUnhooker<?> unhook = EzxHelpUtils.hookMethod(method, ResHooker);
-                            unhooks.add(unhook);
-                        } catch (Throwable t) {
-                            XposedLog.e(TAG, "Failed to hook " + name, t);
-                        }
-                    }
+
+            if (shouldHookResourcesMethod(name, paramTypes)) {
+                try {
+                    XposedInterface.MethodUnhooker<?> unhook = EzxHelpUtils.hookMethod(method, ResHooker);
+                    unhooks.add(unhook);
+                } catch (Throwable t) {
+                    XposedLog.e(TAG, "Failed to hook Resources." + name, t);
                 }
             }
         }
+    }
 
+    /**
+     * 判断是否需要 Hook 该 Resources 方法
+     */
+    private boolean shouldHookResourcesMethod(String name, Class<?>[] paramTypes) {
+        return switch (name) {
+            case "getInteger", "getLayout", "getBoolean", "getDimension", "getDimensionPixelOffset",
+                 "getDimensionPixelSize", "getText", "getFloat", "getIntArray", "getStringArray",
+                 "getTextArray", "getAnimation" ->
+                paramTypes.length == 1 && paramTypes[0].equals(int.class);
+            case "getColor" -> paramTypes.length == 2 && paramTypes[0].equals(int.class);
+            case "getFraction", "getDrawableForDensity" ->
+                paramTypes.length == 3 && paramTypes[0].equals(int.class);
+            default -> false;
+        };
+    }
+
+    /**
+     * Hook TypedArray 类的方法
+     */
+    private void hookTypedArrayMethods() {
         Method[] typedMethods = TypedArray.class.getDeclaredMethods();
         for (Method method : typedMethods) {
             if (method.getName().equals("getColor")) {
@@ -280,11 +325,16 @@ public class ResourcesTool {
             unhook.unhook();
         }
         unhooks.clear();
+        resIdCache.clear();
         isInit = false;
         hooksApplied = false;
     }
 
-    IMethodHook TypedArrayHooker = new IMethodHook() {
+    /**
+     * TypedArray.getColor() Hook 回调
+     */
+    private final IMethodHook TypedArrayHooker = new IMethodHook() {
+        @Override
         public void before(BeforeHookParam callback) {
             ResourcesTool instance = getInstance();
             if (instance == null) return;
@@ -311,11 +361,16 @@ public class ResourcesTool {
         }
     };
 
-    IMethodHook ResHooker = new IMethodHook() {
+    /**
+     * Resources 方法 Hook 回调
+     */
+    private final IMethodHook ResHooker = new IMethodHook() {
+        @Override
         public void before(BeforeHookParam callback) {
             ResourcesTool instance = getInstance();
             if (instance == null) return;
 
+            // 确保已加载模块资源
             if (instance.resourcesArrayList.isEmpty()) {
                 Context context = ContextUtils.getContextNoError(ContextUtils.FLAG_CURRENT_APP);
                 if (context != null) {
@@ -330,6 +385,7 @@ public class ResourcesTool {
             if (args == null || args.length < 1) return;
 
             int reqId = (int) args[0];
+            // 防止递归调用
             if (instance.resMap.contains(reqId)) {
                 return;
             }
@@ -337,45 +393,23 @@ public class ResourcesTool {
             Resources thisRes = (Resources) callback.getThisObject();
             String methodName = callback.getMember().getName();
 
+            // 遍历所有加载的模块资源
             for (Resources resources : instance.resourcesArrayList) {
                 if (resources == null) continue;
+
                 Object value;
                 try {
                     value = instance.getResourceReplacement(resources, thisRes, methodName, args);
                 } catch (Resources.NotFoundException ex) {
                     continue;
                 }
+
                 if (value != null) {
-                    Object finalResult = null;
-
-                    switch (methodName) {
-                        case "getInteger", "getColor", "getDimensionPixelOffset", "getDimensionPixelSize" -> {
-                            if (value instanceof Number) {
-                                finalResult = Math.round(((Number) value).floatValue());
-                            }
-                        }
-                        case "getDimension", "getFloat" -> {
-                            if (value instanceof Number) {
-                                finalResult = ((Number) value).floatValue();
-                            }
-                        }
-                        case "getText" -> {
-                            if (value instanceof CharSequence) {
-                                finalResult = value;
-                            }
-                        }
-                        case "getBoolean" -> {
-                            if (value instanceof Boolean) {
-                                finalResult = value;
-                            }
-                        }
-                        default -> finalResult = value;
-                    }
-
+                    Object finalResult = convertResultType(methodName, value);
                     if (finalResult != null) {
                         callback.setResult(finalResult);
                     } else {
-                        XposedLog.w(TAG, "Mismatched replacement type for method " + methodName + ". Got " + value.getClass().getName());
+                        XposedLog.w(TAG, "Mismatched replacement type for method " + methodName +". Got " + value.getClass().getName());
                     }
                     break;
                 }
@@ -383,6 +417,49 @@ public class ResourcesTool {
         }
     };
 
+    /**
+     * 根据方法名转换返回值类型
+     */
+    private Object convertResultType(String methodName, Object value) {
+        switch (methodName) {
+            case "getInteger", "getColor", "getDimensionPixelOffset", "getDimensionPixelSize":
+                if (value instanceof Number) {
+                    return Math.round(((Number) value).floatValue());
+                }
+                break;
+
+            case "getDimension", "getFloat":
+                if (value instanceof Number) {
+                    return ((Number) value).floatValue();
+                }
+                break;
+
+            case "getText":
+                if (value instanceof CharSequence) {
+                    return value;
+                }
+                break;
+
+            case "getBoolean":
+                if (value instanceof Boolean) {
+                    return value;
+                }
+                break;
+
+            default:
+                return value;
+        }
+        return null;
+    }
+
+    /**
+     * 设置资源 ID 替换
+     *
+     * @param pkg 包名（支持通配符 "*"）
+     * @param type 资源类型（如 "drawable"、"color"）
+     * @param name 资源名称
+     * @param replacementResId 替换的资源 ID
+     */
     public void setResReplacement(String pkg, String type, String name, int replacementResId) {
         try {
             applyHooks();
@@ -392,6 +469,14 @@ public class ResourcesTool {
         }
     }
 
+    /**
+     * 设置密度相关的数值替换
+     *
+     * @param pkg 包名（支持通配符"*"）
+     * @param type 资源类型
+     * @param name 资源名称
+     * @param replacementResValue 替换的数值（会乘以屏幕密度）
+     */
     public void setDensityReplacement(String pkg, String type, String name, float replacementResValue) {
         try {
             applyHooks();
@@ -401,6 +486,14 @@ public class ResourcesTool {
         }
     }
 
+    /**
+     * 设置对象替换
+     *
+     * @param pkg 包名（支持通配符 "*"）
+     * @param type 资源类型
+     * @param name 资源名称
+     * @param replacementResValue 替换的对象
+     */
     public void setObjectReplacement(String pkg, String type, String name, Object replacementResValue) {
         try {
             applyHooks();
@@ -410,107 +503,174 @@ public class ResourcesTool {
         }
     }
 
-    private Object getResourceReplacement(Resources resources, Resources res, String method, Object[] args) throws Resources.NotFoundException {
+    /**
+     * 获取资源替换值
+     *
+     * @param resources 模块 Resources 对象
+     * @param res 目标 Resources 对象
+     * @param method 调用的方法名
+     * @param args 方法参数
+     * @return 替换值，如果没有替换则返回 null
+     */
+    private Object getResourceReplacement(Resources resources, Resources res, String method, Object[] args)
+        throws Resources.NotFoundException {
         if (resources == null) return null;
-        String pkgName;
-        String resType;
-        String resName;
-        try {
-            int resId = (int) args[0];
-            if (resId == 0) return null;
-            pkgName = res.getResourcePackageName(resId);
-            resType = res.getResourceTypeName(resId);
-            resName = res.getResourceEntryName(resId);
-        } catch (Throwable ignore) {
-            return null;
-        }
 
-        if (pkgName == null || resType == null || resName == null) return null;
+        int resId = (int) args[0];
+        if (resId == 0) return null;
 
-        ResKey resFullNameKey = new ResKey(pkgName, resType, resName);
-        ResKey resAnyPkgNameKey = new ResKey("*", resType, resName);
+        ResKey resKey = resIdCache.computeIfAbsent(resId, id -> {
+            try {
+                String pkgName = res.getResourcePackageName(id);
+                String resType = res.getResourceTypeName(id);
+                String resName = res.getResourceEntryName(id);
 
-        Pair<ReplacementType, Object> replacement = replacements.get(resFullNameKey);
+                if (pkgName == null || resType == null || resName == null) {
+                    return null;
+                }
+                return new ResKey(pkgName, resType, resName);
+            } catch (Throwable ignore) {
+                return null;
+            }
+        });
+
+        if (resKey == null) return null;
+
+        // 查询替换规则
+        Pair<ReplacementType, Object> replacement = replacements.get(resKey);
         if (replacement == null) {
-            replacement = replacements.get(resAnyPkgNameKey);
+            // 尝试通配符匹配
+            replacement = replacements.get(new ResKey("*", resKey.type, resKey.name));
         }
 
         if (replacement != null) {
-            switch (replacement.first) {
-                case OBJECT:
-                    if ("getText".equals(method) && !(replacement.second instanceof CharSequence)) {
-                        XposedLog.w(TAG, "Mismatched type: OBJECT replacement is not a CharSequence for getText method.");
-                        return null;
-                    }
-                    return replacement.second;
-                case DENSITY: {
-                    if ("getText".equals(method)) {
-                        XposedLog.w(TAG, "Mismatched type: DENSITY replacement cannot be used for getText method.");
-                        return null;
-                    }
-                    Object repl = replacement.second;
-                    if (repl instanceof Number) {
-                        return ((Number) repl).floatValue() * res.getDisplayMetrics().density;
-                    } else if (repl instanceof String) {
-                        try {
-                            return Float.parseFloat((String) repl) * res.getDisplayMetrics().density;
-                        } catch (NumberFormatException ignored) {
-                        }
-                    }
-                    XposedLog.w(TAG, "Invalid DENSITY replacement type: " + repl);
-                    return null;
-                }
-                case ID: {
-                    if (!(replacement.second instanceof Number)) return null;
-                    Integer modResId = ((Number) replacement.second).intValue();
-                    if (modResId == 0) return null;
-                    try {
-                        resources.getResourceName(modResId);
-                    } catch (Resources.NotFoundException n) {
-                        throw n;
-                    }
-                    if (method == null) return null;
-                    resMap.add(modResId);
-                    Object value;
-                    try {
-                        if ("getDrawable".equals(method) && args.length >= 2) {
-                            value = EzxHelpUtils.callMethod(resources, method, modResId, args[1]);
-                        } else if (("getDrawableForDensity".equals(method) || "getFraction".equals(method)) && args.length >= 3) {
-                            value = EzxHelpUtils.callMethod(resources, method, modResId, args[1], args[2]);
-                        } else {
-                            value = EzxHelpUtils.callMethod(resources, method, modResId);
-                        }
-                    } finally {
-                        resMap.remove(modResId);
-                    }
-                    return value;
-                }
-            }
+            return handleReplacement(replacement, resources, res, method, args);
         }
         return null;
     }
 
-    private Object getTypedArrayReplacement(Resources resources, int id) {
-        if (id == 0) return null;
-        String pkgName;
-        String resType;
-        String resName;
-        try {
-            pkgName = resources.getResourcePackageName(id);
-            resType = resources.getResourceTypeName(id);
-            resName = resources.getResourceEntryName(id);
-        } catch (Throwable ignore) {
+    /**
+     * 处理资源替换
+     */
+    private Object handleReplacement(Pair<ReplacementType, Object> replacement, Resources resources,Resources res, String method, Object[] args)
+        throws Resources.NotFoundException {
+        switch (replacement.first) {
+            case OBJECT:
+                return handleObjectReplacement(replacement.second, method);
+            case DENSITY:
+                return handleDensityReplacement(replacement.second, res, method);
+
+            case ID:
+                return handleIdReplacement(replacement.second, resources, method, args);
+
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * 处理对象类型替换
+     */
+    private Object handleObjectReplacement(Object value, String method) {
+        if ("getText".equals(method) && !(value instanceof CharSequence)) {
+            XposedLog.w(TAG, "Mismatched type: OBJECT replacement is not a CharSequence for getText method.");
             return null;
         }
-        if (pkgName == null || resType == null || resName == null) return null;
+        return value;
+    }
+
+    /**
+     * 处理密度类型替换
+     */
+    private Object handleDensityReplacement(Object value, Resources res, String method) {
+        if ("getText".equals(method)) {
+            XposedLog.w(TAG, "Mismatched type: DENSITY replacement cannot be used for getText method.");
+            return null;
+        }
+
+        if (value instanceof Number) {
+            return ((Number) value).floatValue() * res.getDisplayMetrics().density;
+        } else if (value instanceof String) {
+            try {
+                return Float.parseFloat((String) value) * res.getDisplayMetrics().density;
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        XposedLog.w(TAG, "Invalid DENSITY replacement type: " + value);
+        return null;
+    }
+
+    /**
+     * 处理 ID 类型替换
+     */
+    private Object handleIdReplacement(Object value, Resources resources, String method, Object[] args)
+        throws Resources.NotFoundException {
+        if (!(value instanceof Number)) return null;
+
+        int modResId = ((Number) value).intValue();
+        if (modResId == 0) return null;
 
         try {
-            ResKey resFullNameKey = new ResKey(pkgName, resType, resName);
-            ResKey resAnyPkgNameKey = new ResKey("*", resType, resName);
+            resources.getResourceName(modResId);
+        } catch (Resources.NotFoundException n) {
+            throw n;
+        }
 
-            Pair<ReplacementType, Object> replacement = replacements.get(resFullNameKey);
+        if (method == null) return null;
+
+        resMap.add(modResId);
+        try {
+            return callResourceMethod(resources, method, modResId, args);
+        } finally {
+            resMap.remove(modResId);
+        }
+    }
+
+    /**
+     * 调用 Resources 方法
+     */
+    private Object callResourceMethod(Resources resources, String method, int modResId, Object[] args) {
+        if ("getDrawable".equals(method) && args.length >= 2) {
+            return EzxHelpUtils.callMethod(resources, method, modResId, args[1]);
+        } else if (("getDrawableForDensity".equals(method) || "getFraction".equals(method)) && args.length >= 3) {
+            return EzxHelpUtils.callMethod(resources, method, modResId, args[1], args[2]);
+        } else {
+            return EzxHelpUtils.callMethod(resources, method, modResId);
+        }
+    }
+
+    /**
+     * 获取 TypedArray 资源替换值
+     *
+     * @param resources 模块 Resources 对象
+     * @param id 资源 ID
+     * @return 替换值，如果没有替换则返回 null
+     */
+    private Object getTypedArrayReplacement(Resources resources, int id) {
+        if (id == 0) return null;
+
+        ResKey resKey = resIdCache.computeIfAbsent(id, resId -> {
+            try {
+                String pkgName = resources.getResourcePackageName(resId);
+                String resType = resources.getResourceTypeName(resId);
+                String resName = resources.getResourceEntryName(resId);
+
+                if (pkgName == null || resType == null || resName == null) {
+                    return null;
+                }
+                return new ResKey(pkgName, resType, resName);
+            } catch (Throwable ignore) {
+                return null;
+            }
+        });
+
+        if (resKey == null) return null;
+
+        try {
+            Pair<ReplacementType, Object> replacement = replacements.get(resKey);
             if (replacement == null) {
-                replacement = replacements.get(resAnyPkgNameKey);
+                replacement = replacements.get(new ResKey("*", resKey.type, resKey.name));
             }
 
             if (replacement != null && replacement.first == ReplacementType.OBJECT) {
@@ -521,4 +681,14 @@ public class ResourcesTool {
         }
         return null;
     }
+
+    public void clearResIdCache() {
+        resIdCache.clear();
+        XposedLog.d(TAG, "Resource ID cache cleared");
+    }
+
+    public int getCacheSize() {
+        return resIdCache.size();
+    }
 }
+

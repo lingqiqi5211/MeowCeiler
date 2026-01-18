@@ -1,5 +1,6 @@
 package com.sevtinge.hyperceiler.libhook.rules.various.corepatch;
 
+import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isAndroidVersion;
 import static com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils.findClassIfExists;
 import static com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils.findMethodExactIfExists;
 import static com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils.hookMethod;
@@ -43,15 +44,17 @@ public class DowngradeCheckPatch extends CorePatchHelper {
 
         // Android 11+
         try {
-            var pmService = findClassIfExists("com.android.server.pm.PackageManagerService",
-                lpparam.getClassLoader());
-            if (pmService != null) {
-                var checkDowngrade = findMethodExactIfExists(pmService, "checkDowngrade",
-                    "com.android.server.pm.parsing.pkg.AndroidPackage",
-                    "android.content.pm.PackageInfoLite");
-                if (checkDowngrade != null) {
-                    // 允许降级
-                    hookMethod(checkDowngrade, new ReturnConstant("prefs_key_system_framework_core_patch_downgr", null));
+            if (isAndroidVersion(30)) {
+                var pmService =
+                    findClassIfExists("com.android.server.pm.PackageManagerService", lpparam.getClassLoader());
+                if (pmService != null) {
+                    var checkDowngrade = findMethodExactIfExists(pmService, "checkDowngrade",
+                        "com.android.server.pm.parsing.pkg.AndroidPackage",
+                        "android.content.pm.PackageInfoLite");
+                    if (checkDowngrade != null) {
+                        // 允许降级
+                        hookMethod(checkDowngrade, new ReturnConstant("prefs_key_system_framework_core_patch_downgr", null));
+                    }
                 }
             }
         } catch (Throwable t) {
