@@ -43,8 +43,8 @@ import io.github.libxposed.api.XposedModuleInterface.PackageLoadedParam;
  */
 public abstract class BaseHook {
     public static String ACTION_PREFIX = "com.sevtinge.hyperceiler.module.action.";
-    public String TAG = getClass().getSimpleName();
-    public final PrefsMap<String, Object> mPrefsMap = PrefsUtils.mPrefsMap;
+    public final String TAG = getClass().getSimpleName();
+    public static final PrefsMap<String, Object> mPrefsMap = PrefsUtils.mPrefsMap;
 
     /**
      * 初始化 Hook，子类实现此方法编写具体 Hook 逻辑
@@ -105,28 +105,28 @@ public abstract class BaseHook {
     /**
      * 获取对象字段值
      */
-    public Object getObjectField(Object obj, String fieldName) {
+    public static Object getObjectField(Object obj, String fieldName) {
         return EzxHelpUtils.getObjectField(obj, fieldName);
     }
 
     /**
      * 设置对象字段值
      */
-    public void setObjectField(Object obj, String fieldName, Object value) {
+    public static void setObjectField(Object obj, String fieldName, Object value) {
         EzxHelpUtils.setObjectField(obj, fieldName, value);
     }
 
     /**
      * 获取静态字段值
      */
-    public Object getStaticObjectField(Class<?> clazz, String fieldName) {
+    public static Object getStaticObjectField(Class<?> clazz, String fieldName) {
         return EzxHelpUtils.getStaticObjectField(clazz, fieldName);
     }
 
     /**
      * 设置静态字段值
      */
-    public void setStaticObjectField(Class<?> clazz, String fieldName, Object value) {
+    public static void setStaticObjectField(Class<?> clazz, String fieldName, Object value) {
         EzxHelpUtils.setStaticObjectField(clazz, fieldName, value);
     }
 
@@ -297,19 +297,24 @@ public abstract class BaseHook {
         return EzxHelpUtils.DO_NOTHING;
     }
 
+    public Object proxySystemProperties(String method, String prop, int val, ClassLoader classLoader) {
+        return callStaticMethod(findClassIfExists("android.os.SystemProperties", classLoader),
+            method, prop, val);
+    }
+
     // ==================== 资源 Hook ====================
 
     /**
      * 获取虚拟资源 ID
      */
-    public int getFakeResId(String resourceName) {
+    public static int getFakeResId(String resourceName) {
         return ResourcesTool.getFakeResId(resourceName);
     }
 
     /**
      * 设置资源替换
      */
-    public void setResReplacement(String pkg, String type, String name, int replacementResId) {
+    public static void setResReplacement(String pkg, String type, String name, int replacementResId) {
         ResourcesTool resTool = ResourcesTool.getInstance();
         if (resTool != null) {
             resTool.setResReplacement(pkg, type, name, replacementResId);
@@ -319,7 +324,7 @@ public abstract class BaseHook {
     /**
      * 设置密度资源替换
      */
-    public void setDensityReplacement(String pkg, String type, String name, float replacementResValue) {
+    public static void setDensityReplacement(String pkg, String type, String name, float replacementResValue) {
         ResourcesTool resTool = ResourcesTool.getInstance();
         if (resTool != null) {
             resTool.setDensityReplacement(pkg, type, name, replacementResValue);
@@ -329,7 +334,7 @@ public abstract class BaseHook {
     /**
      * 设置对象资源替换
      */
-    public void setObjectReplacement(String pkg, String type, String name, Object replacementResValue) {
+    public static void setObjectReplacement(String pkg, String type, String name, Object replacementResValue) {
         ResourcesTool resTool = ResourcesTool.getInstance();
         if (resTool != null) {
             resTool.setObjectReplacement(pkg, type, name, replacementResValue);

@@ -27,6 +27,7 @@ import androidx.annotation.Nullable;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.AppsTool;
 import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog;
 
 import org.jetbrains.annotations.NotNull;
@@ -181,20 +182,12 @@ public class DexKit {
 
     private static String getPackageVersionName() {
         if (mParam == null) return "null";
-        try {
-            ApplicationInfo appInfo = mParam.getApplicationInfo();
-            // ApplicationInfo 没有直接的 versionName，返回包名作为标识
-            return appInfo.packageName;
-        } catch (Throwable t) {
-            return "null";
-        }
+        return AppsTool.getPackageVersionName(mParam);
     }
 
     private static long getPackageVersionCode() {
         if (mParam == null) return -1;
-        // ApplicationInfo 不包含 versionCode，需要在实际使用时从 PackageManager 获取
-        // 这里暂时返回 0，后续可通过 Context 获取准确版本
-        return 0;
+        return AppsTool.getPackageVersionCode(mParam);
     }
 
     private static void loadCacheData() {

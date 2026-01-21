@@ -18,6 +18,7 @@
  */
 package com.sevtinge.hyperceiler.libhook.base;
 
+import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Miui.isPad;
 import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isAndroidVersion;
 import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isHyperOSVersion;
 import static com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils.mPrefsMap;
@@ -139,6 +140,7 @@ public class XposedInitEntry extends XposedModule {
             if (!packageName.equals(data.mTargetPackage)) return;
             if (data.mTargetSdk != -1 && !isAndroidVersion(data.mTargetSdk)) return;
             if (data.mTargetOSVersion != -1F && !isHyperOSVersion(data.mTargetOSVersion)) return;
+            if ((data.isPad == 1 && !isPad()) || (data.isPad == 2 && isPad())) return;
 
             if (checkSet.contains(packageName)) {
                 boolean check = CheckModifyUtils.INSTANCE.getCheckResult(packageName);

@@ -31,7 +31,7 @@ import java.nio.file.StandardOpenOption
  * 日志配置管理器
  */
 object LogConfigManager {
-    private const val LOG_CONFIG_FILENAME = "log_config"
+    private const val LOG_CONFIG_FILENAME = "/files/log/log_config"
     // 应用私有目录，需要在初始化时设置
     private var appPrivateDir: String? = null
 

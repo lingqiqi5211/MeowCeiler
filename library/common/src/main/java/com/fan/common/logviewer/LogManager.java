@@ -1,5 +1,24 @@
+/*
+ * This file is part of HyperCeiler.
+
+ * HyperCeiler is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+ * Copyright (C) 2023-2026 HyperCeiler Contributions
+ */
 package com.fan.common.logviewer;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
 
@@ -28,16 +47,14 @@ public class LogManager {
     private final List<LogEntry> mXposedLogEntries = new ArrayList<>();
     private Context mContext;
     private boolean mInitialized = false;
-
+    private static final String APP_LOG_DIR = "log/app";
     private static final String LOG_FILE = "app_logs.txt";
-    private static final String LOG_CONFIG_FILE = "log_config";
     private static final String TAG = "LogManager";
+
+    private File mAppLogFile;
 
     private LogManager() {}
 
-    /**
-     * 一键初始化（在 Application.onCreate() 中调用）
-     */
     public static void init(Context context) {
         if (sInstance == null) {
             synchronized (LogManager.class) {
@@ -49,9 +66,6 @@ public class LogManager {
         }
     }
 
-    /**
-     * 获取实例
-     */
     public static LogManager getInstance() {
         if (sInstance == null) {
             throw new IllegalStateException(
@@ -63,9 +77,10 @@ public class LogManager {
     private void doInit(Context context) {
         this.mContext = context;
         this.mInitialized = true;
+
+        initLogFile();
         loadHistoryLogs();
 
-        // 设置 AndroidLog 监听器，转发日志到 LogManager
         AndroidLog.setLogListener((level, tag, message) -> {
             try {
                 LogEntry entry = new LogEntry(level, "App", "[" + tag + "] " + message, tag, true);
@@ -77,7 +92,14 @@ public class LogManager {
         addLog(new LogEntry("I", "LogManager", "LogManager initialized", "System", true));
     }
 
-    // ===== 日志操作 =====
+    private void initLogFile() {
+        File logDir = new File(mContext.getFilesDir(), APP_LOG_DIR);
+        if (!logDir.exists()) {
+            logDir.mkdirs();
+        }
+        mAppLogFile = new File(logDir, LOG_FILE);
+    }
+
     public void addLog(LogEntry entry) {
         if (!mInitialized) return;
         mLogEntries.add(entry);
@@ -116,11 +138,10 @@ public class LogManager {
         return new ArrayList<>(mXposedLogEntries);
     }
 
-    // ===== 文件操作 =====
     private void saveLogAsync(LogEntry entry) {
         new Thread(() -> {
             try {
-                FileOutputStream fos = mContext.openFileOutput(LOG_FILE, Context.MODE_APPEND);
+                FileOutputStream fos = new FileOutputStream(mAppLogFile, true);
                 String line = formatLogLine(entry);
                 fos.write(line.getBytes());
                 fos.close();
@@ -133,7 +154,7 @@ public class LogManager {
     private void saveLogsAsync(List<LogEntry> entries) {
         new Thread(() -> {
             try {
-                FileOutputStream fos = mContext.openFileOutput(LOG_FILE, Context.MODE_APPEND);
+                FileOutputStream fos = new FileOutputStream(mAppLogFile, true);
                 for (LogEntry entry : entries) {
                     String line = formatLogLine(entry);
                     fos.write(line.getBytes());
@@ -147,7 +168,9 @@ public class LogManager {
 
     private void loadHistoryLogs() {
         try {
-            FileInputStream fis = mContext.openFileInput(LOG_FILE);
+            if (!mAppLogFile.exists()) return;
+
+            FileInputStream fis = new FileInputStream(mAppLogFile);
             BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
             String line;
             while ((line = reader.readLine()) != null) {
@@ -158,17 +181,16 @@ public class LogManager {
             }
             reader.close();
         } catch (IOException ignored) {
-            // 文件不存在是正常的
         }
     }
 
     private void deleteLogFile() {
-        File file = new File(mContext.getFilesDir(), LOG_FILE);
-        if (file.exists()) {
-            file.delete();
+        if (mAppLogFile.exists()) {
+            mAppLogFile.delete();
         }
     }
 
+    @SuppressLint("DefaultLocale")
     private String formatLogLine(LogEntry entry) {
         return String.format("%d|%s|%s|%s|%s|%b\n",
             entry.getTimestamp(),
@@ -195,10 +217,7 @@ public class LogManager {
         return null;
     }
 
-    /**
-     * 导出日志
-     */
-    public boolean exportLogs(String fileName) {
+    public void exportLogs(String fileName) {
         try {
             File exportFile = new File(mContext.getExternalFilesDir(null), fileName);
             FileOutputStream fos = new FileOutputStream(exportFile);
@@ -212,10 +231,8 @@ public class LogManager {
                 fos.write(line.getBytes());
             }
             fos.close();
-            return true;
         } catch (IOException e) {
             Log.e(TAG, "Export failed", e);
-            return false;
         }
     }
 }

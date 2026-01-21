@@ -51,7 +51,6 @@ public class SQLiteDatabaseHelper {
         if (cursor != null && cursor.moveToFirst()) {
             do {
                 String get = cursor.getString(cursor.getColumnIndex(SELECT));
-                if (isPreferenceHeaderUse && "system".equals(get)) get = "android";
                 result.add(get);
             } while (cursor.moveToNext());
             cursor.close();

@@ -192,7 +192,7 @@ public class FlagSecure {
     }
 
     private void hook(Method method, Class<? extends Hooker> hooker) {
-        EzxHelpUtils.getXposedModule().hook(method, hooker);
+        EzxHelpUtils.libHook(method, hooker);
     }
 
     @XposedHooker

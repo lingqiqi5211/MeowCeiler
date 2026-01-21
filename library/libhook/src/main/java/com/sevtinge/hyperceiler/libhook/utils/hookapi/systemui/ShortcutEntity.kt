@@ -25,7 +25,7 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectFieldAs
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.setBooleanField
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.setObjectField
 
-class ShortcutEntity(instance : Any) : BaseReflectObject(instance) {
+class ShortcutEntity(instance: Any) : BaseReflectObject(instance) {
     val uniqueTag get() = instance.getObjectField("uniqueTag")
 
     var tag: String?

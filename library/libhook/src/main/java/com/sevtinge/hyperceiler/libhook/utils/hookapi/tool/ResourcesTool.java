@@ -66,6 +66,7 @@ public class ResourcesTool {
     private final CopyOnWriteArrayList<XposedInterface.MethodUnhooker<?>> unhooks = new CopyOnWriteArrayList<>();
     private final ConcurrentHashMap<ResKey, Pair<ReplacementType, Object>> replacements = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Integer, ResKey> resIdCache = new ConcurrentHashMap<>();
+    private static final ThreadLocal<Integer> currentResId = ThreadLocal.withInitial(() -> 0);
     private record ResKey(String pkg, String type, String name) {}
 
     /**
@@ -326,6 +327,7 @@ public class ResourcesTool {
         }
         unhooks.clear();
         resIdCache.clear();
+        currentResId.remove();
         isInit = false;
         hooksApplied = false;
     }
@@ -336,9 +338,6 @@ public class ResourcesTool {
     private final IMethodHook TypedArrayHooker = new IMethodHook() {
         @Override
         public void before(BeforeHookParam callback) {
-            ResourcesTool instance = getInstance();
-            if (instance == null) return;
-
             Object[] args = callback.getArgs();
             if (args == null || args.length < 1) return;
 
@@ -353,7 +352,7 @@ public class ResourcesTool {
 
             if (id != 0 && (type != TypedValue.TYPE_NULL)) {
                 Resources mResources = (Resources) EzxHelpUtils.getObjectField(thisObject, "mResources");
-                Object value = instance.getTypedArrayReplacement(mResources, id);
+                Object value = getTypedArrayReplacement(mResources, id);
                 if (value != null) {
                     callback.setResult(value);
                 }
@@ -367,16 +366,13 @@ public class ResourcesTool {
     private final IMethodHook ResHooker = new IMethodHook() {
         @Override
         public void before(BeforeHookParam callback) {
-            ResourcesTool instance = getInstance();
-            if (instance == null) return;
-
             // 确保已加载模块资源
-            if (instance.resourcesArrayList.isEmpty()) {
+            if (resourcesArrayList.isEmpty()) {
                 Context context = ContextUtils.getContextNoError(ContextUtils.FLAG_CURRENT_APP);
                 if (context != null) {
-                    Resources resources = instance.loadModuleRes(context);
+                    Resources resources = loadModuleRes(context);
                     if (resources != null) {
-                        instance.resourcesArrayList.add(resources);
+                        resourcesArrayList.add(resources);
                     }
                 }
             }
@@ -385,34 +381,39 @@ public class ResourcesTool {
             if (args == null || args.length < 1) return;
 
             int reqId = (int) args[0];
-            // 防止递归调用
-            if (instance.resMap.contains(reqId)) {
+            int previousId = currentResId.get();
+            if (previousId == reqId) {
                 return;
             }
 
-            Resources thisRes = (Resources) callback.getThisObject();
-            String methodName = callback.getMember().getName();
+            currentResId.set(reqId);
+            try {
+                Resources thisRes = (Resources) callback.getThisObject();
+                String methodName = callback.getMember().getName();
 
-            // 遍历所有加载的模块资源
-            for (Resources resources : instance.resourcesArrayList) {
-                if (resources == null) continue;
+                // 遍历所有加载的模块资源
+                for (Resources resources : resourcesArrayList) {
+                    if (resources == null) continue;
 
-                Object value;
-                try {
-                    value = instance.getResourceReplacement(resources, thisRes, methodName, args);
-                } catch (Resources.NotFoundException ex) {
-                    continue;
-                }
-
-                if (value != null) {
-                    Object finalResult = convertResultType(methodName, value);
-                    if (finalResult != null) {
-                        callback.setResult(finalResult);
-                    } else {
-                        XposedLog.w(TAG, "Mismatched replacement type for method " + methodName +". Got " + value.getClass().getName());
+                    Object value;
+                    try {
+                        value = getResourceReplacement(resources, thisRes, methodName, args);
+                    } catch (Resources.NotFoundException ex) {
+                        continue;
                     }
-                    break;
+
+                    if (value != null) {
+                        Object finalResult = convertResultType(methodName, value);
+                        if (finalResult != null) {
+                            callback.setResult(finalResult);
+                        } else {
+                            XposedLog.w(TAG, "Mismatched replacement type for method " + methodName +". Got " + value.getClass().getName());
+                        }
+                        break;
+                    }
                 }
+            } finally {
+                currentResId.set(previousId);
             }
         }
     };
@@ -538,8 +539,7 @@ public class ResourcesTool {
 
         // 查询替换规则
         Pair<ReplacementType, Object> replacement = replacements.get(resKey);
-        if (replacement == null) {
-            // 尝试通配符匹配
+        if (replacement == null && !resKey.pkg.equals("*")) {
             replacement = replacements.get(new ResKey("*", resKey.type, resKey.name));
         }
 
@@ -554,18 +554,11 @@ public class ResourcesTool {
      */
     private Object handleReplacement(Pair<ReplacementType, Object> replacement, Resources resources,Resources res, String method, Object[] args)
         throws Resources.NotFoundException {
-        switch (replacement.first) {
-            case OBJECT:
-                return handleObjectReplacement(replacement.second, method);
-            case DENSITY:
-                return handleDensityReplacement(replacement.second, res, method);
-
-            case ID:
-                return handleIdReplacement(replacement.second, resources, method, args);
-
-            default:
-                return null;
-        }
+        return switch (replacement.first) {
+            case OBJECT -> handleObjectReplacement(replacement.second, method);
+            case DENSITY -> handleDensityReplacement(replacement.second, res, method);
+            case ID -> handleIdReplacement(replacement.second, resources, method, args);
+        };
     }
 
     /**
@@ -669,7 +662,7 @@ public class ResourcesTool {
 
         try {
             Pair<ReplacementType, Object> replacement = replacements.get(resKey);
-            if (replacement == null) {
+            if (replacement == null && !resKey.pkg.equals("*")) {
                 replacement = replacements.get(new ResKey("*", resKey.type, resKey.name));
             }
 

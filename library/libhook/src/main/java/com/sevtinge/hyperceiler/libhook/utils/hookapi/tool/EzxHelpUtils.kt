@@ -27,15 +27,14 @@ import io.github.kyuubiran.ezxhelper.core.ClassLoaderProvider.classLoader
 import io.github.kyuubiran.ezxhelper.core.finder.ConstructorFinder
 import io.github.kyuubiran.ezxhelper.core.finder.FieldFinder
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder
-import io.github.kyuubiran.ezxhelper.core.helper.ObjectHelper.`-Static`.objectHelper
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil
 import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
+import io.github.libxposed.api.XposedInterface.Hooker
 import io.github.libxposed.api.XposedInterface.MethodUnhooker
 import io.github.libxposed.api.XposedModule
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
-import java.lang.reflect.Member
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.util.Arrays
@@ -44,12 +43,12 @@ import java.util.WeakHashMap
 object EzxHelpUtils {
 
     @JvmStatic
-    lateinit var xposedModule: XposedModule
-        private set
+    private lateinit var xposedModule: XposedModule
     private val additionalFields = WeakHashMap<Any, MutableMap<String, Any?>>()
 
     private val methodCache = WeakHashMap<String, Method?>()
     private val constructorCache = WeakHashMap<String, Constructor<*>?>()
+    private val fieldCache = WeakHashMap<String, Field?>()
 
     private const val TAG = "EzxHelpUtils"
 
@@ -68,18 +67,69 @@ object EzxHelpUtils {
         return ClassUtil.loadClassOrNull(name, classLoader)
     }
 
+    /**
+     * 在类层次结构中查找字段（包括父类）
+     *
+     * @param clazz 目标类
+     * @param fieldName 字段名
+     * @return Field 对象
+     * @throws NoSuchFieldError 如果字段不存在
+     */
     @JvmStatic
     fun findField(clazz: Class<*>, fieldName: String): Field {
-        return FieldFinder.fromClass(clazz)
-            .filterByName(fieldName)
-            .first()
+        val fullFieldName = "${clazz.name}#$fieldName"
+
+        synchronized(fieldCache) {
+            if (fieldCache.containsKey(fullFieldName)) {
+                return fieldCache[fullFieldName] ?: throw NoSuchFieldError(fullFieldName)
+            }
+        }
+
+        try {
+            val field = findFieldRecursiveImpl(clazz, fieldName)!!
+            field.isAccessible = true
+            synchronized(fieldCache) {
+                fieldCache[fullFieldName] = field
+            }
+            return field
+        } catch (_: NoSuchFieldException) {
+            synchronized(fieldCache) {
+                fieldCache[fullFieldName] = null
+            }
+            throw NoSuchFieldError(fullFieldName)
+        }
     }
 
     @JvmStatic
     fun findFieldIfExists(clazz: Class<*>, fieldName: String): Field? {
-        return FieldFinder.fromClass(clazz)
-            .filterByName(fieldName)
-            .firstOrNull()
+        return try {
+            findField(clazz, fieldName)
+        } catch (_: NoSuchFieldError) {
+            null
+        }
+    }
+
+    /**
+     * 递归查找字段（包括父类）
+     */
+    private fun findFieldRecursiveImpl(clazz: Class<*>, fieldName: String): Field? {
+        var currentClass: Class<*>? = clazz
+        var firstException: NoSuchFieldException? = null
+
+        while (currentClass != null && currentClass != Any::class.java) {
+            try {
+                return FieldFinder.fromClass(currentClass)
+                    .filterByName(fieldName)
+                    .firstOrNull() ?: throw NoSuchFieldException()
+            } catch (e: NoSuchFieldException) {
+                if (firstException == null) {
+                    firstException = e
+                }
+                currentClass = currentClass.superclass
+            }
+        }
+
+        throw firstException ?: NoSuchFieldException(fieldName)
     }
 
     @JvmStatic
@@ -89,14 +139,43 @@ object EzxHelpUtils {
             .first()
     }
 
+    /**
+     * 获取对象字段值
+     *
+     * @param instance 对象实例
+     * @param fieldName 字段名
+     * @return 字段值
+     */
     @JvmStatic
     fun getObjectField(instance: Any, fieldName: String): Any? {
-        return instance.objectHelper().getObjectOrNull(fieldName)
+        return try {
+            val field = findField(instance.javaClass, fieldName)
+            field.get(instance)
+        } catch (e: IllegalAccessException) {
+            XposedLog.e(TAG, "Failed to get field: $fieldName", e)
+            throw IllegalAccessError(e.message)
+        }
     }
 
+    /**
+     * 设置对象字段值（支持父类字段）
+     *
+     * @param instance 对象实例
+     * @param fieldName 字段名
+     * @param value 要设置的值
+     */
     @JvmStatic
     fun setObjectField(instance: Any, fieldName: String, value: Any?) {
-        instance.objectHelper().setObject(fieldName, value)
+        try {
+            val field = findField(instance.javaClass, fieldName)
+            field.set(instance, value)
+        } catch (e: IllegalAccessException) {
+            XposedLog.e(TAG, "Failed to set field: $fieldName", e)
+            throw IllegalAccessError(e.message)
+        } catch (e: IllegalArgumentException) {
+            XposedLog.e(TAG, "Illegal argument for field: $fieldName", e)
+            throw e
+        }
     }
 
     @JvmStatic
@@ -106,7 +185,7 @@ object EzxHelpUtils {
 
     @JvmStatic
     fun setBooleanField(instance: Any, fieldName: String, value: Boolean) {
-        instance.objectHelper().setObject(fieldName, value)
+        setObjectField(instance, fieldName, value)
     }
 
     @JvmStatic
@@ -116,7 +195,7 @@ object EzxHelpUtils {
 
     @JvmStatic
     fun setIntField(instance: Any, fieldName: String, value: Int) {
-        instance.objectHelper().setObject(fieldName, value)
+        setObjectField(instance, fieldName, value)
     }
 
     @JvmStatic
@@ -126,7 +205,7 @@ object EzxHelpUtils {
 
     @JvmStatic
     fun setLongField(instance: Any, fieldName: String, value: Long) {
-        instance.objectHelper().setObject(fieldName, value)
+        setObjectField(instance, fieldName, value)
     }
 
     @JvmStatic
@@ -136,47 +215,59 @@ object EzxHelpUtils {
 
     @JvmStatic
     fun setFloatField(instance: Any, fieldName: String, value: Float) {
-        instance.objectHelper().setObject(fieldName, value)
+        setObjectField(instance, fieldName, value)
     }
 
     @JvmStatic
     fun getStaticObjectField(clazz: Class<*>, fieldName: String): Any? {
-        return ClassUtil.getStaticObjectOrNull(clazz, fieldName)
+        return try {
+            val field = findField(clazz, fieldName)
+            field.get(null)
+        } catch (e: IllegalAccessException) {
+            XposedLog.e(TAG, "Failed to get static field: $fieldName", e)
+            throw IllegalAccessError(e.message)
+        }
     }
 
     @JvmStatic
     fun setStaticObjectField(clazz: Class<*>, fieldName: String, value: Any?) {
-        ClassUtil.setStaticObject(clazz, fieldName, value)
+        try {
+            val field = findField(clazz, fieldName)
+            field.set(null, value)
+        } catch (e: IllegalAccessException) {
+            XposedLog.e(TAG, "Failed to set static field: $fieldName", e)
+            throw IllegalAccessError(e.message)
+        }
     }
 
     @JvmStatic
     fun getStaticBooleanField(clazz: Class<*>, fieldName: String): Boolean {
-        return ClassUtil.getStaticObjectOrNull(clazz, fieldName) as? Boolean ?: false
+        return getStaticObjectField(clazz, fieldName) as? Boolean ?: false
     }
 
     @JvmStatic
     fun setStaticBooleanField(clazz: Class<*>, fieldName: String, value: Boolean) {
-        ClassUtil.setStaticObject(clazz, fieldName, value)
+        setStaticObjectField(clazz, fieldName, value)
     }
 
     @JvmStatic
     fun getStaticIntField(clazz: Class<*>, fieldName: String): Int {
-        return ClassUtil.getStaticObjectOrNull(clazz, fieldName) as? Int ?: 0
+        return getStaticObjectField(clazz, fieldName) as? Int ?: 0
     }
 
     @JvmStatic
     fun setStaticIntField(clazz: Class<*>, fieldName: String, value: Int) {
-        ClassUtil.setStaticObject(clazz, fieldName, value)
+        setStaticObjectField(clazz, fieldName, value)
     }
 
     @JvmStatic
     fun getStaticLongField(clazz: Class<*>, fieldName: String): Long {
-        return ClassUtil.getStaticObjectOrNull(clazz, fieldName) as? Long ?: 0L
+        return getStaticObjectField(clazz, fieldName) as? Long ?: 0L
     }
 
     @JvmStatic
     fun setStaticLongField(clazz: Class<*>, fieldName: String, value: Long) {
-        ClassUtil.setStaticObject(clazz, fieldName, value)
+        setStaticObjectField(clazz, fieldName, value)
     }
 
     @JvmStatic
@@ -210,9 +301,9 @@ object EzxHelpUtils {
                     )
                     is Class<*> -> arg
                     is String -> runCatching {
-                        findClass(arg, clazz.classLoader)
-                    }.recoverCatching {
                         findClass(arg, classLoader)
+                    }.recoverCatching {
+                        findClass(arg, clazz.classLoader)
                     }.getOrElse { e ->
                         throw IllegalArgumentException(
                             "Failed to find class '$arg'", e
@@ -326,13 +417,32 @@ object EzxHelpUtils {
         }
     }
 
+    private fun findMethodByReflection(
+        clazz: Class<*>,
+        methodName: String,
+        vararg parameterTypes: Class<*>
+    ): Method? {
+        val method = try {
+            if (parameterTypes.isEmpty()) {
+                clazz.getDeclaredMethod(methodName)
+            } else {
+                clazz.getDeclaredMethod(methodName, *parameterTypes)
+            }
+        } catch (_: Throwable) {
+            null
+        }
+        method?.isAccessible = true
+        return method
+    }
+
     @JvmStatic
     fun findMethodExactIfExists(
         clazz: Class<*>,
         methodName: String,
         vararg parameterTypes: Class<*>
     ): Method {
-        val fullMethodName = "${clazz.name}#$methodName${getParametersString(*parameterTypes)}#exact"
+        val fullMethodName =
+            "${clazz.name}#$methodName${getParametersString(*parameterTypes)}#exact"
 
         synchronized(methodCache) {
             if (methodCache.containsKey(fullMethodName)) {
@@ -340,11 +450,24 @@ object EzxHelpUtils {
             }
         }
 
-        val clz: Class<*> = clazz
-        val method = MethodFinder.fromClass(clz)
-            .filterByName(methodName)
-            .filterByParamTypes(*parameterTypes)
-            .firstOrNull()
+        val method = runCatching {
+            if (parameterTypes.isEmpty()) {
+                MethodFinder.fromClass(clazz)
+                    .filterByName(methodName)
+                    .firstOrNull()
+            } else {
+                MethodFinder.fromClass(clazz)
+                    .filterByName(methodName)
+                    .filterByParamTypes(*parameterTypes)
+                    .firstOrNull()
+            }
+        }.recoverCatching { e ->
+            XposedLog.w(TAG, "MethodFinder failed for $fullMethodName, fallback to reflection", e)
+            // e.g.
+            // java.lang.NoClassDefFoundError: Failed resolution of:
+            // Lcom/miui/newhome/view/gestureview/NewHomeView;
+            findMethodByReflection(clazz, methodName, *parameterTypes)
+        }.getOrNull()
 
         if (method != null) {
             method.isAccessible = true
@@ -432,12 +555,16 @@ object EzxHelpUtils {
         clazz: Class<*>,
         vararg parameterTypes: Class<*>
     ): Constructor<*> {
-        return ConstructorFinder.fromClass(clazz)
-            .filterByParamTypes(*parameterTypes)
-            .firstOrNull()
-            ?: throw NoSuchMethodError(
-                "${clazz.name}${getParametersString(*parameterTypes)}#exact"
-            )
+        return if (parameterTypes.isEmpty()) {
+            ConstructorFinder.fromClass(clazz)
+                .firstOrNull()
+        } else {
+            ConstructorFinder.fromClass(clazz)
+                .filterByParamTypes(*parameterTypes)
+                .firstOrNull()
+        } ?: throw NoSuchMethodError(
+            "${clazz.name}${getParametersString(*parameterTypes)}#exact"
+        )
     }
 
     /**
@@ -458,8 +585,11 @@ object EzxHelpUtils {
 
         synchronized(constructorCache) {
             if (constructorCache.containsKey(fullConstructorName)) {
-                return constructorCache[fullConstructorName]    ?: throw NoSuchMethodError(fullConstructorName)
-            }}
+                return constructorCache[fullConstructorName] ?: throw NoSuchMethodError(
+                    fullConstructorName
+                )
+            }
+        }
 
         fun cacheAndReturn(constructor: Constructor<*>): Constructor<*> {
             constructor.isAccessible = true
@@ -472,7 +602,8 @@ object EzxHelpUtils {
         try {
             val exactConstructor = findConstructorExact(clazz, *parameterTypes)
             return cacheAndReturn(exactConstructor)
-        } catch (_: NoSuchMethodError) {}
+        } catch (_: NoSuchMethodError) {
+        }
 
         var bestMatch: Constructor<*>? = null
 
@@ -973,12 +1104,24 @@ object EzxHelpUtils {
     fun deoptimizeMethods(clazz: Class<*>, vararg names: String?) {
         val list = listOf(*names)
         Arrays.stream(clazz.declaredMethods)
-            .filter {
-                method: Method? -> list.contains(method!!.name)
+            .filter { method: Method? ->
+                list.contains(method!!.name)
             }
-            .forEach {
-                method: Method? -> this.deoptimize(method!!)
+            .forEach { method: Method? ->
+                this.deoptimize(method!!)
             }
+    }
+
+    @JvmStatic
+    fun libHook(method: Method, hooker: Class<out Hooker>): MethodUnhooker<Method?> {
+        return xposedModule.hook(method, hooker)
+    }
+
+    @JvmStatic
+    fun invokeSuperMethod(methodName: String, thisObject: Any, vararg args: Any?) {
+        val paramTypes = getParameterTypesExact(*args)
+        val method = findMethodBestMatch(thisObject::class.java.superclass, methodName, *paramTypes)
+        xposedModule.invokeSpecial(method, thisObject, *paramTypes)
     }
 }
 
@@ -1094,182 +1237,3 @@ private fun compareParameterTypes(
 private fun getParametersString(vararg parameterTypes: Class<*>): String {
     return parameterTypes.joinToString(",", "(", ")") { it.simpleName }
 }
-
-// ==================== Any 扩展函数 ====================
-
-fun Any.getObjectField(fieldName: String): Any? = EzxHelpUtils.getObjectField(this, fieldName)
-fun <T> Any.getObjectFieldAs(fieldName: String): T = getObjectField(fieldName) as T
-fun Any.setObjectField(fieldName: String, value: Any?) =
-    EzxHelpUtils.setObjectField(this, fieldName, value)
-
-fun Any.getBooleanField(fieldName: String): Boolean = EzxHelpUtils.getBooleanField(this, fieldName)
-fun Any.setBooleanField(fieldName: String, value: Boolean) =
-    EzxHelpUtils.setBooleanField(this, fieldName, value)
-
-fun Any.getIntField(fieldName: String): Int = EzxHelpUtils.getIntField(this, fieldName)
-fun Any.setIntField(fieldName: String, value: Int) =
-    EzxHelpUtils.setIntField(this, fieldName, value)
-
-fun Any.getLongField(fieldName: String): Long = EzxHelpUtils.getLongField(this, fieldName)
-fun Any.setLongField(fieldName: String, value: Long) =
-    EzxHelpUtils.setLongField(this, fieldName, value)
-
-fun Any.getFloatField(fieldName: String): Float = EzxHelpUtils.getFloatField(this, fieldName)
-fun Any.setFloatField(fieldName: String, value: Float) =
-    EzxHelpUtils.setFloatField(this, fieldName, value)
-
-fun Any.getObjectFieldOrNull(fieldName: String): Any? {
-    return runCatching { getObjectField(fieldName) }.getOrNull()
-}
-
-fun <T> Any.getObjectFieldAsOrNull(fieldName: String): T? {
-    return runCatching {
-        getObjectField(fieldName) as? T
-    }.getOrNull()
-}
-
-fun Any.getBooleanFieldOrNull(fieldName: String): Boolean? {
-    return runCatching { getBooleanField(fieldName) }.getOrNull()
-}
-
-fun Any.getIntFieldOrNull(fieldName: String): Int? {
-    return runCatching { getIntField(fieldName) }.getOrNull()
-}
-
-fun Any.getLongFieldOrNull(fieldName: String): Long? {
-    return runCatching { getLongField(fieldName) }.getOrNull()
-}
-
-fun Any.getFloatFieldOrNull(fieldName: String): Float? {
-    return runCatching { getFloatField(fieldName) }.getOrNull()
-}
-
-fun Any.callMethod(methodName: String, vararg args: Any?): Any? =
-    EzxHelpUtils.callMethod(this, methodName, *args)
-
-fun <T> Any.callMethodAs(methodName: String, vararg args: Any?): T =
-    callMethod(methodName, *args) as T
-
-fun Any.callMethodOrNull(methodName: String, vararg args: Any?): Any? {
-    return runCatching {
-        EzxHelpUtils.callMethod(this, methodName, *args)
-    }.getOrNull()
-}
-
-fun Any.getFirstFieldByExactType(type: Class<*>): Any? =
-    javaClass.findFirstFieldByExactType(type).get(this)
-
-fun <T> Any.getFirstFieldByExactTypeAs(type: Class<*>) =
-    javaClass.findFirstFieldByExactType(type).get(this) as? T
-
-fun Any.getAdditionalInstanceField(field: String): Any? =
-    EzxHelpUtils.getAdditionalInstanceField(this, field)
-
-fun <T> Any.getAdditionalInstanceFieldAs(field: String) =
-    EzxHelpUtils.getAdditionalInstanceField(this, field) as T
-
-fun Any.setAdditionalInstanceField(
-    field: String,
-    value: Any?
-): Any? = EzxHelpUtils.setAdditionalInstanceField(this, field, value)
-
-fun Any.removeAdditionalInstanceField(
-    field: String
-): Any? = EzxHelpUtils.removeAdditionalInstanceField(this, field)
-
-// ==================== Class 扩展函数 ====================
-
-fun Class<*>.getStaticObjectField(fieldName: String): Any? =
-    EzxHelpUtils.getStaticObjectField(this, fieldName)
-
-fun <T> Class<*>.getStaticObjectFieldAs(fieldName: String): T = getStaticObjectField(fieldName) as T
-fun Class<*>.setStaticObjectField(fieldName: String, value: Any?) =
-    EzxHelpUtils.setStaticObjectField(this, fieldName, value)
-
-fun Class<*>.getStaticBooleanField(fieldName: String): Boolean =
-    EzxHelpUtils.getStaticBooleanField(this, fieldName)
-
-fun Class<*>.setStaticBooleanField(fieldName: String, value: Boolean) =
-    EzxHelpUtils.setStaticBooleanField(this, fieldName, value)
-
-fun Class<*>.getStaticIntField(fieldName: String): Int =
-    EzxHelpUtils.getStaticIntField(this, fieldName)
-
-fun Class<*>.setStaticIntField(fieldName: String, value: Int) =
-    EzxHelpUtils.setStaticIntField(this, fieldName, value)
-
-fun Class<*>.getStaticLongField(fieldName: String): Long =
-    EzxHelpUtils.getStaticLongField(this, fieldName)
-
-fun Class<*>.setStaticLongField(fieldName: String, value: Long) =
-    EzxHelpUtils.setStaticLongField(this, fieldName, value)
-
-fun Class<*>.getStaticObjectFieldOrNull(fieldName: String): Any? {
-    return runCatching { getStaticObjectField(fieldName) }.getOrNull()
-}
-
-fun <T> Class<*>.getStaticObjectFieldAsOrNull(fieldName: String): T? {
-    return runCatching {
-        getStaticObjectField(fieldName) as? T
-    }.getOrNull()
-}
-
-fun Class<*>.getStaticBooleanFieldOrNull(fieldName: String): Boolean? {
-    return runCatching { getStaticBooleanField(fieldName) }.getOrNull()
-}
-
-fun Class<*>.getStaticIntFieldOrNull(fieldName: String): Int? {
-    return runCatching { getStaticIntField(fieldName) }.getOrNull()
-}
-
-fun Class<*>.getStaticLongFieldOrNull(fieldName: String): Long? {
-    return runCatching { getStaticLongField(fieldName) }.getOrNull()
-}
-
-fun Class<*>.callStaticMethod(methodName: String, vararg args: Any?): Any? =
-    EzxHelpUtils.callStaticMethod(this, methodName, *args)
-
-fun <T> Class<*>.callStaticMethodAs(methodName: String, vararg args: Any?): T =
-    callStaticMethod(methodName, *args) as T
-
-fun <T> Class<*>.newInstance(vararg args: Any?): T = EzxHelpUtils.newInstance(this, *args) as T
-
-fun Class<*>.findFieldByExactType(type: Class<*>): Field =
-    EzxHelpUtils.findFirstFieldByExactType(this, type)
-
-fun Class<*>.findFirstFieldByExactType(type: Class<*>): Field =
-    EzxHelpUtils.findFirstFieldByExactType(this, type)
-
-
-// ==================== String 扩展函数 ====================
-
-fun String.toClass(classLoader: ClassLoader?): Class<*> = EzxHelpUtils.findClass(this, classLoader)
-fun String.toClassOrNull(classLoader: ClassLoader?): Class<*>? =
-    EzxHelpUtils.findClassIfExists(this, classLoader)
-
-// ==================== Hook 扩展函数 ====================
-
-fun Method.hook(callback: IMethodHook): MethodUnhooker<*> = EzxHelpUtils.hookMethod(this, callback)
-fun Method.hookReplace(callback: IReplaceHook): MethodUnhooker<*> =
-    EzxHelpUtils.hookMethod(this, callback)
-
-fun Constructor<*>.hook(callback: IMethodHook): MethodUnhooker<*> =
-    EzxHelpUtils.hookConstructor(this, callback)
-
-fun Class<*>.hookAllMethods(methodName: String, callback: IMethodHook): List<MethodUnhooker<*>> =
-    EzxHelpUtils.hookAllMethods(this, methodName, callback)
-
-fun Class<*>.hookAllConstructors(callback: IMethodHook): List<MethodUnhooker<*>> =
-    EzxHelpUtils.hookAllConstructors(this, callback)
-
-
-val Member.isStatic: Boolean
-    inline get() = Modifier.isStatic(modifiers)
-val Member.isFinal: Boolean
-    inline get() = Modifier.isFinal(modifiers)
-val Member.isPublic: Boolean
-    inline get() = Modifier.isPublic(modifiers)
-val Member.isNotStatic: Boolean
-    inline get() = !isStatic
-val Class<*>.isAbstract: Boolean
-    inline get() = !isPrimitive && Modifier.isAbstract(modifiers)
