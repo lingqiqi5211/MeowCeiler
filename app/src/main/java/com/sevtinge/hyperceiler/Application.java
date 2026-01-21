@@ -30,6 +30,7 @@ import com.fan.common.logviewer.LogManager;
 import com.fan.common.logviewer.LogViewerActivity;
 import com.fan.common.logviewer.XposedLogLoader;
 import com.sevtinge.hyperceiler.common.utils.LSPosedScopeHelper;
+import com.sevtinge.hyperceiler.common.utils.ScopeManager;
 import com.sevtinge.hyperceiler.libhook.utils.log.AndroidLog;
 import com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils;
 import com.sevtinge.hyperceiler.model.data.AppInfoCache;
@@ -46,7 +47,6 @@ public class Application extends android.app.Application implements XposedServic
     private static final String TAG = "HyperCeiler:Application";
     private static final Runnable reloadListener = () -> {};
     public static boolean isModuleActivated = false;
-    public static XposedService mService = null;
 
     @Override
     protected void attachBaseContext(Context base) {
@@ -68,7 +68,7 @@ public class Application extends android.app.Application implements XposedServic
 
         new Thread(() -> AppInfoCache.getInstance(this).initAllAppInfos()).start();
 
-        LSPosedScopeHelper.init(this);
+        LSPosedScopeHelper.init();
         setupCrashHandler();
     }
 
@@ -101,7 +101,7 @@ public class Application extends android.app.Application implements XposedServic
         AndroidLog.d(TAG, "LSPosed service connected: " + service.getFrameworkName() + " v" + service.getFrameworkVersion());
         synchronized (this) {
             isModuleActivated = true;
-            mService = service;
+            ScopeManager.setService(service);
             PrefsUtils.remotePrefs =
                 (RemotePreferences) service.getRemotePreferences(PrefsUtils.mPrefsName + "_remote");
             reloadListener.run();
@@ -113,7 +113,6 @@ public class Application extends android.app.Application implements XposedServic
         AndroidLog.e(TAG, "LSPosed service died.");
         synchronized (this) {
             isModuleActivated = false;
-            mService = null;
             PrefsUtils.remotePrefs = null;
         }
     }

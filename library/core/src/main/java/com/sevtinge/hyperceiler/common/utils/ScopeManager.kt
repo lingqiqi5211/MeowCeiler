@@ -1,14 +1,37 @@
-package com.sevtinge.hyperceiler.model.data
+package com.sevtinge.hyperceiler.common.utils
 
-import android.util.Log
-import com.sevtinge.hyperceiler.Application.mService
+import com.sevtinge.hyperceiler.libhook.utils.log.AndroidLog
 import io.github.libxposed.service.XposedService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.concurrent.Volatile
 
 object ScopeManager {
 
     private const val TAG = "ScopeManager"
+    @Volatile
+    private var sService: XposedService? = null
+
+    @JvmStatic
+    fun setService(service: XposedService) {
+        sService = service
+    }
+
+    @JvmStatic
+    fun getService(): XposedService? {
+        try {
+            return sService
+        } catch (e: Exception) {
+            AndroidLog.e(TAG, "getService failed", e)
+        }
+        return requireService()
+    }
+
+    fun requireService(): XposedService {
+        val s: XposedService? = sService
+        checkNotNull(s) { "XposedService not bound yet" }
+        return s
+    }
 
     interface ScopeCallback {
         fun onScopeOperationSuccess(message: String)
@@ -16,15 +39,15 @@ object ScopeManager {
     }
 
     suspend fun getScope(): List<String>? = withContext(Dispatchers.IO) {
-        val service = mService
+        val service = requireService()
         if (service == null) {
-            Log.e(TAG, "getScope: LSPosed service not available.")
+            AndroidLog.e(TAG, "getScope: LSPosed service not available.")
             return@withContext null
         }
         return@withContext try {
             service.scope
         } catch (e: Exception) {
-            Log.e(TAG, "getScope failed", e)
+            AndroidLog.e(TAG, "getScope failed", e)
             null
         }
     }
@@ -36,7 +59,7 @@ object ScopeManager {
      */
     suspend fun addScope(packageName: String, callback: ScopeCallback) {
         withContext(Dispatchers.Main) {
-            val service = mService
+            val service = requireService()
             if (service == null) {
                 callback.onScopeOperationFail("LSPosed service not available.")
                 return@withContext
@@ -59,7 +82,7 @@ object ScopeManager {
             try {
                 service.requestScope(packageName, serviceCallback)
             } catch (e: Exception) {
-                Log.e(TAG, "addScope failed", e)
+                AndroidLog.e(TAG, "addScope failed", e)
                 callback.onScopeOperationFail(e.message ?: "Unknown error")
             }
         }
@@ -71,15 +94,15 @@ object ScopeManager {
      * @return 成功则返回 null，失败则返回错误信息字符串。
      */
     suspend fun removeScope(packageName: String): String? = withContext(Dispatchers.IO) {
-        val service = mService
+        val service = requireService()
         if (service == null) {
-            Log.e(TAG, "removeScope: LSPosed service not available.")
+            AndroidLog.e(TAG, "removeScope: LSPosed service not available.")
             return@withContext "LSPosed service not available."
         }
         return@withContext try {
             service.removeScope(packageName)
         } catch (e: Exception) {
-            Log.e(TAG, "removeScope failed", e)
+            AndroidLog.e(TAG, "removeScope failed", e)
             e.message
         }
     }
