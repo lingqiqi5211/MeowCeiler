@@ -18,7 +18,7 @@
 */
 package com.sevtinge.hyperceiler.libhook.rules.home.dock
 
-import com.sevtinge.hyperceiler.libhook.base.appbase.mihome.HomeBaseHookNew
+import com.sevtinge.hyperceiler.libhook.appbase.mihome.HomeBaseHookNew
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.beforeHookMethod
 
 object ShowDockIconTitle : HomeBaseHookNew() {

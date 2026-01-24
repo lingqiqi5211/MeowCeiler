@@ -19,6 +19,7 @@
 package com.sevtinge.hyperceiler.hooker.systemui;
 
 import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.getWhoAmI;
+import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isMoreHyperOSVersion;
 import static com.sevtinge.hyperceiler.libhook.utils.shell.ShellUtils.rootExecCmd;
 
 import android.os.Handler;
@@ -69,12 +70,16 @@ public class TileSettings extends DashboardFragment implements Preference.OnPref
             mMaxBrightness = Integer.parseInt(rootExecCmd("cat /sys/class/backlight/panel0-backlight/max_brightness"));
         } catch (Exception ignore) {}
 
-        mTaplus.setOnPreferenceChangeListener(
+        if (!isMoreHyperOSVersion(3f)) {
+            mTaplus.setOnPreferenceChangeListener(
                 (preference, o) -> {
                     killTaplus();
                     return true;
                 }
-        );
+            );
+        } else {
+            setFuncHint(mTaplus, 1);
+        }
 
         if (getWhoAmI().equals("root") && mMaxBrightness > 2048) {
             mSunshineModeHigh.setVisible(true);

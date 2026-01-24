@@ -22,7 +22,7 @@ import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Miui.isPad
 
 import android.view.WindowManager;
 
-import com.sevtinge.hyperceiler.libhook.base.appbase.mihome.HomeBaseHookNew;
+import com.sevtinge.hyperceiler.libhook.appbase.mihome.HomeBaseHookNew;
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook;
 import com.sevtinge.hyperceiler.libhook.callback.IReplaceHook;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils;

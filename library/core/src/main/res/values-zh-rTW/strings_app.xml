@@ -60,10 +60,13 @@
     <string name="help_cant_see_apps_switch">在主頁中隱藏此幫助</string>
     <string name="help_cant_see_apps_switch_desc">您仍然可以在「設定-設定主頁入口」中找到該頁面。重新啟動應用程式即可套用。</string>
     <string name="help_support_version_title">目前應用程式版本支援系統版本列表</string>
-    <string name="help_support_version_desc_1">目前 App 版本已全面適配以下系統版本：</string>
-    <string name="help_support_version_desc_2">適配目前應用程式版本的系統版本如下：</string>
+    <string name="help_current_system_version">您目前使用的系統版本為：</string>
+    <string name="help_full_support_desc">目前應用程式版本已完全適配於下列系統版本：</string>
+    <string name="help_partial_support_desc">目前應用程式版本僅部分功能尚未適配於下列系統版本：</string>
+    <string name="help_not_support_desc">目前應用程式版本未適配於下列系統版本：</string>
     <string name="help_support_version_desc_3">目前系統版本已全面適配。</string>
-    <string name="help_support_version_desc_4">目前的系統版本尚未（完全）適配。</string>
+    <string name="help_support_version_desc_4">目前使用的系統版本部分功能未適配。</string>
+    <string name="help_support_version_desc_5">目前使用的系統版本未適配。</string>
     <string name="location_add">增加</string>
     <string name="location_delete">刪除</string>
     <string name="edit">請輸入文字</string>
@@ -1125,9 +1128,6 @@
     <string name="home_title_disable_hide_theme">停用隱藏「主題管理」圖示</string>
     <string name="home_title_disable_hide_google">停用隱藏「Google」圖示</string>
     <string name="home_title_fake_non_default_icon">偽裝為非預設圖示</string>
-    <string name="home_title_custom_anim_param">動畫曲率自訂</string>
-    <string name="home_title_custom_anim_param_damping_title">阻尼</string>
-    <string name="home_title_custom_anim_param_stiffness_title">剛度</string>
     <string name="home_title_hide_report_text">隱藏檢舉選項</string>
     <string name="home_title_hide_report_text_desc">隱藏解除安裝時彈出的檢舉選項</string>
     <string name="home_title_notif_color">通知訊息背景顏色自訂</string>

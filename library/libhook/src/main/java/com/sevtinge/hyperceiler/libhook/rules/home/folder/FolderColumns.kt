@@ -28,7 +28,7 @@ import android.widget.FrameLayout
 import android.widget.GridView
 import android.widget.TextView
 import androidx.core.view.isNotEmpty
-import com.sevtinge.hyperceiler.libhook.base.appbase.mihome.HomeBaseHookNew
+import com.sevtinge.hyperceiler.libhook.appbase.mihome.HomeBaseHookNew
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Miui.isPad
 import com.sevtinge.hyperceiler.libhook.utils.api.DisplayUtils
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callMethodAs

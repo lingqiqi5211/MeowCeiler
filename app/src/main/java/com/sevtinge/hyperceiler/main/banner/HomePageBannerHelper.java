@@ -20,11 +20,12 @@ package com.sevtinge.hyperceiler.main.banner;
 
 import static com.sevtinge.hyperceiler.common.utils.LSPosedScopeHelper.mNotInSelectedScope;
 import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Module.scanModules;
+import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.SUPPORT_FULL;
 import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.getBaseOs;
 import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.getHost;
 import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.getRomAuthor;
+import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.getSupportStatus;
 import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.getSystemVersionIncremental;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isFullSupport;
 import static com.sevtinge.hyperceiler.libhook.utils.api.ProjectApi.isRelease;
 import static com.sevtinge.hyperceiler.libhook.utils.api.PropUtils.getProp;
 import static com.sevtinge.hyperceiler.libhook.utils.log.LogManager.IS_LOGGER_ALIVE;
@@ -104,7 +105,7 @@ public class HomePageBannerHelper {
 
     private void checkWarnings(Context context, PreferenceCategory preference) {
         boolean isUnofficialRom = getIsUnofficialRom(context);
-        boolean isFullSupport = isFullSupport();
+        boolean isFullSupport = getSupportStatus() == SUPPORT_FULL;
         boolean isWhileXposed = isWhileXposed();
         boolean isSignPass = SignUtils.isSignCheckPass(context);
 

@@ -843,9 +843,6 @@
     <string name="home_title_disable_hide_theme">Non nascondere l\'icona \"Gestione temi\"</string>
     <string name="home_title_disable_hide_google">Non nascondere l\'icona \"Google\"</string>
     <string name="home_title_fake_non_default_icon">Icona falsa non predefinita</string>
-    <string name="home_title_custom_anim_param">Parametro di animazione personalizzato</string>
-    <string name="home_title_custom_anim_param_damping_title">Smorzamento</string>
-    <string name="home_title_custom_anim_param_stiffness_title">Rigidità</string>
     <string name="home_recent">Recenti</string>
     <string name="home_recent_animation_speed">Velocità di animazione</string>
     <string name="home_recent_unlock_pin">Sblocca app aggiunte</string>

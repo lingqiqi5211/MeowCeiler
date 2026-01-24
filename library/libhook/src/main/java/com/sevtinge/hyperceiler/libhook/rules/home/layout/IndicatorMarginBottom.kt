@@ -18,7 +18,7 @@
 */
 package com.sevtinge.hyperceiler.libhook.rules.home.layout
 
-import com.sevtinge.hyperceiler.libhook.base.appbase.mihome.HomeBaseHookNew
+import com.sevtinge.hyperceiler.libhook.appbase.mihome.HomeBaseHookNew
 
 class IndicatorMarginBottom : HomeBaseHookNew() {
 

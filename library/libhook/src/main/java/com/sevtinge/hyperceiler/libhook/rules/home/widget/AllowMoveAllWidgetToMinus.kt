@@ -18,7 +18,7 @@
 */
 package com.sevtinge.hyperceiler.libhook.rules.home.widget
 
-import com.sevtinge.hyperceiler.libhook.base.appbase.mihome.HomeBaseHookNew
+import com.sevtinge.hyperceiler.libhook.appbase.mihome.HomeBaseHookNew
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callMethod
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectField
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectFieldOrNull

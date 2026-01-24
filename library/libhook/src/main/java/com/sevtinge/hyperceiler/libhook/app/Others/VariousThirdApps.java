@@ -24,6 +24,7 @@ import android.view.inputmethod.InputMethodManager;
 
 import com.hchen.database.HookBase;
 import com.sevtinge.hyperceiler.libhook.base.BaseLoad;
+import com.sevtinge.hyperceiler.libhook.rules.various.MusicHooks;
 import com.sevtinge.hyperceiler.libhook.rules.various.clipboard.BaiduClipboard;
 import com.sevtinge.hyperceiler.libhook.rules.various.clipboard.ClearClipboard;
 import com.sevtinge.hyperceiler.libhook.rules.various.clipboard.ClipboardLimit;
@@ -63,7 +64,7 @@ public class VariousThirdApps extends BaseLoad {
         initHook(new ClearClipboard(), mPrefsMap.getBoolean("add_clipboard_clear") && isInputMethod(mPackageName));
 
         // 焦点歌词（音乐软件相关）
-        // initHook(MusicHooks.INSTANCE, mPrefsMap.getBoolean("system_ui_statusbar_music_switch") && mPrefsMap.getBoolean("system_ui_statusbar_music_show_app"));
+        initHook(MusicHooks.INSTANCE, mPrefsMap.getBoolean("system_ui_statusbar_music_switch") && mPrefsMap.getBoolean("system_ui_statusbar_music_show_app"));
     }
 
     private List<String> getAppsUsingInputMethod(Context context) {

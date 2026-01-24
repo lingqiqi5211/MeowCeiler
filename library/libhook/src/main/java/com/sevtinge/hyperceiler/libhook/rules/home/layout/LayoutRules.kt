@@ -19,7 +19,7 @@
 package com.sevtinge.hyperceiler.libhook.rules.home.layout
 
 import android.content.Context
-import com.sevtinge.hyperceiler.libhook.base.appbase.mihome.HomeBaseHookNew
+import com.sevtinge.hyperceiler.libhook.appbase.mihome.HomeBaseHookNew
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Miui.isPad
 import com.sevtinge.hyperceiler.libhook.utils.api.DisplayUtils

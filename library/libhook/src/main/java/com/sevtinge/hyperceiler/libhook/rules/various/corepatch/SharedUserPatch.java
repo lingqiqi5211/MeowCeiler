@@ -59,7 +59,7 @@ public class SharedUserPatch extends CorePatchHelper {
             }
 
             // choose a signature after all old signed packages are removed
-            var sharedUserSettingClass = EzxHelpUtils.findClass("com.android.server.pm.SharedUserSetting", lpparam.getClassLoader());
+            var sharedUserSettingClass = findClass("com.android.server.pm.SharedUserSetting", lpparam.getClassLoader());
             hookAllMethods(sharedUserSettingClass, "removePackage", new IMethodHook() {
                     @Override
                     public void before(BeforeHookParam param) {
@@ -148,7 +148,7 @@ public class SharedUserPatch extends CorePatchHelper {
         if (isMoreAndroidVersion(33)) {
             return findClassIfExists("android.content.pm.SigningDetails", classLoader);
         }
-        return EzxHelpUtils.findClass("android.content.pm.PackageParser.SigningDetails", classLoader);
+        return findClass("android.content.pm.PackageParser.SigningDetails", classLoader);
     }
 
     static Object callOriginMethod(Object obj, String methodName, Object... args) {

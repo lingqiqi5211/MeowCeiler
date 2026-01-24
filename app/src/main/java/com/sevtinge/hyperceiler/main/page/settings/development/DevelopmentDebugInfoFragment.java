@@ -18,52 +18,14 @@
  */
 package com.sevtinge.hyperceiler.main.page.settings.development;
 
-import static com.sevtinge.hyperceiler.Application.isModuleActivated;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Hardware.getBrand;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Hardware.getDeviceName;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Hardware.getDeviceToken;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Hardware.getFingerPrint;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Hardware.getLanguage;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Hardware.getLocale;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Hardware.getMarketName;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Hardware.getModDevice;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Hardware.getModelName;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Hardware.getSoc;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Miui.isInternational;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Miui.isLargeUI;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Miui.isPad;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Module.scanModules;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.getAndroidVersion;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.getBuildDate;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.getCurrentUserId;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.getHyperOSVersion;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.getRootGroupsInfo;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.getSmallVersion;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.getSystemVersionIncremental;
-import static com.sevtinge.hyperceiler.libhook.utils.log.LogManager.IS_LOGGER_ALIVE;
-import static com.sevtinge.hyperceiler.libhook.utils.log.LoggerHealthChecker.LOGGER_CHECKER_ERR_CODE;
-
 import androidx.preference.Preference;
 
-import com.sevtinge.hyperceiler.BuildConfig;
 import com.sevtinge.hyperceiler.R;
-import com.sevtinge.hyperceiler.common.utils.MainActivityContextHelper;
 import com.sevtinge.hyperceiler.dashboard.SettingsPreferenceFragment;
-import com.sevtinge.hyperceiler.expansion.utils.SignUtils;
-import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper;
-import com.sevtinge.hyperceiler.libhook.utils.api.ProjectApi;
-import com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
-import kotlin.text.Charsets;
 
 public class DevelopmentDebugInfoFragment extends SettingsPreferenceFragment {
 
@@ -103,14 +65,13 @@ public class DevelopmentDebugInfoFragment extends SettingsPreferenceFragment {
             });
         }
 
-
         if (mFuture != null && !mFuture.isDone()) {
             mFuture.cancel(true);
         }
 
         mFuture = mExecutor.submit(() -> {
             try {
-                final String info = buildDebugInfo();
+                final String info = com.sevtinge.hyperceiler.utils.DeviceInfoBuilder.build(requireContext());
                 mCachedDebugInfo = info;
                 if (isAdded() && getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
@@ -120,7 +81,6 @@ public class DevelopmentDebugInfoFragment extends SettingsPreferenceFragment {
                     });
                 }
             } catch (Exception e) {
-
                 String fallback = "Failed to load debug info";
                 mCachedDebugInfo = fallback;
                 if (isAdded() && getActivity() != null) {
@@ -132,103 +92,6 @@ public class DevelopmentDebugInfoFragment extends SettingsPreferenceFragment {
                 }
             }
         });
-    }
-
-    @NotNull
-    private String buildDebugInfo() {
-        Map<String, String> propertiesModule = new LinkedHashMap<>();
-        Map<String, String> propertiesDevice = new LinkedHashMap<>();
-        Map<String, String> propertiesSystem = new LinkedHashMap<>();
-        Map<String, String> propertiesCheck = new LinkedHashMap<>();
-        try {
-            propertiesModule.put("ApplicationId", ProjectApi.mAppModulePkg);
-            propertiesModule.put("VersionName", BuildConfig.VERSION_NAME);
-            propertiesModule.put("VersionCode", String.valueOf(BuildConfig.VERSION_CODE));
-            propertiesModule.put("BuildTime", "CST " + BuildConfig.BUILD_TIME);
-            propertiesModule.put("BuildType", BuildConfig.BUILD_TYPE);
-            propertiesModule.put("BuildOsName", BuildConfig.BUILD_OS_NAME);
-            propertiesModule.put("BuildJavaVersion", BuildConfig.BUILD_JAVA_VERSION);
-            propertiesModule.put("GitBranch", BuildConfig.GIT_BRANCH);
-            propertiesModule.put("GitCode", BuildConfig.GIT_CODE);
-            propertiesModule.put("GitHash", BuildConfig.GIT_HASH);
-            // propertiesModule.put("Debug", String.valueOf(BuildConfig.DEBUG));
-        } catch (Exception ignored) {
-        }
-        try {
-            propertiesDevice.put("MarketName", getMarketName());
-            propertiesDevice.put("DeviceName", getDeviceName());
-            propertiesDevice.put("Model", getModelName());
-            propertiesDevice.put("Brand", getBrand());
-            // propertiesDevice.put("Manufacture", getManufacturer());
-            // propertiesDevice.put("Board", getBoard());
-            propertiesDevice.put("Soc", getSoc());
-            propertiesDevice.put("ModDevice", getModDevice());
-            propertiesDevice.put("isPad", String.valueOf(isPad()));
-            propertiesDevice.put("LargeScreen", String.valueOf(isLargeUI()));
-            propertiesDevice.put("FingerPrint", getFingerPrint());
-            propertiesDevice.put("Locale", getLocale());
-            propertiesDevice.put("Language", getLanguage());
-            // propertiesDevice.put("AndroidId", MainActivityContextHelper.getAndroidId(requireContext()));
-            // propertiesDevice.put("Serial", getSerial());
-            // device token generation uses AndroidId internally; safe to call off UI thread.
-            propertiesDevice.put("DeviceToken", getDeviceToken(MainActivityContextHelper.getAndroidId(requireContext())));
-        } catch (Exception ignored) {
-        }
-        try {
-            propertiesSystem.put("AndroidSdkVersion", String.valueOf(getAndroidVersion()));
-            propertiesSystem.put("HyperOsVersion", String.valueOf(getHyperOSVersion()));
-            propertiesSystem.put("HyperOsSmallVersion", String.valueOf(getSmallVersion()));
-            propertiesSystem.put("SystemVersion", getSystemVersionIncremental());
-            propertiesSystem.put("InternationalBuild", String.valueOf(isInternational()));
-            propertiesSystem.put("Host", (String) getHost());
-            propertiesSystem.put("BuildDate", getBuildDate());
-            propertiesSystem.put("UnofficialRom", String.valueOf(com.sevtinge.hyperceiler.main.banner.HomePageBannerHelper.getIsUnofficialRom(requireContext())));
-            // propertiesSystem.put("Builder", getBuilder());
-            // propertiesSystem.put("RomAuthor", getRomAuthor());
-            // propertiesSystem.put("BaseOs", SystemSDKKt.getBaseOs());
-        } catch (Exception ignored) {
-        }
-        try {
-            List<DeviceHelper.Module.ModuleInfo> module = scanModules("/data/adb/modules", Charsets.UTF_8);
-
-            if (!module.isEmpty()) {
-                propertiesCheck.put("XposedManger", module.getFirst().extractName());
-                propertiesCheck.put("XposedMangerVersion", module.getFirst().formattedVersion());
-            } else {
-                propertiesCheck.put("XposedManger", "N/A");
-                propertiesCheck.put("XposedMangerVersion", "N/A");
-            }
-            // propertiesCheck.put("RootPermission", String.valueOf(ShellInit.ready()));
-            // propertiesCheck.put("WhoAmI", getWhoAmI());
-            propertiesCheck.put("RootGroups", getRootGroupsInfo());
-            propertiesCheck.put("CurrentUserId", String.valueOf(getCurrentUserId()));
-            propertiesCheck.put("ModuleActive", String.valueOf(isModuleActivated));
-            propertiesCheck.put("DebugModeActivate", String.valueOf(PrefsUtils.getSharedBoolPrefs(requireContext(), "prefs_key_development_debug_mode", false)));
-            propertiesCheck.put("LoggerStatus", IS_LOGGER_ALIVE + ", " + LOGGER_CHECKER_ERR_CODE);
-            propertiesCheck.put("Signature", SignUtils.getSHA256Signature(requireContext()));
-            propertiesCheck.put("SignCheckPass", String.valueOf(SignUtils.isSignCheckPass(requireContext())));
-            // propertiesCheck.put("RootPermission", String.valueOf(ShellInit.ready()));
-        } catch (Exception ignored) {
-        }
-
-        StringBuilder debugInfo = new StringBuilder("Debug Info by HyperCeiler");
-        debugInfo.append("\n");
-        for (Map.Entry<String, String> entry : propertiesModule.entrySet()) {
-            debugInfo.append("\n").append(entry.getKey()).append(" = ").append(entry.getValue());
-        }
-        debugInfo.append("\n");
-        for (Map.Entry<String, String> entry : propertiesDevice.entrySet()) {
-            debugInfo.append("\n").append(entry.getKey()).append(" = ").append(entry.getValue());
-        }
-        debugInfo.append("\n");
-        for (Map.Entry<String, String> entry : propertiesSystem.entrySet()) {
-            debugInfo.append("\n").append(entry.getKey()).append(" = ").append(entry.getValue());
-        }
-        debugInfo.append("\n");
-        for (Map.Entry<String, String> entry : propertiesCheck.entrySet()) {
-            debugInfo.append("\n").append(entry.getKey()).append(" = ").append(entry.getValue());
-        }
-        return debugInfo.toString();
     }
 
     @Override

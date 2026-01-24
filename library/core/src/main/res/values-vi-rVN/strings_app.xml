@@ -59,8 +59,6 @@
     <string name="help_cant_see_apps_switch">Ẩn trợ giúp này trong trang chủ</string>
     <string name="help_cant_see_apps_switch_desc">Bạn vẫn có thể tìm thấy trang này trong \"Cài đặt - Thiết lập lối tắt trang chủ\". Khởi động lại ứng dụng để áp dụng.</string>
     <string name="help_support_version_title">Danh sách phiên bản hệ thống hỗ trợ phiên bản ứng dụng hiện tại</string>
-    <string name="help_support_version_desc_1">Phiên bản ứng dụng hiện tại hoàn toàn tương thích với các phiên bản hệ thống sau:</string>
-    <string name="help_support_version_desc_2">Các phiên bản hệ thống sau đây được điều chỉnh cho phù hợp với phiên bản ứng dụng hiện tại:</string>
     <string name="help_support_version_desc_3">Phiên bản hệ thống hiện tại đã được điều chỉnh đầy đủ.</string>
     <string name="help_support_version_desc_4">Phiên bản hệ thống hiện tại chưa được điều chỉnh (hoàn toàn).</string>
     <string name="location_add">Thêm</string>
@@ -1164,9 +1162,6 @@
     <string name="home_title_disable_hide_theme">Không ẩn biểu tượng \"Theme\"</string>
     <string name="home_title_disable_hide_google">Không ẩn biểu tượng Google</string>
     <string name="home_title_fake_non_default_icon">Giả mạo là một biểu tượng không mặc định</string>
-    <string name="home_title_custom_anim_param">Tuỳ chỉnh thông số hoạt ảnh</string>
-    <string name="home_title_custom_anim_param_damping_title">Giảm dần</string>
-    <string name="home_title_custom_anim_param_stiffness_title">Độ gấp</string>
     <string name="home_title_hide_report_text">Ẩn văn bản báo cáo</string>
     <string name="home_title_hide_report_text_desc">Ẩn văn bản báo cáo trong hộp thoại gỡ cài đặt</string>
     <string name="home_title_notif_color">Tùy chỉnh màu nền thông báo tin nhắn</string>

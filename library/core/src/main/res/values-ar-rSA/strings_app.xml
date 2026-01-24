@@ -59,8 +59,6 @@
     <string name="help_cant_see_apps_switch">إخفاء هذه المساعدة في الصفحة الرئيسية</string>
     <string name="help_cant_see_apps_switch_desc">يمكنك العثور على هذه الصفحة في \"حول\" &gt; \"مساعدة\". إعادة تشغيل التطبيق لتطبيق التغييرات.</string>
     <string name="help_support_version_title">دليل دعم إصدار التطبيق الحالي مع أنظمة التشغيل</string>
-    <string name="help_support_version_desc_1">الإصدار الحالي للتطبيق يتوافق تمامًا مع أنظمة التشغيل التالية:</string>
-    <string name="help_support_version_desc_2">أنظمة التشغيل التالية متوافقة مع الإصدار الحالي للتطبيق:</string>
     <string name="help_support_version_desc_3">الإصدار الحالي للنظام يتوافق تمامًا.</string>
     <string name="help_support_version_desc_4">الإصدار الحالي للنظام غير متوافق (تمامًا).</string>
     <string name="location_add">إضافة</string>
@@ -1148,9 +1146,6 @@
     <string name="home_title_disable_hide_theme">عدم إخفاء أيقونة \"السمات\"</string>
     <string name="home_title_disable_hide_google">عدم إخفاء أيقونة \"جوجل\"</string>
     <string name="home_title_fake_non_default_icon">أيكونة غير افتراضية مزيفة</string>
-    <string name="home_title_custom_anim_param">معلمات الرسوم المتحركة المخصصة</string>
-    <string name="home_title_custom_anim_param_damping_title">التخميد</string>
-    <string name="home_title_custom_anim_param_stiffness_title">الصلابة</string>
     <string name="home_title_hide_report_text">إخفاء نص التقرير</string>
     <string name="home_title_hide_report_text_desc">إخفاء نص التقرير في نافذة حوار إلغاء التثبيت</string>
     <string name="home_title_notif_color">لون خلفية إشعار الرسائل المخصص</string>

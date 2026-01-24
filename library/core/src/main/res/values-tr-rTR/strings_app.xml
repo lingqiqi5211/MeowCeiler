@@ -59,8 +59,6 @@
     <string name="help_cant_see_apps_switch">Ana sayfada bu yardımı gizle</string>
     <string name="help_cant_see_apps_switch_desc">Bu sayfayı Hakkında &gt; Yardım bölümünden bulabilirsiniz. Uygulamak için uygulamayı yeniden başlatın.</string>
     <string name="help_support_version_title">Geçerli uygulama sürümü destek sistemi versiyon listesi</string>
-    <string name="help_support_version_desc_1">Mevcut uygulama sürümü aşağıdaki sistem sürümlerine tamamen adapte edilmiştir:</string>
-    <string name="help_support_version_desc_2">Aşağıdaki sistem sürümleri mevcut uygulama sürümüne adapte edilmiştir:</string>
     <string name="help_support_version_desc_3">Şu anki sistem sütümü tamamen adapte edildi.</string>
     <string name="help_support_version_desc_4">Şu anki sistem sütümü (tamamen) adapte edilmedi.</string>
     <string name="location_add">Ekle</string>

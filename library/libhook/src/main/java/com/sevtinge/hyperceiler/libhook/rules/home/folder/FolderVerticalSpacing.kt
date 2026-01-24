@@ -19,7 +19,7 @@
 package com.sevtinge.hyperceiler.libhook.rules.home.folder
 
 import android.widget.GridView
-import com.sevtinge.hyperceiler.libhook.base.appbase.mihome.HomeBaseHookNew
+import com.sevtinge.hyperceiler.libhook.appbase.mihome.HomeBaseHookNew
 import com.sevtinge.hyperceiler.libhook.utils.api.DisplayUtils.dp2px
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.hookAllMethods
 

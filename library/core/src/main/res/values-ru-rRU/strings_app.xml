@@ -59,8 +59,6 @@
     <string name="help_cant_see_apps_switch">Скрыть эту справку на главной странице</string>
     <string name="help_cant_see_apps_switch_desc">Вы все еще можете найти эту страницу в разделе О программе &gt; Помощь. Перезагрузите приложение, чтобы применить его.</string>
     <string name="help_support_version_title">Список версий системы поддерживаемые текущей версией приложения</string>
-    <string name="help_support_version_desc_1">Текущая версия приложения полностью адаптирована к следующим версиям системы:</string>
-    <string name="help_support_version_desc_2">Следующие версии системы адаптированы к текущей версии приложения:</string>
     <string name="help_support_version_desc_3">Текущая версия системы полностью адаптирована.</string>
     <string name="help_support_version_desc_4">Текущая версия системы не (полностью) адаптирована адаптировано.</string>
     <string name="location_add">Добавить</string>
@@ -1158,9 +1156,6 @@
     <string name="home_title_disable_hide_theme">Не скрывать иконку \"Менеджер тем\"</string>
     <string name="home_title_disable_hide_google">Отключить скрытие Google</string>
     <string name="home_title_fake_non_default_icon">Фальшивая иконка, отличная от стандартной</string>
-    <string name="home_title_custom_anim_param">Пользовательский параметр анимации</string>
-    <string name="home_title_custom_anim_param_damping_title">Демпфирвоание</string>
-    <string name="home_title_custom_anim_param_stiffness_title">Жесткость</string>
     <string name="home_title_hide_report_text">Скрыть текст отчета</string>
     <string name="home_title_hide_report_text_desc">Скрыть текст отчета в диалоговом окне удаления</string>
     <string name="home_title_notif_color">Цвет фона уведомлений пользовательский</string>

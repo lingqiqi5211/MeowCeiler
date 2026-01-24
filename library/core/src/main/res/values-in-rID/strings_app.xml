@@ -879,9 +879,6 @@
     <string name="home_title_disable_hide_theme">Jangan sembunyikan ikon \"Pengelola Tema\".</string>
     <string name="home_title_disable_hide_google">Jangan sembunyikan ikon \"Google\".</string>
     <string name="home_title_fake_non_default_icon">Ikon non-default palsu</string>
-    <string name="home_title_custom_anim_param">Parameter Animasi Kustom</string>
-    <string name="home_title_custom_anim_param_damping_title">Pembasahan</string>
-    <string name="home_title_custom_anim_param_stiffness_title">Kekakuan</string>
     <string name="home_title_hide_report_text">Sembunyikan teks laporan</string>
     <string name="home_recent">Terkini</string>
     <string name="home_recent_animation_speed">Kecepatan animasi</string>

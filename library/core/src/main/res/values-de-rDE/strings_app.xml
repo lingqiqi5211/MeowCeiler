@@ -55,8 +55,6 @@
     <string name="help_cant_see_apps_switch">Diese Hilfe auf der Startseite ausblenden</string>
     <string name="help_cant_see_apps_switch_desc">Du kannst diese Seite immer noch unter Über &gt; Hilfe finden. App neu starten, um anzuwenden.</string>
     <string name="help_support_version_title">Aktuelle App-Version unterstützt Systemversions-Liste</string>
-    <string name="help_support_version_desc_1">Die aktuelle App-Version ist vollständig an die folgenden Systemversionen angepasst:</string>
-    <string name="help_support_version_desc_2">Die folgenden Systemversionen sind an die aktuelle App-Version angepasst:</string>
     <string name="help_support_version_desc_3">Die aktuelle Systemversion ist vollständig angepasst.</string>
     <string name="help_support_version_desc_4">Die aktuelle Systemversion ist nicht (vollständig) angepasst.</string>
     <string name="location_add">Hinzufügen</string>
@@ -1113,9 +1111,6 @@
     <string name="home_title_disable_hide_theme">\"Themes\"-Symbol nicht ausblenden</string>
     <string name="home_title_disable_hide_google">\"Google\"-Symbol nicht ausblenden</string>
     <string name="home_title_fake_non_default_icon">Nicht-Standard-Symbol vortäuschen</string>
-    <string name="home_title_custom_anim_param">Benutzerdefinierte Animationsparameter</string>
-    <string name="home_title_custom_anim_param_damping_title">Dämpfung</string>
-    <string name="home_title_custom_anim_param_stiffness_title">Steifigkeit</string>
     <string name="home_title_hide_report_text">Berichtstext ausblenden</string>
     <string name="home_title_hide_report_text_desc">Berichtstext im Deinstallationsdialog ausblenden</string>
     <string name="home_title_notif_color">Benachrichtigungspunkt-Hintergrundfarbe anpassen</string>

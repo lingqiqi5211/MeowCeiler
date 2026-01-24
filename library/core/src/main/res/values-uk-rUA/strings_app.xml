@@ -54,8 +54,6 @@
     <string name="help_cant_see_apps_switch">Приховати цю допомогу на головній сторінці</string>
     <string name="help_cant_see_apps_switch_desc">Ви все ще можете знайти цю сторінку в розділі Про додаток &gt; Допомога. Перезапустіть додаток, щоб застосувати.</string>
     <string name="help_support_version_title">Список версій системи, що підтримуються поточною версією додатка</string>
-    <string name="help_support_version_desc_1">Поточна версія додатка повністю адаптована до наступних версій системи:</string>
-    <string name="help_support_version_desc_2">Наступні версії системи адаптовані до поточної версії додатка:</string>
     <string name="help_support_version_desc_3">Поточна версія системи повністю адаптована.</string>
     <string name="help_support_version_desc_4">Поточна версія системи не (повністю) адаптована.</string>
     <string name="location_add">Додати</string>
@@ -1108,9 +1106,6 @@
     <string name="home_title_disable_hide_theme">Не приховувати іконку \"Теми\"</string>
     <string name="home_title_disable_hide_google">Не приховувати іконку \"Google\"</string>
     <string name="home_title_fake_non_default_icon">Підроблена нестандартна іконка</string>
-    <string name="home_title_custom_anim_param">Користувацький параметр анімації</string>
-    <string name="home_title_custom_anim_param_damping_title">Демпфування</string>
-    <string name="home_title_custom_anim_param_stiffness_title">Жорсткість</string>
     <string name="home_title_hide_report_text">Приховати текст звіту</string>
     <string name="home_title_hide_report_text_desc">Приховати текст звіту в діалоговому вікні видалення</string>
     <string name="home_title_notif_color">Налаштування кольору фону крапки сповіщень</string>

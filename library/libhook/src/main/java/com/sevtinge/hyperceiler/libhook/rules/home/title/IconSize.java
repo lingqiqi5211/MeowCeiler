@@ -19,7 +19,7 @@
 
 package com.sevtinge.hyperceiler.libhook.rules.home.title;
 
-import com.sevtinge.hyperceiler.libhook.base.appbase.mihome.HomeBaseHookNew;
+import com.sevtinge.hyperceiler.libhook.appbase.mihome.HomeBaseHookNew;
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook;
 
 import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam;

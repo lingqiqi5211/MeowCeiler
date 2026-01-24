@@ -56,16 +56,8 @@ import com.sevtinge.hyperceiler.hooker.home.HomeGestureSettings;
 import com.sevtinge.hyperceiler.hooker.home.HomeLayoutSettings;
 import com.sevtinge.hyperceiler.hooker.home.HomeOtherSettings;
 import com.sevtinge.hyperceiler.hooker.home.HomeRecentSettings;
-import com.sevtinge.hyperceiler.hooker.home.HomeTitleAnimSettings;
 import com.sevtinge.hyperceiler.hooker.home.HomeTitleSettings;
 import com.sevtinge.hyperceiler.hooker.home.HomeWidgetSettings;
-import com.sevtinge.hyperceiler.hooker.home.anim.HomeTitleAnim2Settings;
-import com.sevtinge.hyperceiler.hooker.home.anim.HomeTitleAnim3Settings;
-import com.sevtinge.hyperceiler.hooker.home.anim.HomeTitleAnim4Settings;
-import com.sevtinge.hyperceiler.hooker.home.anim.HomeTitleAnim5Settings;
-import com.sevtinge.hyperceiler.hooker.home.anim.HomeTitleAnim7Settings;
-import com.sevtinge.hyperceiler.hooker.home.anim.HomeTitleAnim8Settings;
-import com.sevtinge.hyperceiler.hooker.home.anim.HomeTitleAnim9Settings;
 import com.sevtinge.hyperceiler.hooker.securitycenter.ApplicationsSettings;
 import com.sevtinge.hyperceiler.hooker.securitycenter.OtherSettings;
 import com.sevtinge.hyperceiler.hooker.securitycenter.PrivacySafetySettings;
@@ -209,66 +201,6 @@ public class SearchHelper {
         parsePrefXml(context, HomeFolderSettings.class, R.xml.home_folder);
         parsePrefXml(context, HomeDrawerSettings.class, R.xml.home_drawer);
         parsePrefXml(context, HomeTitleSettings.class, R.xml.home_title);
-
-        parsePrefXml(context, HomeTitleAnimSettings.class, R.xml.home_title_anim, R.string.mihome, R.string.home_title);
-
-        parsePrefXml(context, HomeTitleAnim2Settings.class,
-                R.xml.home_title_anim_2,
-                R.string.mihome,
-                R.string.home_title,
-                R.string.home_title_custom_anim_param
-        );
-
-        parsePrefXml(context, HomeTitleAnim3Settings.class,
-                R.xml.home_title_anim_3,
-                R.string.mihome,
-                R.string.home_title,
-                R.string.home_title_custom_anim_param
-        );
-
-        parsePrefXml(context,
-                HomeTitleAnim4Settings.class,
-                R.xml.home_title_anim_4,
-                R.string.mihome,
-                R.string.home_title,
-                R.string.home_title_custom_anim_param);
-
-        parsePrefXml(context,
-                HomeTitleAnim5Settings.class,
-                R.xml.home_title_anim_5,
-                R.string.mihome,
-                R.string.home_title,
-                R.string.home_title_custom_anim_param);
-
-        parsePrefXml(context,
-                HomeTitleAnimSettings.class,
-                R.xml.home_title_anim_6,
-                R.string.mihome,
-                R.string.home_title,
-                R.string.home_title_custom_anim_param);
-
-        parsePrefXml(context,
-                HomeTitleAnim7Settings.class,
-                R.xml.home_title_anim_7,
-                R.string.mihome,
-                R.string.home_title,
-                R.string.home_title_custom_anim_param);
-
-        parsePrefXml(context,
-                HomeTitleAnim8Settings.class,
-                R.xml.home_title_anim_8,
-                R.string.mihome,
-                R.string.home_title,
-                R.string.home_title_custom_anim_param
-        );
-
-        parsePrefXml(context,
-                HomeTitleAnim9Settings.class,
-                R.xml.home_title_anim_9,
-                R.string.mihome,
-                R.string.home_title,
-                R.string.home_title_custom_anim_param
-        );
 
         parsePrefXmlForHome(context, HomeRecentSettings.class, R.xml.home_recent);
         parsePrefXmlForHome(context, HomeWidgetSettings.class, R.xml.home_widget);

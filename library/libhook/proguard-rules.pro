@@ -29,8 +29,11 @@
 
 # --- HyperCeiler Core ---
 -keep class com.sevtinge.hyperceiler.libhook.app.** { *; }
+-keep class com.sevtinge.hyperceiler.libhook.appbase.** { *; }
 -keep class com.sevtinge.hyperceiler.libhook.base.** { *; }
--keep class com.sevtinge.hyperceiler.libhook.rules.** { *; }
+
+-keep class com.sevtinge.hyperceiler.libhook.base.XposedInitEntry { *; }
+-keep class * extends com.sevtinge.hyperceiler.libhook.base.BaseHook { <init>(...); }
 
 # --- Tool ---
 -keep class com.sevtinge.hyperceiler.libhook.utils.hookapi.blur.** { *; }

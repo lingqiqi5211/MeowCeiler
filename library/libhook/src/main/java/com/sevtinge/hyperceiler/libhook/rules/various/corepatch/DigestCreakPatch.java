@@ -130,26 +130,26 @@ public class DigestCreakPatch extends CorePatchHelper {
             XposedLog.e(TAG, "system", "Android 12+ hook failed, crash: " + t);
         }
 
-        // Android 11+
+        // Android 11+ 1/2
         try {
             // 当 verifyV1Signature 抛出转换异常时，替换一个签名作为返回值
             // 如果用户已安装 apk，并且其定义了私有权限，则安装时会因签名与模块内硬编码的不一致而被拒绝。尝试从待安装apk中获取签名。如果其中apk的签名和已安装的一致（只动了内容）就没有问题。此策略可能有潜在的安全隐患。
-            Class<?> pkc = EzxHelpUtils.findClass("sun.security.pkcs.PKCS7", lpparam.getClassLoader());
+            Class<?> pkc = findClass("sun.security.pkcs.PKCS7", lpparam.getClassLoader());
             Constructor<?> constructor = EzxHelpUtils.findConstructorExact(pkc, byte[].class);
             constructor.setAccessible(true);
-            Class<?> ASV = EzxHelpUtils.findClass("android.util.apk.ApkSignatureVerifier", lpparam.getClassLoader());
-            Class<?> sJarClass = EzxHelpUtils.findClass("android.util.jar.StrictJarFile", lpparam.getClassLoader());
+            Class<?> ASV = findClass("android.util.apk.ApkSignatureVerifier", lpparam.getClassLoader());
+            Class<?> sJarClass = findClass("android.util.jar.StrictJarFile", lpparam.getClassLoader());
             Constructor<?> constructorExact = EzxHelpUtils.findConstructorExact(sJarClass, String.class, boolean.class, boolean.class);
             constructorExact.setAccessible(true);
             Class<?> signingDetails = getSigningDetails(lpparam.getClassLoader());
             Constructor<?> findConstructorExact = EzxHelpUtils.findConstructorExact(signingDetails, Signature[].class, Integer.TYPE);
             findConstructorExact.setAccessible(true);
-            Class<?> packageParserException = EzxHelpUtils.findClass("android.content.pm.PackageParser.PackageParserException", lpparam.getClassLoader());
+            Class<?> packageParserException = findClass("android.content.pm.PackageParser.PackageParserException", lpparam.getClassLoader());
             Field error = EzxHelpUtils.findField(packageParserException, "error");
             error.setAccessible(true);
             Object[] signingDetailsArgs = new Object[2];
             signingDetailsArgs[1] = 1;
-            Class<?> parseResult = EzxHelpUtils.findClassIfExists("android.content.pm.parsing.result.ParseResult", lpparam.getClassLoader());
+            Class<?> parseResult = findClassIfExists("android.content.pm.parsing.result.ParseResult", lpparam.getClassLoader());
             hookAllMethods("android.util.jar.StrictJarVerifier", lpparam.getClassLoader(), "verifyBytes", new IMethodHook() {
                 public void after(AfterHookParam param) throws InvocationTargetException, IllegalAccessException, InstantiationException {
                     if (prefs.getBoolean("prefs_key_system_framework_core_patch_digest_creak", true)) {
@@ -181,7 +181,7 @@ public class DigestCreakPatch extends CorePatchHelper {
                             try {
                                 if (prefs.getBoolean("prefs_key_system_framework_core_patch_use_pre_signature", false)) {
                                     Class<?> activityThreadClazz =
-                                        EzxHelpUtils.findClassIfExists("android.app.ActivityThread", lpparam.getClassLoader());
+                                        findClassIfExists("android.app.ActivityThread", lpparam.getClassLoader());
                                     Method currentApplicationMethod =
                                         activityThreadClazz.getDeclaredMethod("currentApplication");
                                     Application application =
@@ -275,7 +275,12 @@ public class DigestCreakPatch extends CorePatchHelper {
                     }
                 }
             });
+        } catch (Throwable t) {
+            XposedLog.e(TAG, "system", "Android 11+ 1/2 hook failed, crash: " + t);
+        }
 
+        // Android 11+ 2/2
+        try {
             var keySetManagerClass = findClass("com.android.server.pm.KeySetManagerService", lpparam.getClassLoader());
             if (keySetManagerClass != null) {
                 var shouldBypass = new ThreadLocal<Boolean>();
@@ -308,7 +313,7 @@ public class DigestCreakPatch extends CorePatchHelper {
                 });
             }
         } catch (Throwable t) {
-            XposedLog.e(TAG, "system", "Android 11+ hook failed, crash: " + t);
+            XposedLog.e(TAG, "system", "Android 11+ 2/2 hook failed, crash: " + t);
         }
     }
 
@@ -326,6 +331,6 @@ public class DigestCreakPatch extends CorePatchHelper {
         if (isMoreAndroidVersion(33)) {
             return findClassIfExists("android.content.pm.SigningDetails", classLoader);
         }
-        return EzxHelpUtils.findClass("android.content.pm.PackageParser.SigningDetails", classLoader);
+        return findClass("android.content.pm.PackageParser.SigningDetails", classLoader);
     }
 }

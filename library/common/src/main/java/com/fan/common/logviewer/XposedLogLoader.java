@@ -176,6 +176,13 @@ public class XposedLogLoader {
                 if (currentLspdOldTime > lastRotationTime) {
                     rotateAppLogs();
                     writeRotationMarker(currentLspdOldTime);
+
+                    try {
+                        LogManager.getInstance().rotateAppLogs();
+                        Log.i(TAG, "App logs rotated along with Xposed logs");
+                    } catch (Exception e) {
+                        Log.w(TAG, "Failed to rotate app logs", e);
+                    }
                     Log.i(TAG, "Logs rotated based on LSPosed rotation");
                 }
             } catch (NumberFormatException e) {
@@ -226,9 +233,9 @@ public class XposedLogLoader {
 
             lspdLogDir.mkdirs();
             new File(filteredDir, LSPD_LOG_SUBDIR).mkdirs();
-            Log.i(TAG, "App logs rotated");
+            Log.i(TAG, "Xposed logs rotated");
         } catch (Exception e) {
-            Log.e(TAG, "Failed to rotate app logs", e);
+            Log.e(TAG, "Failed to rotate Xposed logs", e);
         }
     }
 
@@ -464,8 +471,6 @@ public class XposedLogLoader {
         Log.i(TAG, "Logs cleared");
     }
 
-    // ... 辅助方法保持不变 ...
-
     private boolean isNewLogEntry(String line) {
         return line.startsWith("[") && TIME_PATTERN.matcher(line).find();
     }
@@ -475,7 +480,8 @@ public class XposedLogLoader {
         if (matcher.find()) {
             try {
                 return TIME_FORMAT.parse(matcher.group(1)).getTime();
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         return 0;
     }

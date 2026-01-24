@@ -35,6 +35,7 @@ import com.sevtinge.hyperceiler.libhook.rules.systemui.plugin.systemui.QsTileSup
 import com.sevtinge.hyperceiler.libhook.rules.systemui.plugin.systemui.StartCollpasedColumnPress
 import com.sevtinge.hyperceiler.libhook.rules.systemui.plugin.systemui.UnlockCarSicknessTile
 import com.sevtinge.hyperceiler.libhook.rules.systemui.plugin.systemui.VolumeOrQSBrightnessValue
+import com.sevtinge.hyperceiler.libhook.rules.systemui.statusbar.island.FocusNotifLyric
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isMoreSmallVersion
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.PluginFactory
 import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog
@@ -208,7 +209,7 @@ object NewPluginHelperKt : BaseHook() {
                 loadClassLoaders(componentName.toString(), classLoader, enabledLoaders)
             }
 
-            /*factory.componentNames(1, "miui.systemui.notification.NotificationStatPluginImpl"),
+            factory.componentNames(1, "miui.systemui.notification.NotificationStatPluginImpl"),
             factory.componentNames(1, "miui.systemui.notification.FocusNotificationPluginImpl") -> {
                 XposedLog.d(TAG, lpparam.packageName, "Plugin for sysui NotificationStatPluginImpl loaded.")
 
@@ -217,7 +218,7 @@ object NewPluginHelperKt : BaseHook() {
                     enabledLoaders.add(Pair("FocusNotifLyric", FocusNotifLyric::initLoader))
                 }
                 loadClassLoaders(componentName.toString(), classLoader, enabledLoaders)
-            }*/
+            }
 
             factory.componentNames(0, "com.miui.keyguard.shortcuts.ShortcutPluginImpl") -> {
                 XposedLog.d(TAG, lpparam.packageName, "Plugin for aod ShortcutPluginImpl loaded.")

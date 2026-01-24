@@ -936,9 +936,6 @@ aplicaciones del sistema</string>
     <string name="home_title_disable_hide_theme">No se oculta el icono \"Administrador de temas\"</string>
     <string name="home_title_disable_hide_google">No se permite ocultar icono de Google</string>
     <string name="home_title_fake_non_default_icon">Icono falso no predeterminado</string>
-    <string name="home_title_custom_anim_param">Parámetros de animación personalizada</string>
-    <string name="home_title_custom_anim_param_damping_title">Amortecimento</string>
-    <string name="home_title_custom_anim_param_stiffness_title">Rigidez</string>
     <string name="home_title_hide_report_text_desc">Ocultar texto del informe en el diálogo de desinstalación</string>
     <string name="home_title_notif_color">Color de fondo del mensaje de notificación personalizado</string>
     <string name="home_title_notif_color_picker">Color personalizado</string>

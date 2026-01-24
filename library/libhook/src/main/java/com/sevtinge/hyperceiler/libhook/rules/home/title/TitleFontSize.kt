@@ -20,7 +20,7 @@ package com.sevtinge.hyperceiler.libhook.rules.home.title
 
 import android.util.TypedValue
 import android.widget.TextView
-import com.sevtinge.hyperceiler.libhook.base.appbase.mihome.HomeBaseHookNew
+import com.sevtinge.hyperceiler.libhook.appbase.mihome.HomeBaseHookNew
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.afterHookConstructor
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.afterHookMethod
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callStaticMethod
@@ -47,8 +47,7 @@ class TitleFontSize : HomeBaseHookNew() {
         val appIconClass =
             findClass("com.miui.home.launcher.AppIcon", lpparam.classLoader)  // 抽屉
 
-        MethodFinder.fromClass("com.miui.home.launcher.ShortcutIcon").filterByName("onMeasure")
-            .first().createHook {
+        MethodFinder.fromClass("com.miui.home.launcher.ShortcutIcon").filterByName("onMeasure").first().createHook {
             before {
                 (it.thisObject as TextView).setTextSize(0, defaultSizePx)
             }
@@ -61,12 +60,17 @@ class TitleFontSize : HomeBaseHookNew() {
 
         if (desktopSp == 12f) return
         // 文件夹标题
-        findClass("com.miui.home.launcher.TitleTextView").replaceMethod("updateSizeOnIconSizeChanged") {
-            (it.thisObject as TextView).textSize = desktopSp
-        }
+        // Todo: 堆叠桌面版本不存在此类,需要修复
+        runCatching {
+            findClass("com.miui.home.launcher.TitleTextView").replaceMethod("updateSizeOnIconSizeChanged") {
+                (it.thisObject as TextView).textSize = desktopSp
+            }
 
-        findClass("com.miui.home.launcher.TitleTextView").afterHookConstructor {
-            (it.thisObject as TextView).textSize = desktopSp
+            findClass("com.miui.home.launcher.TitleTextView").afterHookConstructor {
+                (it.thisObject as TextView).textSize = desktopSp
+            }
+        }.onFailure {
+            XposedLog.e(TAG, lpparam.packageName, "TitleFontSize failed", it)
         }
     }
 

@@ -21,7 +21,7 @@ package com.sevtinge.hyperceiler.libhook.rules.home.recent
 import android.animation.ObjectAnimator
 import android.view.MotionEvent
 import android.view.View
-import com.sevtinge.hyperceiler.libhook.base.appbase.mihome.HomeBaseHookNew
+import com.sevtinge.hyperceiler.libhook.appbase.mihome.HomeBaseHookNew
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.afterHookMethod
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callMethod
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callStaticMethod

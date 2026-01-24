@@ -66,6 +66,24 @@ fun getValueByFields(target: Any, fieldNames: List<String>, clazz: Class<*>? = n
     return null
 }
 
+fun getValueByField(target: Any, fieldName: String, clazz: Class<*>? = null): Any? {
+    var targetClass = clazz
+    if (targetClass == null) {
+        targetClass = target.javaClass
+    }
+    return try {
+        val field = targetClass.getDeclaredField(fieldName)
+        field.isAccessible = true
+        field.get(target)
+    } catch (e: Throwable) {
+        if (targetClass.superclass == null) {
+            null
+        } else {
+            getValueByField(target, fieldName, targetClass.superclass)
+        }
+    }
+}
+
 /**
  * 扩展函数 通过类或者对象获取单个属性
  * @param fieldName 属性名

@@ -298,6 +298,13 @@ fun <T> Class<*>.callStaticMethodAs(methodName: String, vararg args: Any?): T =
 
 fun <T> Class<*>.newInstance(vararg args: Any?): T = EzxHelpUtils.newInstance(this, *args) as T
 
+fun Class<*>.findField(name: String): Field =
+    EzxHelpUtils.findField(this, name)
+
+fun Class<*>.findFieldOrNull(name: String): Field? = runCatching {
+        EzxHelpUtils.findField(this, name)
+    }.getOrNull()
+
 fun Class<*>.findFieldByExactType(type: Class<*>): Field =
     EzxHelpUtils.findFirstFieldByExactType(this, type)
 

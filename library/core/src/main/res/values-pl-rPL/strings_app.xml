@@ -55,8 +55,6 @@
     <string name="help_cant_see_apps_switch">Ukryj tę pomoc na stronie głównej</string>
     <string name="help_cant_see_apps_switch_desc">Nadal możesz znaleźć tę stronę w sekcji O aplikacji &gt; Pomoc. Uruchom ponownie aplikację, aby zastosować zmiany.</string>
     <string name="help_support_version_title">Lista wersji systemu obsługiwanych przez bieżącą wersję aplikacji</string>
-    <string name="help_support_version_desc_1">Obecna wersja aplikacji jest w pełni dostosowana do następujących wersji systemu:</string>
-    <string name="help_support_version_desc_2">Następujące wersje systemu są dostosowane do obecnej wersji aplikacji:</string>
     <string name="help_support_version_desc_3">Obecna wersja systemu jest w pełni dostosowana.</string>
     <string name="help_support_version_desc_4">Obecna wersja systemu nie jest (w pełni) dostosowana.</string>
     <string name="location_add">Dodaj</string>
@@ -1068,9 +1066,6 @@
     <string name="home_title_disable_hide_theme">Nie ukrywaj ikony \"Motywy\"</string>
     <string name="home_title_disable_hide_google">Nie ukrywaj ikony \"Google\"</string>
     <string name="home_title_fake_non_default_icon">Fałszywa ikona niedomyślna</string>
-    <string name="home_title_custom_anim_param">Własny parametr animacji</string>
-    <string name="home_title_custom_anim_param_damping_title">Tłumienie</string>
-    <string name="home_title_custom_anim_param_stiffness_title">Sztywność</string>
     <string name="home_title_hide_report_text">Ukryj tekst raportu</string>
     <string name="home_title_hide_report_text_desc">Ukrywa tekst raportu w oknie dialogowym</string>
     <string name="home_title_notif_color">Niestandardowy kolor tła wiadomości powiadomień</string>

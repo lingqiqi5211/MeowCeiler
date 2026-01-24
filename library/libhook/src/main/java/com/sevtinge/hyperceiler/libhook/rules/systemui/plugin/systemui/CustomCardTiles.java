@@ -98,29 +98,38 @@ public class CustomCardTiles {
             idDisabled = context.getResources().getIdentifier(
                 "qs_card_wifi_background_disabled", "drawable", "miui.systemui.plugin");
 
+            /*if (idEnable == 0 || idDisabled == 0) {
+                XposedLog.w(TAG, "Resource not found: idEnable=" + idEnable + ", idDisabled=" + idDisabled);
+            }*/
+
             int cornerRadius = context.getResources().getIdentifier(
                 "control_center_universal_corner_radius", "dimen", "miui.systemui.plugin");
-            cornerRadiusF = context.getResources().getDimensionPixelSize(cornerRadius);
+            if (cornerRadius != 0) {
+                cornerRadiusF = context.getResources().getDimensionPixelSize(cornerRadius);
+            }
         }
     }
 
     private static class UpdateBackgroundHook implements IMethodHook {
         @Override
         public void after(AfterHookParam param) {
-            Object state = EzxHelpUtils.getObjectField(param.getThisObject(), "state");
-            if (state == null) {
-                return; // 系统界面组件会先 null 几次才会获取到值，应该是官方写法有问题
+            try {
+                Object state = EzxHelpUtils.getObjectField(param.getThisObject(), "state");
+                if (state == null) {
+                    return;
+                }
+
+                String spec = (String) EzxHelpUtils.getObjectField(state, "spec");
+                int stateValue = EzxHelpUtils.getIntField(state, "state");
+
+                if (isSystemDefaultTile(spec)) {
+                    return;
+                }
+
+                updateTileBackground((LinearLayout) param.getThisObject(), stateValue);
+            } catch (Throwable t) {
+                XposedLog.w(TAG, "updateBackground error", t);
             }
-
-            String spec = (String) EzxHelpUtils.getObjectField(state, "spec");
-            int stateValue = EzxHelpUtils.getIntField(state, "state");
-
-            // 跳过系统默认处理的 tile
-            if (isSystemDefaultTile(spec)) {
-                return;
-            }
-
-            updateTileBackground((LinearLayout) param.getThisObject(), stateValue);
         }
 
         private boolean isSystemDefaultTile(String spec) {
@@ -129,27 +138,30 @@ public class CustomCardTiles {
         }
 
         private void updateTileBackground(LinearLayout linearLayout, int stateValue) {
-            if (idDisabled == -1 || idEnable == -1) {
-                XposedLog.e(TAG, "id is -1!!");
+            if (idDisabled == 0 || idEnable == 0) {
+                // XposedLog.w(TAG, "Resource id is 0, skip updateTileBackground");
                 return;
             }
 
-            Context context = linearLayout.getContext();Drawable drawable;
+            Context context = linearLayout.getContext();
+            Drawable drawable;
 
-            if (stateValue == 2) {
-                // 启用状态
-                drawable = context.getTheme().getResources()
-                    .getDrawable(idEnable, context.getTheme());
-            } else if (stateValue == 1) {
-                // 禁用状态
-                drawable = context.getTheme().getResources()
-                    .getDrawable(idDisabled, context.getTheme());
-            } else {
-                return;
+            try {
+                if (stateValue == 2) {
+                    drawable = context.getResources().getDrawable(idEnable, context.getTheme());
+                } else if (stateValue == 1) {
+                    drawable = context.getResources().getDrawable(idDisabled, context.getTheme());
+                } else {
+                    return;
+                }
+
+                linearLayout.setBackground(drawable);
+                if (cornerRadiusF > 0) {
+                    EzxHelpUtils.callMethod(linearLayout, "setCornerRadius", cornerRadiusF);
+                }
+            } catch (Throwable t) {
+                XposedLog.w(TAG, "Failed to set background for state: " + stateValue, t);
             }
-
-            linearLayout.setBackground(drawable);
-            EzxHelpUtils.callMethod(linearLayout, "setCornerRadius", cornerRadiusF);
         }
     }
 

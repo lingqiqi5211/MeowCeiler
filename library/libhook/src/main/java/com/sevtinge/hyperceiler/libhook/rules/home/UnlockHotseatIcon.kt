@@ -18,7 +18,7 @@
 */
 package com.sevtinge.hyperceiler.libhook.rules.home
 
-import com.sevtinge.hyperceiler.libhook.base.appbase.mihome.HomeBaseHookNew
+import com.sevtinge.hyperceiler.libhook.appbase.mihome.HomeBaseHookNew
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.replaceMethod
 
 class UnlockHotseatIcon : HomeBaseHookNew() {

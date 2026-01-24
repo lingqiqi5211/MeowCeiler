@@ -19,7 +19,7 @@
 package com.sevtinge.hyperceiler.libhook.rules.home.title
 
 import android.content.ComponentName
-import com.sevtinge.hyperceiler.libhook.base.appbase.mihome.HomeBaseHookNew
+import com.sevtinge.hyperceiler.libhook.appbase.mihome.HomeBaseHookNew
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Miui.isInternational
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectField
 import io.github.kyuubiran.ezxhelper.core.finder.ConstructorFinder.`-Static`.constructorFinder

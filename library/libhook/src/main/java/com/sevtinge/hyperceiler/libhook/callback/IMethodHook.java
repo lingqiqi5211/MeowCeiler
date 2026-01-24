@@ -18,11 +18,7 @@
  */
 package com.sevtinge.hyperceiler.libhook.callback;
 
-import android.content.pm.PackageManager;
-
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils;
-
-import java.lang.reflect.InvocationTargetException;
 
 import io.github.kyuubiran.ezxhelper.xposed.common.AfterHookParam;
 import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam;
@@ -61,7 +57,7 @@ public interface IMethodHook {
      *
      * @param param Hook 参数，可用于获取/修改参数、设置返回值等
      */
-    default void before(BeforeHookParam param) throws IllegalAccessException, InvocationTargetException, PackageManager.NameNotFoundException {
+    default void before(BeforeHookParam param) throws Throwable {
     }
 
     /**

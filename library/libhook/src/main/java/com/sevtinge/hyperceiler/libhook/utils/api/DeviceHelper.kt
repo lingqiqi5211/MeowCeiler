@@ -35,6 +35,8 @@ import io.github.kyuubiran.ezxhelper.xposed.EzXposed.appContext
 import java.io.File
 import java.nio.charset.Charset
 import java.util.Locale
+import kotlin.math.abs
+import kotlin.math.roundToInt
 
 /**
  * 设备信息工具类，整合了设备硬件信息、小米设备判断、系统版本判断等功能
@@ -242,16 +244,72 @@ object DeviceHelper {
             }
         }
 
-        private val mSupportHyperOsVersion: List<Float> by lazy {
-            mutableListOf(1.0f)
+        const val SUPPORT_NOT = 0
+        const val SUPPORT_PARTIAL = 1
+        const val SUPPORT_FULL = 2
+
+        data class VersionInfo(
+            val androidVersion: Int,
+            val hyperOSVersion: Float,
+            val smallVersion: Float,
+            val supportStatus: Int
+        ) {
+
+            fun getAndroidVersion(): String {
+                return when (androidVersion) {
+                    35 -> "15"
+                    36 -> "16"
+                    37 -> "17"
+                    else -> androidVersion.toString()
+                }
+            }
+
+            @SuppressLint("DefaultLocale")
+            fun getDisplayVersion(): String {
+                val version = smallVersion
+                val major = version.roundToInt()
+                val decimal = version - major
+
+                return if (decimal < 0.001f) {
+                    String.format("%d.0", major)
+                } else {
+                    val patch = (decimal * 1000).roundToInt()
+                    String.format("%d.0.%d", major, patch)
+                }
+            }
+
+            fun matchesSmallVersion(other: Float): Boolean {
+                return abs(smallVersion - other) < 0.001f
+            }
         }
 
-        private val mSupportSmallVersion: List<Float> by lazy {
-            mutableListOf(2.0f, 2.1f, 2.2f)
+        private val versionList: List<VersionInfo> by lazy {
+            listOf(
+                // 已完全适配
+                VersionInfo(35, 2.0f, 2.0f, SUPPORT_FULL),
+                VersionInfo(35, 2.0f, 2.1f, SUPPORT_FULL),
+                VersionInfo(35, 2.0f, 2.2f, SUPPORT_FULL),
+
+                // 部分功能未适配
+                VersionInfo(35, 3.0f, 3.0f, SUPPORT_PARTIAL),
+                VersionInfo(36, 3.0f, 3.0f, SUPPORT_PARTIAL),
+                VersionInfo(36, 3.0f, 3.3f, SUPPORT_PARTIAL),
+
+                // 未适配
+                VersionInfo(36, 2.0f, 2.23f, SUPPORT_NOT)
+            )
         }
 
-        private val mSupportAndroidVersion: List<Int> by lazy {
-            mutableListOf(34, 35)
+        private val fullSupportVersions: List<VersionInfo> by lazy {
+            versionList.filter { it.supportStatus == SUPPORT_FULL }
+        }
+
+        private val partialSupportVersions: List<VersionInfo> by lazy {
+            versionList.filter { it.supportStatus == SUPPORT_PARTIAL }
+        }
+
+        private val notSupportVersions: List<VersionInfo> by lazy {
+            versionList.filter { it.supportStatus == SUPPORT_NOT }
         }
 
         @JvmStatic
@@ -341,9 +399,7 @@ object DeviceHelper {
          */
         @JvmStatic
         fun isMoreSmallVersion(code: Int, osVersion: Float): Boolean {
-            return if (hyperOSSDK > osVersion) {
-                true
-            } else if (isMoreHyperOSVersion(osVersion)) {
+            return if (isMoreHyperOSVersion(osVersion)) {
                 smallVersion >= code
             } else {
                 false
@@ -352,18 +408,39 @@ object DeviceHelper {
 
         @SuppressLint("DefaultLocale")
         @JvmStatic
-        fun isFullSupport(): Boolean {
-            val isBigVersionSupport = mSupportHyperOsVersion.contains(hyperOSSDK)
-            val isSmallVersionSupport = mSupportSmallVersion.contains(getSmallVersion())
-            val isAndroidVersionSupport = mSupportAndroidVersion.contains(androidSDK)
-
-            val isHyperOsVersionSupport = if (hyperOSSDK >= 2f) {
-                isSmallVersionSupport
-            } else {
-                isBigVersionSupport
+        fun getVersionListText(status: Int): String {
+            return getVersionsByStatus(status).joinToString("\n") { info ->
+                "  • Android ${info.getAndroidVersion()} - HyperOS ${info.getDisplayVersion()}"
             }
-            return isHyperOsVersionSupport && isAndroidVersionSupport
         }
+
+        @JvmStatic
+        fun getVersionsByStatus(status: Int): List<VersionInfo> {
+            return when (status) {
+                SUPPORT_FULL -> fullSupportVersions
+                SUPPORT_PARTIAL -> partialSupportVersions
+                SUPPORT_NOT -> notSupportVersions
+                else -> emptyList()
+            }
+        }
+
+        @JvmStatic
+        fun getSupportStatus(): Int {
+            val currentAndroid = androidSDK
+            val currentSmall = getSmallVersion()
+
+            for (info in versionList) {
+                if (info.androidVersion != currentAndroid) {
+                    continue
+                }
+                if (info.matchesSmallVersion(currentSmall)) {
+                    return info.supportStatus
+                }
+            }
+
+            return SUPPORT_NOT
+        }
+
     }
 
     // ==================== Module 模块扫描 ====================

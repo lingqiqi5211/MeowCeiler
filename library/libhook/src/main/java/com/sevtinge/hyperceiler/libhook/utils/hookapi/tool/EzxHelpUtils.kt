@@ -271,6 +271,16 @@ object EzxHelpUtils {
     }
 
     @JvmStatic
+    fun getStaticFloatField(clazz: Class<*>, fieldName: String): Float {
+        return getStaticObjectField(clazz, fieldName) as? Float ?: 0f
+    }
+
+    @JvmStatic
+    fun setStaticFloatField(clazz: Class<*>, fieldName: String, value: Float) {
+        setStaticObjectField(clazz, fieldName, value)
+    }
+
+    @JvmStatic
     fun callMethod(instance: Any, methodName: String, vararg args: Any?): Any? {
         return findMethodBestMatch(instance::class.java, methodName, *args)
             .invoke(instance, *args)
@@ -962,7 +972,7 @@ object EzxHelpUtils {
     }
 
     /**
-     * 查找并 Hook 构造器（Java 友好版本，callback 作为最后一个参数）
+     * 查找并 Hook 构造器
      *
      * @param clazz 目标类
      * @param args 参数类型数组，最后一个元素必须是 IMethodHook
