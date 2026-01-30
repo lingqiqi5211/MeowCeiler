@@ -26,13 +26,17 @@ import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isM
 import com.hchen.database.HookBase;
 import com.sevtinge.hyperceiler.libhook.base.BaseLoad;
 import com.sevtinge.hyperceiler.libhook.rules.home.navigation.HideNavigationBar;
+import com.sevtinge.hyperceiler.libhook.rules.systemframework.others.UnlockAlwaysOnDisplay;
+import com.sevtinge.hyperceiler.libhook.rules.systemframework.volume.VolumeMediaSteps;
 import com.sevtinge.hyperceiler.libhook.rules.systemsettings.AllowManageAllNotifications;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.StatusBarActions;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.AutoDismissExpandedPopupsHook;
+import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.BlurEnable;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.ControlCenterStyle;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.DisableDeviceManaged;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.DisableTransparent;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.ExpandNotificationKt;
+import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.HideDelimiter;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.MuteVisibleNotifications;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.NotificationColor;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.NotificationImportanceHyperOSFix;
@@ -75,6 +79,10 @@ import com.sevtinge.hyperceiler.libhook.rules.systemui.lockscreen.LockScreenDoub
 import com.sevtinge.hyperceiler.libhook.rules.systemui.lockscreen.NotificationShowOnKeyguard;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.lockscreen.RemoveCamera;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.lockscreen.ScramblePIN;
+import com.sevtinge.hyperceiler.libhook.rules.systemui.navigation.HandleLineCustom;
+import com.sevtinge.hyperceiler.libhook.rules.systemui.navigation.NavigationCustom;
+import com.sevtinge.hyperceiler.libhook.rules.systemui.navigation.RotationButton;
+import com.sevtinge.hyperceiler.libhook.rules.systemui.other.AutoSEffSwitchForSystemUi;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.other.BrightnessPct;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.other.DisableBottomBar;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.other.DisableInfinitymodeGesture;
@@ -84,6 +92,7 @@ import com.sevtinge.hyperceiler.libhook.rules.systemui.other.MonetThemeOverlay;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.other.NotificationFreeform;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.other.RemoveMiuiMultiWinSwitch;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.other.ToastBlur;
+import com.sevtinge.hyperceiler.libhook.rules.systemui.other.UiLockApp;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.other.UnlockClipboard;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.plugin.NewPluginHelperKt;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.plugin.systemui.QSColor;
@@ -118,7 +127,7 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.Med
 
 import java.util.Objects;
 
-@HookBase(targetPackage = "com.android.systemui", isPad = 2, targetSdk = 35)
+@HookBase(targetPackage = "com.android.systemui", maxSdk = 35)
 public class SystemUIV extends BaseLoad {
     @Override
     public void onPackageLoaded() {
@@ -184,27 +193,27 @@ public class SystemUIV extends BaseLoad {
         // 焦点歌词
         if (mPrefsMap.getBoolean("system_ui_statusbar_music_switch") && isHyperOSVersion(2f)) {
             initHook(FocusNotifLyric.INSTANCE);
-            initHook(HideFakeStatusBar.INSTANCE, mPrefsMap.getBoolean("system_ui_statusbar_music_hide_clock"));
+            initHook(HideFakeStatusBar.INSTANCE, mPrefsMap.getBoolean("system_ui_statusbar_music_hide_clock") && !isPad());
         }
 
         // 灵动舞台
         initHook(HideStrongToast.INSTANCE, mPrefsMap.getBoolean("system_ui_status_bar_hide_smart_strong_toast"));
 
         // 导航栏
-        // initHook(new HandleLineCustom(), mPrefsMap.getBoolean("system_ui_navigation_handle_custom"));
-        // initHook(new NavigationCustom(), mPrefsMap.getBoolean("system_ui_navigation_custom"));
+        initHook(new HandleLineCustom(), mPrefsMap.getBoolean("system_ui_navigation_handle_custom"));
+        initHook(new NavigationCustom(), mPrefsMap.getBoolean("system_ui_navigation_custom"));
         initHook(new HideNavigationBar(), mPrefsMap.getBoolean("system_ui_hide_navigation_bar"));
-        // initHook(new RotationButton(), mPrefsMap.getStringAsInt("system_framework_other_rotation_button_int", 0) != 0);
+        initHook(new RotationButton(), mPrefsMap.getStringAsInt("system_framework_other_rotation_button_int", 0) != 0);
 
         // 通知与控制中心
         // initHook(new SmartHome(), false);
         initHook(new ShadeHeaderGradientBlur(), mPrefsMap.getBoolean("system_ui_shade_header_gradient_blur"));
         initHook(new QSColor(), mPrefsMap.getBoolean("system_ui_control_center_qs_open_color") || mPrefsMap.getBoolean("system_ui_control_center_qs_big_open_color"));
         initHook(new UnimportantNotification(), mPrefsMap.getBoolean("system_ui_control_center_unimportant_notification"));
-        // initHook(new BlurEnable(), mPrefsMap.getBoolean("system_ui_control_center_statusbar_blur"));
+        initHook(new BlurEnable(), mPrefsMap.getBoolean("system_ui_control_center_statusbar_blur"));
         initHook(ExpandNotificationKt.INSTANCE, !mPrefsMap.getStringSet("system_ui_control_center_expand_notification").isEmpty());
         initHook(AutoDismissExpandedPopupsHook.INSTANCE, mPrefsMap.getBoolean("system_ui_control_center_auto_clean_expand_notification"));
-        // initHook(new HideDelimiter(), mPrefsMap.getStringAsInt("system_ui_control_center_hide_operator", 0) != 0);
+        initHook(new HideDelimiter(), mPrefsMap.getStringAsInt("system_ui_control_center_hide_operator", 0) != 0);
         initHook(new GmsTile(), mPrefsMap.getBoolean("security_center_gms_open"));
         initHook(new TaplusTile(), mPrefsMap.getBoolean("security_center_taplus"));
         initHook(new ReduceBrightColorsTile(), mPrefsMap.getBoolean("security_center_reduce_bright_colors_tile"));
@@ -248,7 +257,7 @@ public class SystemUIV extends BaseLoad {
         initHook(DoubleTapToSleep.INSTANCE, mPrefsMap.getBoolean("system_ui_status_bar_double_tap_to_sleep"));
         initHook(new HideStatusBarBeforeScreenshot(), mPrefsMap.getBoolean("system_ui_status_bar_hide_icon"));
 
-        // initHook(new UiLockApp(), mPrefsMap.getBoolean("system_framework_guided_access"));
+        initHook(new UiLockApp(), mPrefsMap.getBoolean("system_framework_guided_access"));
         initHook(new AllowManageAllNotifications(), mPrefsMap.getBoolean("system_framework_allow_manage_all_notifications"));
         initHook(new MonetThemeOverlay(), mPrefsMap.getBoolean("system_ui_monet_overlay_custom"));
         initHook(new BrightnessPct(), mPrefsMap.getBoolean("system_showpct_title"));
@@ -258,13 +267,13 @@ public class SystemUIV extends BaseLoad {
         initHook(DisableBottomBar.INSTANCE, mPrefsMap.getBoolean("system_ui_disable_bottombar"));
         initHook(UnlockClipboard.INSTANCE, mPrefsMap.getBoolean("system_ui_unlock_clipboard"));
         initHook(new ToastBlur(), mPrefsMap.getBoolean("system_framework_background_blur_toast"));
-        // initHook(new UnlockAlwaysOnDisplay(), mPrefsMap.getBoolean("aod_unlock_always_on_display_hyper"));
-        // initHook(new VolumeMediaSteps(), mPrefsMap.getBoolean("system_framework_volume_media_steps_enable"));
+        initHook(new UnlockAlwaysOnDisplay(), mPrefsMap.getBoolean("aod_unlock_always_on_display_hyper"));
+        initHook(new VolumeMediaSteps(), mPrefsMap.getBoolean("system_framework_volume_media_steps_enable"));
         initHook(new FuckStatusbarGestures(), mPrefsMap.getBoolean("system_ui_move_log_to_miui"));
 
-        /*if (mPrefsMap.getBoolean("misound_bluetooth")) {
-            initHook(new AutoSEffSwitchForSystemUi().onApplication());
-        }*/
+        if (mPrefsMap.getBoolean("misound_bluetooth")) {
+            initHook(new AutoSEffSwitchForSystemUi());
+        }
 
         if (isPad()) {
             isPadLoaded();

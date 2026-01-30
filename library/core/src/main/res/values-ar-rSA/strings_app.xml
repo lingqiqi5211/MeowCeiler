@@ -336,7 +336,6 @@
     <string name="system_framework_volume_title">مستوى الصوت</string>
     <string name="system_framework_other_title">أخرى</string>
     <string name="system_framework_display_title">الشاشة</string>
-    <string name="system_framework_phone_title">الشبكات</string>
     <string name="system_framework_bubble_title">إشعار الفقاعة</string>
     <string name="system_framework_freeform_count">نوافذ منبثقة متعددة</string>
     <string name="system_framework_disable_freeform_blacklist">تمكين النوافذ المنبثقة الصغيرة</string>
@@ -359,19 +358,6 @@
     <string name="system_ui_display_hide_cutout">إخفاء قطع الشاشة</string>
     <string name="system_ui_display_use_aosp_screenshot">استخدام لقطة الشاشة AOSP</string>
     <string name="system_ui_display_use_aosp_screenshot_desc">إعادة توجيه تطبيق لقطة الشاشة لاستخدام وظيفة AOSP لالتقاط الصور. تطبيق لقطة الشاشة في HyperOS لن يستجيب لأوامر لقطة الشاشة.</string>
-    <string name="phone_double_5g_nr">استخدام بطاقة مزدوجة 5G (SA+NSA )</string>
-    <string name="phone_double_5g_nr_desc">تفعيل 5G في الشريحة الرئيسية والثانوية في نفس الوقت (الشريحة الثانوية تدعم NSA فقط)</string>
-    <string name="phone_double_5g_sa">استخدام (SA+SA) SA في الشريحتين</string>
-    <string name="phone_double_5g_sa_desc">ميزات تجريبية. اجعل الشريحة الثانوية تدعم SA.</string>
-    <string name="system_framework_phone_band_title">إعدادات النطاق</string>
-    <string name="phone_n1">نطاق N1</string>
-    <string name="phone_n1_desc">دعم النطاق N1 (NR)</string>
-    <string name="phone_n28">النطاق N28</string>
-    <string name="phone_n28_desc">دعم النطاق N28 (NR)</string>
-    <string name="phone_n5_n8">النطاق N5/N8</string>
-    <string name="phone_n5_n8_desc">أدخل *#*#65686633#*#* على واجهة الاتصال لدعم N5/N8 النطاق. إذا اظهرت \"تمكين وضع N5 و N8\" ، فإن الميزة ستمكن بنجاح.</string>
-    <string name="phone_flightmode_hotspot">السماح بنقطة اتصال محمولة في وضع الطائرة</string>
-    <string name="phone_flightmode_hotspot_desc">السماح بشغل نقطة اتصال Wi-Fi المحمولة في وضع الطائرة</string>
     <string name="phone_additional_network_settings">إعدادات الشبكة الإضافية</string>
     <string name="system_framework_screen_title">العرض &amp; الإشعارات</string>
     <string name="system_framework_core_title">النواة ألسفلية</string>

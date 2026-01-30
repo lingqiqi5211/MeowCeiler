@@ -340,7 +340,6 @@
     <string name="system_framework_volume_title">音量</string>
     <string name="system_framework_other_title">その他</string>
     <string name="system_framework_display_title">ディスプレイ</string>
-    <string name="system_framework_phone_title">ネットワーク</string>
     <string name="system_framework_bubble_title">バブル通知</string>
     <string name="system_framework_freeform_count">複数のフリーフォーム</string>
     <string name="system_framework_disable_freeform_blacklist">小さなフリーフォームを強制的に許可</string>
@@ -363,19 +362,6 @@
     <string name="system_ui_display_hide_cutout">画面のノッチを隠す</string>
     <string name="system_ui_display_use_aosp_screenshot">AOSP スクリーンショットを使用</string>
     <string name="system_ui_display_use_aosp_screenshot_desc">スクリーンショットアプリを AOSP スクリーンショットにリダイレクトします。HyperOS のスクリーンショットアプリはスクリーンショット操作に応答しなくなります。</string>
-    <string name="phone_double_5g_nr">2 枚の SIM で 5G を使用 (SA+NSA)</string>
-    <string name="phone_double_5g_nr_desc">メインとセカンダリの SIM カードで同時に 5G を有効にします (セカンダリ SIM カードは NSA にのみ対応しています)</string>
-    <string name="phone_double_5g_sa">2 枚の SIM で SA を使用 (SA+SA)</string>
-    <string name="phone_double_5g_sa_desc">実験的な機能です。セカンダリ SIM カードも SA 対応にします。</string>
-    <string name="system_framework_phone_band_title">バンド設定</string>
-    <string name="phone_n1">n1 バンド</string>
-    <string name="phone_n1_desc">n1 バンド (NR) 対応を有効化します</string>
-    <string name="phone_n28">n28 バンド</string>
-    <string name="phone_n28_desc">n28 バンド (NR) 対応を有効化します</string>
-    <string name="phone_n5_n8">n5/n8 バンド</string>
-    <string name="phone_n5_n8_desc">電話アプリで *#*#65686633#*#* と入力して N5/N8 バンドの対応を有効にします。「N5 および N8 モードを有効にします」と表示されれば、アクティベートは成功です。</string>
-    <string name="phone_flightmode_hotspot">機内モードでポータブルホットスポットを許可</string>
-    <string name="phone_flightmode_hotspot_desc">機内モード中に Wi-Fi ポータブルホットスポットの有効化を許可します</string>
     <string name="phone_additional_network_settings">追加のネットワーク設定</string>
     <string name="system_framework_screen_title">ディスプレイと通知</string>
     <string name="system_framework_core_title">コア</string>

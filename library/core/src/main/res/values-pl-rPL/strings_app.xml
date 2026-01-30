@@ -326,7 +326,6 @@
     <string name="system_framework_volume_title">Głośność</string>
     <string name="system_framework_other_title">Pozostałe</string>
     <string name="system_framework_display_title">Wyświetlacz</string>
-    <string name="system_framework_phone_title">Sieć</string>
     <string name="system_framework_bubble_title">Powiadomienie w dymku</string>
     <string name="system_framework_freeform_count">Wiele okien trybu dowolnego</string>
     <string name="system_framework_disable_freeform_blacklist">Włącz małe okna trybu dowolnego</string>
@@ -349,19 +348,6 @@
     <string name="system_ui_display_hide_cutout">Ukryj wcięcie ekranu</string>
     <string name="system_ui_display_use_aosp_screenshot">Użyj zrzutu ekranu AOSP</string>
     <string name="system_ui_display_use_aosp_screenshot_desc">Przekieruję aplikację do zrzutów ekranu, aby używała przechwytywania zrzutów ekranu AOSP. Aplikacja do zrzutów ekranu w HyperOS nie będzie reagować na operację zrzutu ekranu.</string>
-    <string name="phone_double_5g_nr">Użycie 5G z obu kart SIM (SA+NSA)</string>
-    <string name="phone_double_5g_nr_desc">Główna i wtórna karta SIM włączają 5G jednocześnie (wtórna karta SIM obsługuje tylko NSA)</string>
-    <string name="phone_double_5g_sa">Użycie 5G z obu kart SIM (SA+SA)</string>
-    <string name="phone_double_5g_sa_desc">Funkcja eksperymentalna. Spraw, aby wtórna karta SIM obsługiwała SA.</string>
-    <string name="system_framework_phone_band_title">Ustawienia pasma</string>
-    <string name="phone_n1">Pasmo N1</string>
-    <string name="phone_n1_desc">Obsługuje pasmo N1 (NR)</string>
-    <string name="phone_n28">Pasmo N28</string>
-    <string name="phone_n28_desc">Obsługuje pasmo N28 (NR)</string>
-    <string name="phone_n5_n8">Pasmo N5/N8</string>
-    <string name="phone_n5_n8_desc">Wpisz *#*#65686633#*#* w interfejsie wybierania, aby włączyć obsługę pasm N5/N8. Jeśli pojawi się \"enable N5 and N8 mode\", funkcja zostanie pomyślnie aktywowana.</string>
-    <string name="phone_flightmode_hotspot">Zezwól na hotspoty w trybie samolotowym</string>
-    <string name="phone_flightmode_hotspot_desc">Zezwala na włączanie hotspotu Wi-Fi w trybie samolotowym</string>
     <string name="phone_additional_network_settings">Dodatkowe ustawienia sieci</string>
     <string name="system_framework_screen_title">Ekran i powiadomienia</string>
     <string name="system_framework_core_title">Rdzeń systemu</string>

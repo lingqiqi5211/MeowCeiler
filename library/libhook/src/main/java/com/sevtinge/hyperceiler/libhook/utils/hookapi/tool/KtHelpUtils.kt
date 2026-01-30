@@ -327,6 +327,9 @@ fun Method.hookReplace(callback: IReplaceHook): MethodUnhooker<*> =
 fun Constructor<*>.hook(callback: IMethodHook): MethodUnhooker<*> =
     EzxHelpUtils.hookConstructor(this, callback)
 
+fun Method.deoptimizeMethod() = EzxHelpUtils.deoptimize(this)
+fun Class<*>.deoptimizeMethods(vararg names: String?) = EzxHelpUtils.deoptimizeMethods(this, *names)
+
 val Member.isStatic: Boolean
     inline get() = Modifier.isStatic(modifiers)
 val Member.isFinal: Boolean

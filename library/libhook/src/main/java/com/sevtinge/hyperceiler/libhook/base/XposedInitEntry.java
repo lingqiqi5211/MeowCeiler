@@ -18,29 +18,19 @@
  */
 package com.sevtinge.hyperceiler.libhook.base;
 
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Miui.isPad;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isAndroidVersion;
-import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isHyperOSVersion;
 import static com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils.mPrefsMap;
-import static java.util.Arrays.asList;
 
 import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 
 import com.sevtinge.hyperceiler.libhook.app.CorePatch.CorePatch;
-import com.sevtinge.hyperceiler.libhook.app.Others.VariousThirdApps;
-import com.sevtinge.hyperceiler.libhook.rules.various.system.FlagSecure;
+import com.sevtinge.hyperceiler.libhook.rules.systemframework.others.FlagSecure;
 import com.sevtinge.hyperceiler.libhook.safecrash.CrashMonitor;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils;
 import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog;
-import com.sevtinge.hyperceiler.libhook.utils.pkg.CheckModifyUtils;
-import com.sevtinge.hyperceiler.libhook.utils.pkg.DebugModeUtils;
 import com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils;
-import com.sevtinge.hyperceiler.module.base.DataBase;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -57,12 +47,6 @@ import io.github.libxposed.api.XposedModule;
 public class XposedInitEntry extends XposedModule {
 
     private static final String TAG = "HyperCeiler";
-    private final ArrayList<String> checkList = new ArrayList<>(asList(
-        "com.miui.securitycenter",
-        "com.android.camera",
-        "com.miui.home"
-    ));
-    public final VariousThirdApps mVariousThirdApps = new VariousThirdApps();
     protected String processName;
     protected SharedPreferences remotePrefs;
     protected SharedPreferences.OnSharedPreferenceChangeListener mListener;
@@ -101,6 +85,9 @@ public class XposedInitEntry extends XposedModule {
             XposedLog.d(TAG, "system", "FlagSecure loaded");
         }
 
+        // load Hook
+        invokeInit(lpparam);
+
         // Sync preferences changes
         loadPreferenceChange();
     }
@@ -120,43 +107,55 @@ public class XposedInitEntry extends XposedModule {
     }
 
     protected void invokeInit(PackageLoadedParam lpparam) {
-        String packageName = lpparam.getPackageName();
-        HashMap<String, DataBase> dataMap = DataBase.get();
-        HashSet<String> checkSet = new HashSet<>(checkList);
-        boolean isDebug = mPrefsMap.getBoolean("development_debug_mode");
+        invokeInitInternal(lpparam.getPackageName(), module -> module.onLoad(lpparam));
+    }
 
-        ClassLoader loader = getClass().getClassLoader();
-        if (loader == null) {
+    protected void invokeInit(SystemServerLoadedParam lpparam) {
+        invokeInitInternal(BaseLoad.SYSTEM_SERVER, module -> module.onLoad(lpparam));
+    }
+
+    private void invokeInitInternal(String packageName, ModuleLoader loader) {
+        HashMap<String, DataBase> dataMap = DataBase.get();
+
+        ClassLoader classLoader = getClass().getClassLoader();
+        if (classLoader == null) {
             XposedLog.e(TAG, "ClassLoader is null, skip loading modules for: " + packageName);
             return;
         }
 
-        if (dataMap.values().stream().noneMatch(data -> data.mTargetPackage.equals(packageName))) {
-            mVariousThirdApps.onLoad(lpparam);
-            return;
-        }
+        // 构建匹配上下文
+        ModuleMatcher.MatchContext context = buildMatchContext(packageName, dataMap);
+        ModuleMatcher matcher = new ModuleMatcher(context);
 
+        // 遍历并加载匹配的模块
         dataMap.forEach((className, data) -> {
-            if (!packageName.equals(data.mTargetPackage)) return;
-            if (data.mTargetSdk != -1 && !isAndroidVersion(data.mTargetSdk)) return;
-            if (data.mTargetOSVersion != -1F && !isHyperOSVersion(data.mTargetOSVersion)) return;
-            if ((data.isPad == 1 && !isPad()) || (data.isPad == 2 && isPad())) return;
-
-            if (checkSet.contains(packageName)) {
-                boolean check = CheckModifyUtils.INSTANCE.getCheckResult(packageName);
-                boolean isVersion = DebugModeUtils.INSTANCE.getChooseResult(packageName) == 0;
-                if (check && !isDebug && isVersion) return;
-            }
+            if (!matcher.shouldLoad(data, packageName)) return;
 
             try {
-                Class<?> clazz = loader.loadClass(className);
+                Class<?> clazz = classLoader.loadClass(className);
                 BaseLoad module = (BaseLoad) clazz.getDeclaredConstructor().newInstance();
-                module.onLoad(lpparam);
-            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
-                     InstantiationException | InvocationTargetException e) {
+                loader.load(module);
+            } catch (ReflectiveOperationException e) {
                 XposedLog.e(TAG, "Failed to load module: " + className, e);
             }
         });
+    }
+
+    private ModuleMatcher.MatchContext buildMatchContext(String packageName, HashMap<String, DataBase> dataMap) {
+        boolean isSystemServer = BaseLoad.SYSTEM_SERVER.equals(packageName);
+        boolean hasExactMatch = dataMap.values().stream()
+            .anyMatch(data -> packageName.equals(data.targetPackage));
+
+        return ModuleMatcher.MatchContext.builder()
+            .systemServer(isSystemServer)
+            .exactMatch(hasExactMatch)
+            .debugMode(mPrefsMap.getBoolean("development_debug_mode"))
+            .build();
+    }
+
+    @FunctionalInterface
+    private interface ModuleLoader {
+        void load(BaseLoad module);
     }
 
     protected void initPrefs() {

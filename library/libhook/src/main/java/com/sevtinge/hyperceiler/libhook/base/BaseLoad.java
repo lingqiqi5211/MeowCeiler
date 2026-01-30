@@ -33,6 +33,7 @@ import java.util.function.BooleanSupplier;
 
 import io.github.libxposed.api.XposedInterface;
 import io.github.libxposed.api.XposedModuleInterface.PackageLoadedParam;
+import io.github.libxposed.api.XposedModuleInterface.SystemServerLoadedParam;
 
 /**
  * 应用模块基类
@@ -43,10 +44,12 @@ import io.github.libxposed.api.XposedModuleInterface.PackageLoadedParam;
  * @author HyperCeiler
  */
 public abstract class BaseLoad {
+    public static final String SYSTEM_SERVER = "system";
     private static final Object sLock = new Object();
     private static volatile ClassLoader sClassLoader;
     private static volatile String sPackageName;
     private static volatile PackageLoadedParam sLpparam;
+    private static volatile SystemServerLoadedParam sSystemServerParam;
     private static volatile XposedInterface sXposed;
     private static volatile String sCurrentHookTag = "BaseLoad";
     public static ResourcesTool mResHook;
@@ -96,6 +99,18 @@ public abstract class BaseLoad {
         }
     }
 
+    public static SystemServerLoadedParam getSystemServerParam() {
+        synchronized (sLock) {
+            return sSystemServerParam;
+        }
+    }
+
+    public static boolean isSystemServer() {
+        synchronized (sLock) {
+            return SYSTEM_SERVER.equals(sPackageName) && sSystemServerParam != null;
+        }
+    }
+
     public static String getTag() {
         synchronized (sLock) {
             return sCurrentHookTag;
@@ -104,22 +119,49 @@ public abstract class BaseLoad {
 
     public abstract void onPackageLoaded();
 
+    /**
+     * 加载普通应用 Hook
+     */
     public void onLoad(PackageLoadedParam lpparam) {
         if (lpparam == null) return;
 
-        // 设置静态资源（线程安全）
         synchronized (sLock) {
             sClassLoader = lpparam.getClassLoader();
             sPackageName = lpparam.getPackageName();
             sLpparam = lpparam;
+            sSystemServerParam = null;
             sCurrentHookTag = this.getClass().getSimpleName();
             mResHook = ResourcesTool.getInstance(getXposed().getApplicationInfo().sourceDir);
         }
 
-        // 把模块资源加载到目标应用
+        loadModuleResources();
+        executeHook();
+    }
+
+    /**
+     * 加载 SystemServer Hook
+     */
+    public void onLoad(SystemServerLoadedParam lpparam) {
+        if (lpparam == null) return;
+
+        synchronized (sLock) {
+            sClassLoader = lpparam.getClassLoader();
+            sPackageName = SYSTEM_SERVER;
+            sLpparam = null;
+            sSystemServerParam = lpparam;
+            sCurrentHookTag = this.getClass().getSimpleName();
+            mResHook = ResourcesTool.getInstance(getXposed().getApplicationInfo().sourceDir);
+        }
+
+        loadModuleResources();
+        executeHook();
+    }
+
+    private void loadModuleResources() {
         try {
-            if (!Objects.equals(ProjectApi.mAppModulePkg, sPackageName)) {
-                boolean isAndroid = "android".equals(sPackageName);
+            String pkgName = getPackageName();
+            if (!Objects.equals(ProjectApi.mAppModulePkg, pkgName)) {
+                boolean isAndroid = SYSTEM_SERVER.equals(pkgName);
                 ContextUtils.getWaitContext(context -> {
                     if (context != null) {
                         mResHook.loadModuleRes(context);
@@ -129,18 +171,19 @@ public abstract class BaseLoad {
         } catch (Throwable e) {
             XposedLog.e(getTag(), "get context failed! " + e);
         }
+    }
 
+    private void executeHook() {
         try {
-            // 按需初始化 DexKit
-            if (mNeedDexKit) {
-                DexKit.ready(lpparam, getTag());
+            if (mNeedDexKit && !isSystemServer()) {
+                PackageLoadedParam param = getLpparam();
+                if (param != null) {
+                    DexKit.ready(param, getTag());
+                }
             }
-
-            // 执行具体 Hook 逻辑
             onPackageLoaded();
         } finally {
-            // 关闭 DexKit
-            if (mNeedDexKit) {
+            if (mNeedDexKit && !isSystemServer()) {
                 DexKit.close();
             }
         }

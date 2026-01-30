@@ -328,7 +328,6 @@
     <string name="system_framework_volume_title">Гучність</string>
     <string name="system_framework_other_title">Інше</string>
     <string name="system_framework_display_title">Екран</string>
-    <string name="system_framework_phone_title">Мережа</string>
     <string name="system_framework_bubble_title">Сповіщення-бульбашки</string>
     <string name="system_framework_freeform_count">Кілька плаваючих вікон</string>
     <string name="system_framework_disable_freeform_blacklist">Увімкнути малі плаваючі вікна</string>
@@ -349,19 +348,6 @@
     <string name="system_framework_volume_steps">Множник рівня гучності</string>
     <string name="system_ui_display_use_aosp_screenshot">Використовувати знімок екрана AOSP</string>
     <string name="system_ui_display_use_aosp_screenshot_desc">Перенаправити додаток для знімків екрана на використання захоплення знімків AOSP. Додаток для знімків екрана в HyperOS не реагуватиме на операцію знімка.</string>
-    <string name="phone_double_5g_nr">Використання 5G на двох SIM (SA+NSA)</string>
-    <string name="phone_double_5g_nr_desc">Основна та додаткова SIM-карти одночасно вмикають 5G (додаткова SIM-карта підтримує лише NSA)</string>
-    <string name="phone_double_5g_sa">Використання SA на двох SIM (SA+SA)</string>
-    <string name="phone_double_5g_sa_desc">Експериментальна функція. Дозволяє додатковій SIM-карті підтримувати SA.</string>
-    <string name="system_framework_phone_band_title">Налаштування діапазонів</string>
-    <string name="phone_n1">Діапазон N1</string>
-    <string name="phone_n1_desc">Підтримка діапазону N1 (NR)</string>
-    <string name="phone_n28">Діапазон N28</string>
-    <string name="phone_n28_desc">Підтримка діапазону N28 (NR)</string>
-    <string name="phone_n5_n8">Діапазон N5/N8</string>
-    <string name="phone_n5_n8_desc">Введіть *#*#65686633#*#* у номеронабирачі телефону, щоб увімкнути підтримку діапазонів N5/N8. Якщо з\'явиться повідомлення \"enable N5 and N8 mode\", активація пройшла успішно.</string>
-    <string name="phone_flightmode_hotspot">Дозволити вмикати портативну точку доступу в режимі польоту</string>
-    <string name="phone_flightmode_hotspot_desc">Дозволити вмикати портативну точку доступу Wi-Fi в режимі польоту</string>
     <string name="phone_additional_network_settings">Додаткові налаштування мережі</string>
     <string name="system_framework_screen_title">Екран та сповіщення</string>
     <string name="system_framework_core_title">Ядро системи</string>

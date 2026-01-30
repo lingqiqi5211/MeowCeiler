@@ -19,6 +19,7 @@
 package com.sevtinge.hyperceiler.libhook.rules.home.layout
 
 import com.sevtinge.hyperceiler.libhook.appbase.mihome.HomeBaseHookNew
+import com.sevtinge.hyperceiler.libhook.appbase.mihome.Version
 
 class SearchBarMarginWidth : HomeBaseHookNew() {
 

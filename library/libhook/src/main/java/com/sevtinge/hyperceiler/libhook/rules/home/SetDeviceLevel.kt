@@ -19,6 +19,7 @@
 package com.sevtinge.hyperceiler.libhook.rules.home
 
 import com.sevtinge.hyperceiler.libhook.appbase.mihome.HomeBaseHookNew
+import com.sevtinge.hyperceiler.libhook.appbase.mihome.Version
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Miui.isPad
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.LazyClass.SystemProperties
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.beforeHookMethod

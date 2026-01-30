@@ -21,6 +21,7 @@ package com.sevtinge.hyperceiler.libhook.rules.home.title
 import android.util.TypedValue
 import android.widget.TextView
 import com.sevtinge.hyperceiler.libhook.appbase.mihome.HomeBaseHookNew
+import com.sevtinge.hyperceiler.libhook.appbase.mihome.Version
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.afterHookConstructor
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.afterHookMethod
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callStaticMethod

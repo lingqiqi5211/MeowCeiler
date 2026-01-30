@@ -26,7 +26,7 @@ import android.os.Bundle;
 
 import com.sevtinge.hyperceiler.libhook.base.BaseHook;
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook;
-import com.sevtinge.hyperceiler.libhook.rules.various.system.GlobalActions;
+import com.sevtinge.hyperceiler.libhook.rules.systemframework.moduleload.GlobalActions;
 
 import io.github.kyuubiran.ezxhelper.xposed.common.AfterHookParam;
 import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam;

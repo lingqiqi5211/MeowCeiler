@@ -46,6 +46,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.fan.common.base.BaseActivity;
 import com.fan.common.widget.SearchEditText;
 import com.fan.common.widget.SpinnerItemView;
+import com.sevtinge.hyperceiler.libhook.utils.api.ProjectApi;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -59,6 +60,7 @@ public class LogViewerActivity extends BaseActivity
     implements LogAdapter.OnFilterChangeListener, LogAdapter.OnLogItemClickListener {
 
     private static final String TAG = "LogViewerActivity";
+    private static final String FILE_PROVIDER_AUTHORITY = ProjectApi.mAppModulePkg + ".fileprovider";
 
     public interface XposedLogLoader {
         void loadLogs(Context context, Runnable onComplete);
@@ -409,7 +411,7 @@ public class LogViewerActivity extends BaseActivity
                     try {
                         Uri contentUri = FileProvider.getUriForFile(
                             LogViewerActivity.this,
-                            getPackageName() + ".fileprovider",
+                            FILE_PROVIDER_AUTHORITY,
                             zipFile
                         );
 
@@ -424,6 +426,9 @@ public class LogViewerActivity extends BaseActivity
                             Intent.createChooser(shareIntent, getString(com.sevtinge.hyperceiler.core.R.string.log_share_title)),
                             sShareRequestCode
                         );
+                    } catch (IllegalArgumentException e) {
+                        Log.e(TAG, "FileProvider configuration error", e);
+                        cleanShareCache();
                     } catch (Exception e) {
                         Log.e(TAG, "Failed to share logs", e);
                         showToast(getString(com.sevtinge.hyperceiler.core.R.string.log_share_failed));

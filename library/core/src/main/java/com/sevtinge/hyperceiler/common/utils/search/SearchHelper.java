@@ -47,7 +47,7 @@ import com.sevtinge.hyperceiler.hooker.WeatherFragment;
 import com.sevtinge.hyperceiler.hooker.framework.CorePatchSettings;
 import com.sevtinge.hyperceiler.hooker.framework.DisplaySettings;
 import com.sevtinge.hyperceiler.hooker.framework.FreeFormSettings;
-import com.sevtinge.hyperceiler.hooker.framework.NetworkSettings;
+import com.sevtinge.hyperceiler.hooker.framework.MiPadSettings;
 import com.sevtinge.hyperceiler.hooker.framework.VolumeSettings;
 import com.sevtinge.hyperceiler.hooker.home.HomeDockSettings;
 import com.sevtinge.hyperceiler.hooker.home.HomeDrawerSettings;
@@ -113,9 +113,9 @@ public class SearchHelper {
         // 系统框架页面相关
         parsePrefXmlForFramework(context, FreeFormSettings.class, R.xml.framework_freeform);
         parsePrefXmlForFramework(context, VolumeSettings.class, R.xml.framework_volume);
-        parsePrefXmlForFramework(context, NetworkSettings.class, R.xml.framework_phone);
+        parsePrefXmlForFramework(context, MiPadSettings.class, R.xml.various_mipad);
         parsePrefXmlForFramework(context, DisplaySettings.class, R.xml.framework_display);
-        parsePrefXmlForFramework(context, com.sevtinge.hyperceiler.hooker.framework.OtherSettings.class, R.xml.framework_other);
+        parsePrefXmlForFramework(context, OtherSettings.class, R.xml.framework_other);
         parsePrefXmlForFramework(context, CorePatchSettings.class, R.xml.framework_core_patch);
 
         // 系统界面页面相关

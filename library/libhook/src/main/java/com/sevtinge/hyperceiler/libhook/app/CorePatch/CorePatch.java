@@ -18,16 +18,16 @@
  */
 package com.sevtinge.hyperceiler.libhook.app.CorePatch;
 
-import static com.sevtinge.hyperceiler.libhook.rules.various.corepatch.CorePatchHelper.prefs;
+import static com.sevtinge.hyperceiler.libhook.rules.systemframework.corepatch.CorePatchHelper.prefs;
 
 import android.os.Build;
 
-import com.sevtinge.hyperceiler.libhook.rules.various.corepatch.AuthCreakPatch;
-import com.sevtinge.hyperceiler.libhook.rules.various.corepatch.DigestCreakPatch;
-import com.sevtinge.hyperceiler.libhook.rules.various.corepatch.DowngradeCheckPatch;
-import com.sevtinge.hyperceiler.libhook.rules.various.corepatch.ExactSignCheckPatch;
-import com.sevtinge.hyperceiler.libhook.rules.various.corepatch.SharedUserPatch;
-import com.sevtinge.hyperceiler.libhook.rules.various.corepatch.VerificationAgentPatch;
+import com.sevtinge.hyperceiler.libhook.rules.systemframework.corepatch.AuthCreakPatch;
+import com.sevtinge.hyperceiler.libhook.rules.systemframework.corepatch.DigestCreakPatch;
+import com.sevtinge.hyperceiler.libhook.rules.systemframework.corepatch.DowngradeCheckPatch;
+import com.sevtinge.hyperceiler.libhook.rules.systemframework.corepatch.ExactSignCheckPatch;
+import com.sevtinge.hyperceiler.libhook.rules.systemframework.corepatch.SharedUserPatch;
+import com.sevtinge.hyperceiler.libhook.rules.systemframework.corepatch.VerificationAgentPatch;
 import com.sevtinge.hyperceiler.libhook.utils.api.ProjectApi;
 import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog;
 

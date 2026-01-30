@@ -25,18 +25,18 @@
 -keep class com.hchen.superlyricapi.** { *; }
 -keep class org.luckypray.dexkit.** { *; }
 -keep class org.lsposed.** { *; }
+-keep class io.github.libxposed.** { *; }
 -keep class io.github.kyuubiran.ezxhelper.** { *; }
 
 # --- HyperCeiler Core ---
 -keep class com.sevtinge.hyperceiler.libhook.app.** { *; }
 -keep class com.sevtinge.hyperceiler.libhook.appbase.** { *; }
 -keep class com.sevtinge.hyperceiler.libhook.base.** { *; }
+-keep class com.sevtinge.hyperceiler.libhook.rules.** { *; }
+-keep class com.sevtinge.hyperceiler.libhook.safecrash.** { *; }
 
 -keep class com.sevtinge.hyperceiler.libhook.base.XposedInitEntry { *; }
 -keep class * extends com.sevtinge.hyperceiler.libhook.base.BaseHook { <init>(...); }
 
 # --- Tool ---
--keep class com.sevtinge.hyperceiler.libhook.utils.hookapi.blur.** { *; }
--keep class com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.** { *; }
--keep class com.sevtinge.hyperceiler.libhook.utils.hookapi.miuiStringToast.res.** { *; }
--keep class com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.ResourcesTool { *; }
+-keep class com.sevtinge.hyperceiler.libhook.utils.hookapi.** { *; }

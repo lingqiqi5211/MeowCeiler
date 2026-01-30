@@ -18,6 +18,11 @@
  */
 package com.sevtinge.hyperceiler.libhook.base;
 
+import android.content.Context;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.ResourcesTool;
@@ -144,6 +149,64 @@ public abstract class BaseHook {
      */
     public static Object callStaticMethod(Class<?> clazz, String methodName, Object... args) {
         return EzxHelpUtils.callStaticMethod(clazz, methodName, args);
+    }
+
+    // ==================== Application 生命周期 ====================
+
+    /**
+     * Application.attach(Context) 之前调用
+     * 子类可重写此方法
+     */
+    protected void onApplicationAttachBefore(@NonNull Context context) {
+    }
+
+    /**
+     * Application.attach(Context) 之后调用
+     * 子类可重写此方法
+     */
+    protected void onApplicationAttachAfter(@NonNull Context context) {
+    }
+
+    /**
+     * 注册当前 Hook 的 Application 生命周期回调
+     */
+    protected void registerApplicationHook() {
+        EzxHelpUtils.registerApplicationHook(new EzxHelpUtils.IApplicationHook() {
+            @Override
+            public void onApplicationAttachBefore(@NonNull Context context) {
+                try {
+                    BaseHook.this.onApplicationAttachBefore(context);
+                } catch (Throwable t) {
+                    XposedLog.e(TAG, "onApplicationAttachBefore error", t);
+                }
+            }
+
+            @Override
+            public void onApplicationAttachAfter(@NonNull Context context) {
+                try {
+                    BaseHook.this.onApplicationAttachAfter(context);
+                } catch (Throwable t) {
+                    XposedLog.e(TAG, "onApplicationAttachAfter error", t);
+                }
+            }
+        });
+    }
+
+    /**
+     * 注册 Application attach 之后的回调
+     */
+    protected void runOnApplicationAttach(EzxHelpUtils.ContextConsumer callback) {
+        EzxHelpUtils.runOnApplicationAttach(callback);
+    }
+
+    /**
+     * 注册 Application 生命周期回调
+     */
+    protected void registerApplicationHook(
+        @Nullable EzxHelpUtils.ContextConsumer before,
+        @Nullable EzxHelpUtils.ContextConsumer after
+    ) {
+        EzxHelpUtils.registerApplicationHook(before, after);
     }
 
     // ==================== Hook 方法 ====================

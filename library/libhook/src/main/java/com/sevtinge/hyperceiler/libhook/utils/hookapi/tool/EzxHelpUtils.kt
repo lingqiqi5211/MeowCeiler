@@ -20,14 +20,18 @@
 
 package com.sevtinge.hyperceiler.libhook.utils.hookapi.tool
 
+import android.app.Application
+import android.content.Context
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook
 import com.sevtinge.hyperceiler.libhook.callback.IReplaceHook
 import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog
 import io.github.kyuubiran.ezxhelper.core.ClassLoaderProvider.classLoader
+import io.github.kyuubiran.ezxhelper.core.ClassLoaderProvider.safeClassLoader
 import io.github.kyuubiran.ezxhelper.core.finder.ConstructorFinder
 import io.github.kyuubiran.ezxhelper.core.finder.FieldFinder
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil
+import io.github.kyuubiran.ezxhelper.xposed.common.AfterHookParam
 import io.github.kyuubiran.ezxhelper.xposed.common.BeforeHookParam
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
 import io.github.libxposed.api.XposedInterface.Hooker
@@ -58,8 +62,18 @@ object EzxHelpUtils {
     }
 
     @JvmStatic
+    fun findClass(name: String): Class<*> {
+        return ClassUtil.loadClass(name, safeClassLoader)
+    }
+
+    @JvmStatic
     fun findClass(name: String, classLoader: ClassLoader?): Class<*> {
         return ClassUtil.loadClass(name, classLoader)
+    }
+
+    @JvmStatic
+    fun findClassIfExists(name: String): Class<*>? {
+        return ClassUtil.loadClassOrNull(name, safeClassLoader)
     }
 
     @JvmStatic
@@ -460,31 +474,34 @@ object EzxHelpUtils {
             }
         }
 
-        val method = runCatching {
-            if (parameterTypes.isEmpty()) {
-                MethodFinder.fromClass(clazz)
-                    .filterByName(methodName)
-                    .firstOrNull()
-            } else {
-                MethodFinder.fromClass(clazz)
-                    .filterByName(methodName)
-                    .filterByParamTypes(*parameterTypes)
-                    .firstOrNull()
-            }
-        }.recoverCatching { e ->
-            XposedLog.w(TAG, "MethodFinder failed for $fullMethodName, fallback to reflection", e)
-            // e.g.
-            // java.lang.NoClassDefFoundError: Failed resolution of:
-            // Lcom/miui/newhome/view/gestureview/NewHomeView;
-            findMethodByReflection(clazz, methodName, *parameterTypes)
-        }.getOrNull()
+        var currentClass: Class<*>? = clazz
 
-        if (method != null) {
-            method.isAccessible = true
-            synchronized(methodCache) {
-                methodCache[fullMethodName] = method
+        while (currentClass != null) {
+            val method = runCatching {
+                if (parameterTypes.isEmpty()) {
+                    MethodFinder.fromClass(currentClass)
+                        .filterByName(methodName)
+                        .firstOrNull()
+                } else {
+                    MethodFinder.fromClass(currentClass)
+                        .filterByName(methodName)
+                        .filterByParamTypes(*parameterTypes)
+                        .firstOrNull()
+                }
+            }.recoverCatching { e ->
+                XposedLog.w(TAG, "MethodFinder failed for ${currentClass.name}.$methodName, fallback to reflection", e)
+                findMethodByReflection(currentClass, methodName, *parameterTypes)
+            }.getOrNull()
+
+            if (method != null) {
+                method.isAccessible = true
+                synchronized(methodCache) {
+                    methodCache[fullMethodName] = method
+                }
+                return method
             }
-            return method
+
+            currentClass = currentClass.superclass
         }
 
         synchronized(methodCache) {
@@ -707,6 +724,146 @@ object EzxHelpUtils {
     fun removeAdditionalInstanceField(instance: Any, key: String): Any? =
         additionalFields[instance]?.remove(key)
 
+    // ==================== Application Hook ====================
+
+    /**
+     * Application 生命周期回调接口
+     */
+    interface IApplicationHook {
+        /**
+         * Application.attach(Context) 之前调用
+         */
+        fun onApplicationAttachBefore(context: Context) {}
+
+        /**
+         * Application.attach(Context) 之后调用
+         */
+        fun onApplicationAttachAfter(context: Context) {}
+    }
+
+    private val applicationHooks = mutableListOf<IApplicationHook>()
+    private var isApplicationHooked = false
+    private val applicationHookLock = Any()
+
+    /**
+     * Java Consumer 接口
+     */
+    fun interface ContextConsumer {
+        fun accept(context: Context)
+    }
+
+    /**
+     * 注册 Application 生命周期回调
+     *
+     * @param hook 回调实例
+     */
+    @JvmStatic
+    fun registerApplicationHook(hook: IApplicationHook) {
+        synchronized(applicationHookLock) {
+            applicationHooks.add(hook)
+            ensureApplicationHooked()
+        }
+    }
+
+    /**
+     * 注册 Application 生命周期回调
+     *
+     * @param before attach 之前的回调，可为 null
+     * @param after attach 之后的回调，可为 null
+     */
+    @JvmStatic
+    fun registerApplicationHook(
+        before: ContextConsumer?,
+        after: ContextConsumer?
+    ) {
+        registerApplicationHook(object : IApplicationHook {
+            override fun onApplicationAttachBefore(context: Context) {
+                before?.accept(context)
+            }
+
+            override fun onApplicationAttachAfter(context: Context) {
+                after?.accept(context)
+            }
+        })
+    }
+
+    /**
+     * 仅注册 Application attach 之后的回调
+     *
+     * @param callback 回调函数
+     */
+    @JvmStatic
+    fun runOnApplicationAttach(callback: ContextConsumer) {
+        registerApplicationHook(null, callback)
+    }
+
+    /**
+     * 确保 Application.attach 已被 Hook
+     */
+    private fun ensureApplicationHooked() {
+        if (isApplicationHooked) return
+
+        synchronized(applicationHookLock) {
+            if (isApplicationHooked) return
+
+            try {
+                findAndHookMethod(
+                    Application::class.java,
+                    "attach",
+                    Context::class.java,
+                    object : IMethodHook {
+                        override fun before(param: BeforeHookParam) {
+                            val context = param.args[0] as? Context ?: return
+                            applicationHooks.forEach { hook ->
+                                try {
+                                    hook.onApplicationAttachBefore(context)
+                                } catch (t: Throwable) {
+                                    XposedLog.e(TAG, "Application attach before callback error", t)
+                                }
+                            }
+                        }
+
+                        override fun after(param: AfterHookParam) {
+                            val context = param.args[0] as? Context ?: return
+                            applicationHooks.forEach { hook ->
+                                try {
+                                    hook.onApplicationAttachAfter(context)
+                                } catch (t: Throwable) {
+                                    XposedLog.e(TAG, "Application attach after callback error", t)
+                                }
+                            }
+                            XposedLog.d(TAG, "Application created! package: ${context.packageName}")
+                        }
+                    }
+                )
+                isApplicationHooked = true
+            } catch (t: Throwable) {
+                XposedLog.e(TAG, "Failed to hook Application.attach", t)
+            }
+        }
+    }
+
+    /**
+     * 取消注册 Application 生命周期回调
+     *
+     * @param hook 要取消的回调实例
+     */
+    @JvmStatic
+    fun unregisterApplicationHook(hook: IApplicationHook) {
+        synchronized(applicationHookLock) {
+            applicationHooks.remove(hook)
+        }
+    }
+
+    /**
+     * 清除所有 Application 生命周期回调
+     */
+    @JvmStatic
+    fun clearApplicationHooks() {
+        synchronized(applicationHookLock) {
+            applicationHooks.clear()
+        }
+    }
 
     // ==================== Hook 方法 ====================
 

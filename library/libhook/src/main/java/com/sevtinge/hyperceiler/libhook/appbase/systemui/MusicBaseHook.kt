@@ -51,11 +51,9 @@ import com.sevtinge.hyperceiler.libhook.R
 import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.utils.api.ProjectApi
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.AppsTool
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils
 import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog
-import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
-import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
 import io.github.kyuubiran.ezxhelper.xposed.EzXposed
-import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createAfterHook
 import org.json.JSONObject
 import kotlin.math.min
 
@@ -138,14 +136,13 @@ abstract class MusicBaseHook : BaseHook() {
     }
 
     init {
-        loadClass("android.app.Application").methodFinder().filterByName("onCreate").first()
-            .createAfterHook {
-                runCatching {
-                    SuperLyricTool.registerSuperLyric(context, receiver)
-                }.onFailure {
-                    XposedLog.e(TAG, lpparam.packageName, "registerLyricListener not found: ${it.message}")
-                }
+        EzxHelpUtils.runOnApplicationAttach { context ->
+            runCatching {
+                SuperLyricTool.registerSuperLyric(context, receiver)
+            }.onFailure {
+                XposedLog.e(TAG, lpparam.packageName, "registerLyricListener not found: ${it.message}")
             }
+        }
     }
 
     abstract fun onSuperLyric(data: SuperLyricData)
@@ -289,7 +286,7 @@ abstract class MusicBaseHook : BaseHook() {
 
             postNotification(builder, focusExtras, packageName)
         }.onFailure { e ->
-            XposedLog.e(TAG, lpparam.packageName, "send diy focus failed: ${e.message}")
+            XposedLog.w(TAG, lpparam.packageName, "send diy focus failed: ${e.message}")
             sendFallbackNotification(builder, text, tf, iconBundle, islandTemplate, packageName, iconsAdd)
         }
     }

@@ -24,6 +24,7 @@ import android.text.TextUtils;
 import android.widget.TextView;
 
 import com.sevtinge.hyperceiler.libhook.appbase.mihome.HomeBaseHookNew;
+import com.sevtinge.hyperceiler.libhook.appbase.mihome.Version;
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook;
 
 import io.github.kyuubiran.ezxhelper.xposed.common.AfterHookParam;

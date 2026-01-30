@@ -88,7 +88,7 @@ import com.sevtinge.hyperceiler.libhook.rules.home.widget.AlwaysShowMiuiWidget;
 
 import java.util.Objects;
 
-@HookBase(targetPackage = "com.miui.home", isPad = 1, targetOSVersion = 3f)
+@HookBase(targetPackage = "com.miui.home", deviceType = 1, minOSVersion = 3.0F)
 public class HomePad extends BaseLoad {
 
     public HomePad() {

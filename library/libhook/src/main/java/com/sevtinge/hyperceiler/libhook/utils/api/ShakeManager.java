@@ -23,7 +23,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 
-import com.sevtinge.hyperceiler.libhook.rules.various.system.GlobalActions;
+import com.sevtinge.hyperceiler.libhook.rules.systemframework.moduleload.GlobalActions;
 
 public class ShakeManager implements SensorEventListener {
 

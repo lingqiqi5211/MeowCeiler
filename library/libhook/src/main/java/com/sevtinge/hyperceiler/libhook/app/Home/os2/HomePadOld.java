@@ -125,7 +125,7 @@ import com.sevtinge.hyperceiler.libhook.rules.home.widget.WidgetBlurOpt;
 
 import java.util.Objects;
 
-@HookBase(targetPackage = "com.miui.home", isPad = 1, targetOSVersion = 2f)
+@HookBase(targetPackage = "com.miui.home", deviceType = 1, maxOSVersion = 2.0F)
 public class HomePadOld extends BaseLoad {
 
     public HomePadOld() {

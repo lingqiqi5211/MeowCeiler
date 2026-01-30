@@ -50,7 +50,7 @@ import com.sevtinge.hyperceiler.libhook.rules.systemsettings.aiimage.UnlockAi;
 import com.sevtinge.hyperceiler.libhook.rules.systemsettings.aiimage.UnlockMemc;
 import com.sevtinge.hyperceiler.libhook.rules.systemsettings.aiimage.UnlockSuperResolution;
 
-@HookBase(targetPackage = "com.android.settings", targetSdk = 36)
+@HookBase(targetPackage = "com.android.settings", minSdk = 36)
 public class SystemSettingsB extends BaseLoad {
 
     @Override

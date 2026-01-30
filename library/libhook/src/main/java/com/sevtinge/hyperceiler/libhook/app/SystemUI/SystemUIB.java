@@ -22,6 +22,7 @@ import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Miui.isPad
 
 import com.hchen.database.HookBase;
 import com.sevtinge.hyperceiler.libhook.base.BaseLoad;
+import com.sevtinge.hyperceiler.libhook.rules.systemframework.volume.VolumeMediaSteps;
 import com.sevtinge.hyperceiler.libhook.rules.systemsettings.AllowManageAllNotifications;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.StatusBarActions;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.AutoDismissExpandedPopupsHook;
@@ -60,6 +61,8 @@ import com.sevtinge.hyperceiler.libhook.rules.systemui.lockscreen.KeepNotificati
 import com.sevtinge.hyperceiler.libhook.rules.systemui.lockscreen.LockScreenDoubleTapToSleep;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.lockscreen.NotificationShowOnKeyguard;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.lockscreen.ScramblePIN;
+import com.sevtinge.hyperceiler.libhook.rules.systemui.navigation.RotationButtonB;
+import com.sevtinge.hyperceiler.libhook.rules.systemui.other.AutoSEffSwitchForSystemUi;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.other.BrightnessPct;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.other.DisableBottomBar;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.other.DisableInfinitymodeGesture;
@@ -96,7 +99,7 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.Med
 
 import java.util.Objects;
 
-@HookBase(targetPackage = "com.android.systemui", targetSdk = 36)
+@HookBase(targetPackage = "com.android.systemui", minSdk = 36)
 public class SystemUIB extends BaseLoad {
 
     public SystemUIB() {
@@ -152,11 +155,17 @@ public class SystemUIB extends BaseLoad {
         // 时钟指示器
         initHook(StatusBarClockNew.INSTANCE, mPrefsMap.getBoolean("system_ui_statusbar_clock_all_status_enable"));
 
+        // 焦点歌词
+        /*if (mPrefsMap.getBoolean("system_ui_statusbar_music_switch")) {
+            initHook(FocusNotifLyric.INSTANCE);
+            initHook(HideFakeStatusBar.INSTANCE, mPrefsMap.getBoolean("system_ui_statusbar_music_hide_clock") && !isPad());
+        }*/
+
         // 灵动舞台
         initHook(HideStrongToast.INSTANCE, mPrefsMap.getBoolean("system_ui_status_bar_hide_smart_strong_toast"));
 
         // 导航栏
-        // initHook(RotationButtonB.INSTANCE, mPrefsMap.getStringAsInt("system_framework_other_rotation_button_int", 0) != 0);
+        initHook(RotationButtonB.INSTANCE, mPrefsMap.getStringAsInt("system_framework_other_rotation_button_int", 0) != 0);
 
         // 控制与通知中心
         initHook(new QSColor(), mPrefsMap.getBoolean("system_ui_control_center_qs_open_color") || mPrefsMap.getBoolean("system_ui_control_center_qs_big_open_color"));
@@ -211,10 +220,10 @@ public class SystemUIB extends BaseLoad {
         initHook(DisableBottomBar.INSTANCE, mPrefsMap.getBoolean("system_ui_disable_bottombar"));
         initHook(UnlockClipboard.INSTANCE, mPrefsMap.getBoolean("system_ui_unlock_clipboard"));
 
-        /*initHook(new VolumeMediaSteps(), mPrefsMap.getBoolean("system_framework_volume_media_steps_enable"));
-        if (mPrefsMap.getBoolean("misound_bluetooth") && isHyperOSVersion(2f)) {
-            initHook(new AutoSEffSwitchForSystemUi().onApplication());
-        }*/
+        initHook(new VolumeMediaSteps(), mPrefsMap.getBoolean("system_framework_volume_media_steps_enable"));
+        if (mPrefsMap.getBoolean("misound_bluetooth")) {
+            initHook(new AutoSEffSwitchForSystemUi());
+        }
 
         if (isPad()) {
             isPadLoaded();

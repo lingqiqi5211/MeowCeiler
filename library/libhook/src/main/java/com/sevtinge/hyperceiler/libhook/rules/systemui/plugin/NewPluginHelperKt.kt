@@ -20,6 +20,8 @@ package com.sevtinge.hyperceiler.libhook.rules.systemui.plugin
 
 import android.content.ContextWrapper
 import com.sevtinge.hyperceiler.libhook.base.BaseHook
+import com.sevtinge.hyperceiler.libhook.rules.systemui.other.AutoSEffSwitchForSystemUi
+import com.sevtinge.hyperceiler.libhook.rules.systemui.other.AutoSEffSwitchForSystemUi.isSupportFW
 import com.sevtinge.hyperceiler.libhook.rules.systemui.plugin.aod.AodBlurButton
 import com.sevtinge.hyperceiler.libhook.rules.systemui.plugin.systemui.CCGridForHyperOSKt
 import com.sevtinge.hyperceiler.libhook.rules.systemui.plugin.systemui.CustomCardTiles
@@ -159,13 +161,13 @@ object NewPluginHelperKt : BaseHook() {
                     )
                 }
 
-                /*if (prefs.getBoolean("misound_bluetooth") && !isSupportFW()) {
+                if (prefs.getBoolean("misound_bluetooth") && !isSupportFW()) {
                     enabledLoaders.add(
                         Pair("AutoSEffSwitchForSystemUi",
                             AutoSEffSwitchForSystemUi::onNotSupportFW
                         )
                     )
-                }*/
+                }
 
                 if (prefs.getBoolean("systemui_plugin_card_tiles_enabled")) {
                     val tileStr = prefs.getString("systemui_plugin_card_tiles", "")

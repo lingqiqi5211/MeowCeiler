@@ -331,7 +331,6 @@
     <string name="system_framework_volume_title">Lautstärke</string>
     <string name="system_framework_other_title">Sonstiges</string>
     <string name="system_framework_display_title">Display</string>
-    <string name="system_framework_phone_title">Netzwerk</string>
     <string name="system_framework_bubble_title">Blasenbenachrichtigung</string>
     <string name="system_framework_freeform_count">Mehrere Freeform</string>
     <string name="system_framework_disable_freeform_blacklist">Kleine Freeform aktivieren</string>
@@ -352,19 +351,6 @@
     <string name="system_framework_volume_steps">Lautstärke-Stufen-Multiplikator</string>
     <string name="system_ui_display_use_aosp_screenshot">AOSP-Screenshot verwenden</string>
     <string name="system_ui_display_use_aosp_screenshot_desc">Die Screenshot-App zur Verwendung der AOSP-Screenshot-Aufnahme umleiten. Die Screenshot-App in HyperOS reagiert nicht auf die Screenshot-Operation.</string>
-    <string name="phone_double_5g_nr">Dual-SIM 5G verwenden (SA+NSA)</string>
-    <string name="phone_double_5g_nr_desc">Haupt- und Zweit-SIM-Karte gleichzeitig 5G aktivieren (Zweit-SIM-Karte unterstützt nur NSA)</string>
-    <string name="phone_double_5g_sa">Dual-SIM SA verwenden (SA+SA)</string>
-    <string name="phone_double_5g_sa_desc">Experimentelle Funktion. Die Zweit-SIM-Karte SA unterstützen lassen.</string>
-    <string name="system_framework_phone_band_title">Band-Einstellungen</string>
-    <string name="phone_n1">N1-Band</string>
-    <string name="phone_n1_desc">N1-Band unterstützen (NR)</string>
-    <string name="phone_n28">N28-Band</string>
-    <string name="phone_n28_desc">N28-Band unterstützen (NR)</string>
-    <string name="phone_n5_n8">N5/N8-Band</string>
-    <string name="phone_n5_n8_desc">Gib *#*#65686633#*#* im Telefon-Dialer ein, um Unterstützung für N5/N8-Bänder zu aktivieren. Wenn \"N5- und N8-Modus aktivieren\" angezeigt wird, ist es erfolgreich aktiviert.</string>
-    <string name="phone_flightmode_hotspot">Mobilen Hotspot im Flugmodus zulassen</string>
-    <string name="phone_flightmode_hotspot_desc">WLAN-Hotspot im Flugmodus aktivieren zulassen</string>
     <string name="phone_additional_network_settings">Zusätzliche Netzwerkeinstellungen</string>
     <string name="system_framework_screen_title">Display &amp; Benachrichtigungen</string>
     <string name="system_framework_core_title">Kern darunter</string>

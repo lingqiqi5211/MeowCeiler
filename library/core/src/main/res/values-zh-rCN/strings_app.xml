@@ -416,7 +416,6 @@
     <string name="system_framework_volume_title">音量</string>
     <string name="system_framework_other_title">其他</string>
     <string name="system_framework_display_title">显示</string>
-    <string name="system_framework_phone_title">网络</string>
 
     <string name="system_framework_bubble_title">气泡通知</string>
     <string name="system_framework_freeform_count">多小窗</string>
@@ -442,22 +441,6 @@
     <string name="system_ui_display_hide_cutout">隐藏屏幕缺口</string>
     <string name="system_ui_display_use_aosp_screenshot">使用原生截屏</string>
     <string name="system_ui_display_use_aosp_screenshot_desc">将截屏应用重定向至原生截屏，HyperOS 中的截屏应用将不会对截屏操作响应</string>
-
-    <string name="system_framework_phone_network_title">网络设置</string>
-    <string name="phone_additional_network_settings">网络功能辅助菜单</string>
-    <string name="phone_double_5g_nr">双卡 5G (SA+NSA)</string>
-    <string name="phone_double_5g_nr_desc">双卡同时使用 5G 网络 (卡 2 仅支持 NSA)</string>
-    <string name="phone_double_5g_sa">双卡 SA (SA+SA)</string>
-    <string name="phone_double_5g_sa_desc">实验性功能。使卡 2 支持 SA</string>
-    <string name="system_framework_phone_band_title">频段设置</string>
-    <string name="phone_n1">解锁 n1 频段</string>
-    <string name="phone_n1_desc">支持 n1 频段 (NR)</string>
-    <string name="phone_n28">解锁 n28 频段</string>
-    <string name="phone_n28_desc">支持 n28 频段 (NR)</string>
-    <string name="phone_n5_n8">解锁 n5/n8 频段</string>
-    <string name="phone_n5_n8_desc">在拨号界面输入 *#*#65686633#*#* 以打开 n5/n8 频段，若显示 \"enable N5 and N8 Mode\"，则开启成功</string>
-    <string name="phone_flightmode_hotspot">飞行模式下可开启热点</string>
-    <string name="phone_flightmode_hotspot_desc">允许在飞行模式下开启 WLAN 热点</string>
 
     <string name="system_framework_screen_title">显示与通知</string>
     <string name="system_framework_core_title">底层</string>
