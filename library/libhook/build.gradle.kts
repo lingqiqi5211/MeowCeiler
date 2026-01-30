@@ -70,11 +70,14 @@ dependencies {
     compileOnlyApi(projects.library.hiddenApi)
 
     // libxposed API 100
-    compileOnlyApi(files("libs/api-100.aar"))
-    api(files("libs/service-100.aar"))
+    compileOnlyApi(libs.libxposed.api)
+    compileOnlyApi(project(":library:libxposed-compat"))
+    api(libs.libxposed.service) {
+        exclude(group = "io.github.libxposed", module = "interface")
+    }
 
     api(libs.dexkit)
-    api(libs.bundles.ezxhelper.new)
+    api(libs.bundles.ezxhelper)
     api(libs.hiddenapibypass)
     api(libs.gson)
     api(libs.hyperfocusapi)

@@ -74,5 +74,6 @@ include(
     ":library:provision",
     ":library:common",
     ":library:processor",
-    ":library:hidden-api"
+    ":library:hidden-api",
+    ":library:libxposed-compat"
 )
