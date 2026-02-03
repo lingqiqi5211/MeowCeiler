@@ -109,6 +109,25 @@ jobs:
         run: |
           echo "APK_FILE_CANARY=$(find artifacts -name '*.apk')" >> $GITHUB_ENV
 
+      - name: Prepare Commit Message
+        run: |
+          COMMIT_MSG=$(cat << 'COMMIT_EOF'
+          ${{ github.event.head_commit.message }}
+          COMMIT_EOF
+          )
+          if [ ${#COMMIT_MSG} -gt 512 ]; then
+            COMMIT_TITLE=$(echo "$COMMIT_MSG" | head -n1)
+            echo "TRUNCATED_COMMIT_MSG<<EOF" >> $GITHUB_ENV
+            echo "$COMMIT_TITLE" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+            echo "USE_FULL_MESSAGE=false" >> $GITHUB_ENV
+          else
+            echo "TRUNCATED_COMMIT_MSG<<EOF" >> $GITHUB_ENV
+            echo "$COMMIT_MSG" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+            echo "USE_FULL_MESSAGE=true" >> $GITHUB_ENV
+          fi
+
       - name: Post to Canary Channel
         env:
           GROUP_ID: ${{ secrets.CHANNEL_ID }}
@@ -116,9 +135,8 @@ jobs:
           CANARY: ${{ env.APK_FILE_CANARY }}
           COMMIT_MESSAGE: |+
             New push to GitHub
-            ```
-            ${{ github.event.head_commit.message }}
-            ```by `${{ github.event.head_commit.author.name }}`
+            Branch: OS3
+            ${{ env.USE_FULL_MESSAGE == 'true' && format('```{0}```', env.TRUNCATED_COMMIT_MSG) || env.TRUNCATED_COMMIT_MSG }}by `${{ github.event.head_commit.author.name }}`
             See commit detail [here](${{ github.event.head_commit.url }})
         run: |
           ESCAPED=$(python3 -c 'import json,os,urllib.parse; print(urllib.parse.quote(json.dumps(os.environ["COMMIT_MESSAGE"])))')
