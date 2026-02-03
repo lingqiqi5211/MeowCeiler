@@ -458,9 +458,6 @@
     <string name="camera_black_leica_desc">Змінити колір водяного знака Leica на чорний. Деякі пристрої ще не підтримують цю функцію.</string>
     <string name="camera_custom_theme_color">Налаштувати колір теми</string>
     <string name="camera_custom_theme_color_picker">Вибрати колір теми</string>
-    <!--Calendar-->
-    <string name="calendar">Календар</string>
-    <string name="calendar_unlock_subscription">Розблокувати підписку</string>
     <!--Community-->
     <string name="community">Спільнота Xiaomi</string>
     <string name="community_device_modify">Підміна моделі</string>
@@ -1277,8 +1274,6 @@
     <string name="security_center_simplify_home_desc">Видалити картку рекомендацій функцій</string>
     <string name="security_center_applock_pin_scramble">Блокування додатків з перемішаним PIN-кодом</string>
     <string name="security_center_privacy_thumbnail_blur">Вимкнути автоматичне розмиття зображень попереднього перегляду</string>
-    <string name="security_center_power_saver">Зняти обмеження при дублюванні екрана</string>
-    <string name="security_center_power_saver_desc">Вимкнути режим економії заряду при дублюванні екрана через Xiaomi Smart Hub</string>
     <string name="security_center_applock_pin_scramble_desc">Випадково змінювати послідовність клавіатури PIN-коду блокування додатків</string>
     <string name="security_center_beauty_light_auto">Розблокувати фронтальне підсвічування</string>
     <string name="security_center_beauty_face">Розблокувати \"Б\'ютифікацію\" для відеодзвінків</string>
@@ -1288,7 +1283,6 @@
     <string name="security_center_install_intercept">Вимкнути перехоплення встановлення через USB</string>
     <string name="security_center_adb_install_verify">Вимкнути мережеву перевірку при відкритті встановлення через USB</string>
     <string name="security_center_remove_macro_black_list">Видалити чорний список автокомбінацій</string>
-    <string name="security_center_disable_send_malicious_app_notification">Вимкнути сповіщення \"Знайдено шкідливий додаток\"</string>
     <string name="security_center_newbox_custom_enable">Увімкнути налаштування</string>
     <string name="security_center_newbox_bg_custom">Розмиття фону</string>
     <string name="security_center_newbox_bg_padding_vertical">Горизонтальний відступ</string>
@@ -1347,8 +1341,6 @@
     <string name="security_center_sidebar_videobox_title">Інструментарій для відео</string>
     <string name="security_center_sidebar_gamebox_title">Gamebox</string>
     <string name="security_center_sidebar_function_title">Функція бічної панелі</string>
-    <string name="security_center_game_speed">Швидко запускати гру</string>
-    <string name="security_center_game_speed_desc">При запуску гри анімація відкриття проходить у 3-кратному прискоренні, що підтримується лише деякими іграми.</string>
     <string name="security_center_bypass_simlock_miaccount_auth">Обійти безпеку SIM-карти облікового запису Xiaomi</string>
     <string name="security_center_bypass_simlock_miaccount_auth_desc">Ви можете використовувати цю функцію навіть без входу в обліковий запис Xiaomi</string>
     <string name="security_center_remove_simlock_success_dialog">Видалити попередження про перевірку безпеки SIM</string>

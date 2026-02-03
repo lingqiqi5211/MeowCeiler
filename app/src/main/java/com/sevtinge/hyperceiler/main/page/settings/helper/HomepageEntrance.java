@@ -123,7 +123,7 @@ public class HomepageEntrance extends DashboardFragment implements Preference.On
                 if (!isAdded()) return;
                 requireActivity().runOnUiThread(() -> {
                     header.setIcon(icon);
-                    if (!"android".equals(packageName)) {
+                    if (!"system".equals(packageName)) {
                         header.setTitle(name);
                     }
                 });

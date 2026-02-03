@@ -480,9 +480,6 @@
     <string name="camera_custom_theme_color_picker">選擇主題顏色</string>
     <string name="camera_cloud_watermark">強制伺服器下發浮水印</string>
     <string name="camera_cloud_watermark_desc">僅支援 6.2 及以上版本，可能會受到 Xiaomi 雲端伺服器影響</string>
-    <!--Calendar-->
-    <string name="calendar">日曆</string>
-    <string name="calendar_unlock_subscription">解鎖訂閱服務</string>
     <!--Community-->
     <string name="community">小米社區</string>
     <string name="community_device_modify">機型偽裝</string>
@@ -1298,8 +1295,6 @@
     <string name="security_center_simplify_home_desc">移除功能推薦卡片</string>
     <string name="security_center_applock_pin_scramble">應用程式鎖亂序 PIN</string>
     <string name="security_center_privacy_thumbnail_blur">停用自啟動最近任務卡片的模糊預覽圖</string>
-    <string name="security_center_power_saver">妙享不省電</string>
-    <string name="security_center_power_saver_desc">透過小米妙享中心投影時停用省電模式</string>
     <string name="security_center_applock_pin_scramble_desc">隨機更改應用程式鎖 PIN 鍵盤順序</string>
     <string name="security_center_beauty_light_auto">解鎖智慧調節補光燈亮度</string>
     <string name="security_center_beauty_face">解鎖視訊通話美肌</string>
@@ -1309,7 +1304,6 @@
     <string name="security_center_install_intercept">停用 USB 安裝攔截</string>
     <string name="security_center_adb_install_verify">開啟 USB 安裝時停用網路驗證</string>
     <string name="security_center_remove_macro_black_list">去除自動連招黑名單</string>
-    <string name="security_center_disable_send_malicious_app_notification">禁止發送「發現惡意應用程式」通知</string>
     <string name="security_center_newbox_custom_enable">啟用自訂</string>
     <string name="security_center_newbox_bg_custom">背景模糊</string>
     <string name="security_center_newbox_bg_padding_vertical">水平邊距</string>
@@ -1369,8 +1363,6 @@
     <string name="security_center_sidebar_videobox_title">影片工具箱</string>
     <string name="security_center_sidebar_gamebox_title">遊戲工具箱</string>
     <string name="security_center_sidebar_function_title">側邊欄功能</string>
-    <string name="security_center_game_speed">快速啟動遊戲</string>
-    <string name="security_center_game_speed_desc">在啟動遊戲時以三倍的速度加快啟動時的動畫，僅部分遊戲支援</string>
     <string name="security_center_bypass_simlock_miaccount_auth">SIM 卡安全保護跳過登入驗證</string>
     <string name="security_center_bypass_simlock_miaccount_auth_desc">開啟 SIM 卡安全保護時無需登入小米帳號</string>
     <string name="security_center_remove_simlock_success_dialog">刪除 SIM 卡安全驗證警告</string>

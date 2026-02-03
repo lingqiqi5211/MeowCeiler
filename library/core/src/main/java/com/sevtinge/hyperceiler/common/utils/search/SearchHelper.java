@@ -31,7 +31,6 @@ import android.graphics.Color;
 import android.text.TextUtils;
 
 import com.sevtinge.hyperceiler.common.model.data.ModData;
-import com.sevtinge.hyperceiler.common.utils.LanguageHelper;
 import com.sevtinge.hyperceiler.core.R;
 import com.sevtinge.hyperceiler.dashboard.DashboardFragment;
 import com.sevtinge.hyperceiler.hooker.AodFragment;
@@ -121,7 +120,7 @@ public class SearchHelper {
         parsePrefXmlForFramework(context, VolumeSettings.class, R.xml.framework_volume);
         parsePrefXmlForFramework(context, MiPadSettings.class, R.xml.various_mipad);
         parsePrefXmlForFramework(context, DisplaySettings.class, R.xml.framework_display);
-        parsePrefXmlForFramework(context, OtherSettings.class, R.xml.framework_other);
+        parsePrefXmlForFramework(context, com.sevtinge.hyperceiler.hooker.framework.OtherSettings.class, R.xml.framework_other);
         parsePrefXmlForFramework(context, CorePatchSettings.class, R.xml.framework_core_patch);
 
         // 系统界面页面相关
@@ -271,7 +270,6 @@ public class SearchHelper {
         parsePrefXmlForDashboardFragment(context, R.xml.huanji);
         parsePrefXmlForDashboardFragment(context, R.xml.misound);
         parsePrefXmlForDashboardFragment(context, R.xml.trustservice);
-        parsePrefXmlForDashboardFragment(context, R.xml.calendar);
         parsePrefXmlForDashboardFragment(context, R.xml.simactivate);
         parsePrefXmlForDashboardFragment(context, R.xml.contacts);
         parsePrefXmlForDashboardFragment(context, R.xml.health);

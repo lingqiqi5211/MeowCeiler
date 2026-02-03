@@ -27,7 +27,7 @@
 
         <SwitchPreference
             android:defaultValue="true"
-            android:icon="@drawable/ic_default"
+            android:icon="@drawable/ic_system"
             android:key="prefs_key_system_framework_state"
             android:layout="@layout/preference_header"
             android:summary="system"
@@ -40,14 +40,6 @@
             android:layout="@layout/preference_header"
             android:summary="com.android.browser"
             android:title="@string/browser" />
-
-        <SwitchPreference
-            android:defaultValue="true"
-            android:icon="@drawable/ic_default"
-            android:key="prefs_key_calendar_state"
-            android:layout="@layout/preference_header"
-            android:summary="com.android.calendar"
-            android:title="@string/calendar" />
 
         <SwitchPreference
             android:defaultValue="true"

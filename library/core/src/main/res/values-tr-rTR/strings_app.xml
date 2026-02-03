@@ -463,9 +463,6 @@
     <string name="camera_black_leica_desc">Kullanırken Leica filigran rengini siyaha değiştirin. Bazı cihazlar henüz bunu desteklemiyor.</string>
     <string name="camera_custom_theme_color">Tema rengini özelleştir</string>
     <string name="camera_custom_theme_color_picker">Tema rengini seçin</string>
-    <!--Calendar-->
-    <string name="calendar">Takvim</string>
-    <string name="calendar_unlock_subscription">Aboneliğin Kilidini Aç</string>
     <!--Community-->
     <string name="community">Xiaomi Topluluğu</string>
     <string name="community_device_modify">Model taklidi</string>
@@ -1145,7 +1142,6 @@
     <string name="security_center_disable_root_check">Kök algılamayı devre dışı bırak</string>
     <string name="security_center_install_intercept">USB kurulum müdahalesini devre dışı bırakma</string>
     <string name="security_center_remove_macro_black_list">Otomatik açılan kara listeyi kaldır</string>
-    <string name="security_center_disable_send_malicious_app_notification">\"Kötü amaçlı uygulama bulundu\" bildirimlerini devre dışı bırakın</string>
     <string name="security_center_newbox_custom_enable">Özel\'i etkinleştir</string>
     <string name="security_center_newbox_bg_custom">Arka plan bulanıklığı</string>
     <string name="security_center_newbox_bg_padding_vertical">Yatay kenar boşluğu</string>

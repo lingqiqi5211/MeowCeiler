@@ -484,9 +484,6 @@
     <string name="camera_custom_theme_color_picker">テーマカラーを選択</string>
     <string name="camera_cloud_watermark">クラウドから透かしを強制</string>
     <string name="camera_cloud_watermark_desc">バージョン 6.2 以降でのみサポートされています。Xiaomi Cloud サーバーの影響を受ける可能性があります。</string>
-    <!--Calendar-->
-    <string name="calendar">カレンダー</string>
-    <string name="calendar_unlock_subscription">サブスクリプションをアンロック</string>
     <!--Community-->
     <string name="community">Xiaomi Community</string>
     <string name="community_device_modify">モデル名を偽装する</string>
@@ -1332,8 +1329,6 @@
     <string name="security_center_applock_pin_scramble">アプリロックの PIN の順序をランダムにする</string>
     <string name="security_center_privacy_thumbnail_blur">プレビュー画像のぼかしを無効化</string>
     <string name="security_center_privacy_thumbnail_blur_desc">この機能を有効にすると、背景をぼかしたプレビュー画像の設定がロックされます。この機能を有効にする前に、プレビューを無効にするアプリを設定することをお勧めします。</string>
-    <string name="security_center_power_saver">ミラーリング時の制限を削除</string>
-    <string name="security_center_power_saver_desc">Xiaomi Smart Hub 経由で画面をミラーリングする際にバッテリーセーバーモードを無効にする</string>
     <string name="security_center_applock_pin_scramble_desc">アプリロックの PIN キーパッドの配列をランダムに変更する</string>
     <string name="security_center_beauty_light_auto">フィルライトの明るさの自動調整をアンロック</string>
     <string name="security_center_beauty_face">ビデオ通話のビューティ機能をアンロック</string>
@@ -1343,7 +1338,6 @@
     <string name="security_center_install_intercept">USB インストールの傍受を無効化</string>
     <string name="security_center_adb_install_verify">USB インストール時のネットワーク検証を無効化</string>
     <string name="security_center_remove_macro_black_list">マクロ機能のブラックリストを削除</string>
-    <string name="security_center_disable_send_malicious_app_notification">「悪意のあるアプリが見つかりました」通知を無効化</string>
     <string name="security_center_newbox_custom_enable">カスタムを有効化</string>
     <string name="security_center_newbox_bg_custom">背景のぼかし</string>
     <string name="security_center_newbox_bg_padding_vertical">水平方向の余白</string>
@@ -1403,8 +1397,6 @@
     <string name="security_center_sidebar_videobox_title">ビデオボックス</string>
     <string name="security_center_sidebar_gamebox_title">ゲームボックス</string>
     <string name="security_center_sidebar_function_title">サイドバー機能</string>
-    <string name="security_center_game_speed">すぐにゲームを起動</string>
-    <string name="security_center_game_speed_desc">ゲーム起動時に開始画面のアニメーションを3倍速で表示します。一部のゲームにのみ対応しています。</string>
     <string name="security_center_bypass_simlock_miaccount_auth">Xiaomi アカウントの SIM セキュリティをバイパスする</string>
     <string name="security_center_bypass_simlock_miaccount_auth_desc">一部の機能での SIM と Xiaomi アカウントの要求を回避します。Xiaomi アカウントにログインしなくても機能を使えるようにできます</string>
     <string name="security_center_remove_simlock_success_dialog">SIM セキュリティ認証の警告を削除する</string>
@@ -1440,7 +1432,6 @@
     <!--Barrage-->
     <string name="barrage">Barrage</string>
     <string name="barrage_any_barrage">すべてのアプリが弾幕通知を使用できるようにする</string>
-    <string name="barrage_global_enable">弾幕通知のグローバル使用を許可</string>
     <string name="barrage_not_touchable">弾幕通知をタッチできないようにする</string>
     <string name="barrage_custom_barrage_length">弾幕通知の長さをカスタマイズ</string>
     <!--Joyose-->

@@ -349,9 +349,6 @@
     <string name="camera_shot_hand_gesture">Sblocca scatto con palmo</string>
     <string name="camera_settings_lab_options">Abilita opzioni sperimentali (Lab)</string>
     <string name="camera_settings_track_eyes">Sblocca tracciamento degli occhi</string>
-    <!--Calendar-->
-    <string name="calendar">Calendario</string>
-    <string name="calendar_unlock_subscription">Sblocca Iscrizione</string>
     <!--Community-->
     <!--File Manager-->
     <string name="fileexplorer">Gestore File</string>
@@ -984,7 +981,6 @@
     <string name="security_center_disable_root_check">Disabilita rilevamento root</string>
     <string name="security_center_install_intercept">Disabilita intercettazione installazione USB</string>
     <string name="security_center_remove_macro_black_list">Rimuovi lista nera combo automatica</string>
-    <string name="security_center_disable_send_malicious_app_notification">Disabilita \" Notifiche app dannose trovate\"</string>
     <string name="security_center_newbox_custom_enable">Abilita personalizzazioni</string>
     <string name="security_center_newbox_bg_custom">Sfocatura sfondo</string>
     <string name="security_center_newbox_bg_padding_vertical">Margine orizzontale</string>
@@ -1041,8 +1037,6 @@
     <string name="security_center_sidebar_videobox_title">Riquadro video</string>
     <string name="security_center_sidebar_gamebox_title">Riquadro giochi</string>
     <string name="security_center_sidebar_function_title">Funzione barra laterale</string>
-    <string name="security_center_game_speed">Avvia il gioco velocemente</string>
-    <string name="security_center_game_speed_desc">All\'avvio il gioco, passa l\'animazione della schermata di apertura a una velocità 3x, supportata solo da alcuni giochi</string>
     <string name="security_center_bypass_simlock_miaccount_auth">Sicurezza SIM: non è necessario alcun account</string>
     <string name="security_center_bypass_simlock_miaccount_auth_desc">È necessario bypassare la sicurezza SIM dell\'account Mi, puoi aprire questa funzione anche senza accedere all\'account XiaoMi</string>
     <string name="security_center_power_consumption_ranking">Mostra classifica del consumo energetico</string>

@@ -484,9 +484,6 @@
     <string name="camera_custom_theme_color_picker">Выбрать цвет темы</string>
     <string name="camera_cloud_watermark">Принудительно использовать водяной знак из облака</string>
     <string name="camera_cloud_watermark_desc">Поддерживается только версия 6.2 и выше. Возможно, связано с облачными серверами Xiaomi.</string>
-    <!--Calendar-->
-    <string name="calendar">Календарь</string>
-    <string name="calendar_unlock_subscription">Разблокировать подписку</string>
     <!--Community-->
     <string name="community">MI Community</string>
     <string name="community_device_modify">Подмена модели устройства</string>
@@ -1332,8 +1329,6 @@
     <string name="security_center_applock_pin_scramble">Хаотичная последовательность PIN-кода для блокировки приложения</string>
     <string name="security_center_privacy_thumbnail_blur">Отключить автоматическое размытие изображений предпросмотра</string>
     <string name="security_center_privacy_thumbnail_blur_desc">Когда включено, настройки размытия миниатюр будут заблокированы. Рекомендуется сначала настроить, в каких приложениях должно быть отключено размытие миниатюр, прежде чем использовать эту функцию.</string>
-    <string name="security_center_power_saver">Убрать ограничения при зеркалировании экрана</string>
-    <string name="security_center_power_saver_desc">Отключить режим энергосбережения при зеркальном отображении экрана через \"Умный хаб\"</string>
     <string name="security_center_applock_pin_scramble_desc">Случайным образом изменить порядок клавиатуры PIN-кода блокировки приложения</string>
     <string name="security_center_beauty_light_auto">Разблокировать переднюю подсветку</string>
     <string name="security_center_beauty_face">Украшение для видеовызовов</string>
@@ -1343,7 +1338,6 @@
     <string name="security_center_install_intercept">Отключить перехват установки USB</string>
     <string name="security_center_adb_install_verify">Отключить проверку сети при открытой установке USB</string>
     <string name="security_center_remove_macro_black_list">Удалить автообъединенный черный список</string>
-    <string name="security_center_disable_send_malicious_app_notification">Отключить уведомления \"Найдено вредоносное приложение\"</string>
     <string name="security_center_newbox_custom_enable">Включить настройку</string>
     <string name="security_center_newbox_bg_custom">Размытие фона</string>
     <string name="security_center_newbox_bg_padding_vertical">Горизонтальный интервал</string>
@@ -1403,8 +1397,6 @@
     <string name="security_center_sidebar_videobox_title">Инструменты для видео</string>
     <string name="security_center_sidebar_gamebox_title">Игровое меню</string>
     <string name="security_center_sidebar_function_title">Функция боковой панели</string>
-    <string name="security_center_game_speed">Быстрый запуск игры</string>
-    <string name="security_center_game_speed_desc">При запуске игры анимация начального экрана передается с трехкратной скоростью, что поддерживается только некоторыми играми.</string>
     <string name="security_center_bypass_simlock_miaccount_auth">Обход проверки SIM-карты учетной записи Xiaomi</string>
     <string name="security_center_bypass_simlock_miaccount_auth_desc">Вы можете использовать эту функцию даже без входа в учетную запись Xiaomi</string>
     <string name="security_center_remove_simlock_success_dialog">Уберите предупреждение о проверке безопасности SIM-карты</string>
@@ -1440,7 +1432,6 @@
     <!--Barrage-->
     <string name="barrage">Защита</string>
     <string name="barrage_any_barrage">Разрешить всем приложениям использовать защиту</string>
-    <string name="barrage_global_enable">Разрешить глобальное использование barrage уведомлений</string>
     <string name="barrage_not_touchable">Не нажимаемые уведомления barrage</string>
     <string name="barrage_custom_barrage_length">Пользовательская длина защиты</string>
     <!--Joyose-->

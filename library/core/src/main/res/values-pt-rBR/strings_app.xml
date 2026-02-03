@@ -481,9 +481,6 @@
     <string name="camera_custom_theme_color_picker">Escolher cor do tema</string>
     <string name="camera_cloud_watermark">Forçar marca d\'água da nuvem</string>
     <string name="camera_cloud_watermark_desc">Compatível apenas com a versão 6.2 ou superior. Pode ser afetado pelos servidores em nuvem da Xiaomi.</string>
-    <!--Calendar-->
-    <string name="calendar">Calendário</string>
-    <string name="calendar_unlock_subscription">Desbloquear Assinatura</string>
     <!--Community-->
     <string name="community">Xiaomi Community</string>
     <string name="community_device_modify">Disfarçar modelo</string>
@@ -1329,8 +1326,6 @@
     <string name="security_center_applock_pin_scramble">Bloqueio de apps com PIN embaralhado</string>
     <string name="security_center_privacy_thumbnail_blur">Desativar prévia em imagens desfocadas</string>
     <string name="security_center_privacy_thumbnail_blur_desc">Uma vez ativado, o blur de fundo da imagem de prévia será bloqueado. Recomenda-se definir primeiro quais apps devem ter suas prévias desativadas antes de ativar este recurso.</string>
-    <string name="security_center_power_saver">Remover restrições ao espelhar tela</string>
-    <string name="security_center_power_saver_desc">Desative a Economia de bateria ao espelhar a tela via Xiaomi Smart Hub</string>
     <string name="security_center_applock_pin_scramble_desc">Altere aleatoriamente a sequência do PIN do Bloqueio de apps</string>
     <string name="security_center_beauty_light_auto">Desbloquear Luz de preenchimento frontal</string>
     <string name="security_center_beauty_face">Desbloquear Embelezador para chamadas de vídeo</string>
@@ -1340,7 +1335,6 @@
     <string name="security_center_install_intercept">Desativar interceptação de instalação USB</string>
     <string name="security_center_adb_install_verify">Desativar verificação de rede ao abrir a instalação USB</string>
     <string name="security_center_remove_macro_black_list">Remover lista negra de combinação automática</string>
-    <string name="security_center_disable_send_malicious_app_notification">Desativar notificações de \"App malicioso encontrado\"</string>
     <string name="security_center_newbox_custom_enable">Ativar personalização</string>
     <string name="security_center_newbox_bg_custom">Blur de fundo</string>
     <string name="security_center_newbox_bg_padding_vertical">Margem horizontal</string>
@@ -1400,8 +1394,6 @@
     <string name="security_center_sidebar_videobox_title">Caixa de ferramentas de vídeo</string>
     <string name="security_center_sidebar_gamebox_title">Caixa de jogos</string>
     <string name="security_center_sidebar_function_title">Função da barra lateral</string>
-    <string name="security_center_game_speed">Iniciar jogo rapidamente</string>
-    <string name="security_center_game_speed_desc">Ao iniciar o jogo, ele passa a animação da tela de abertura em velocidade 3x, o que só é suportado por alguns jogos.</string>
     <string name="security_center_bypass_simlock_miaccount_auth">Ignorar segurança do SIM da Conta Xiaomi</string>
     <string name="security_center_bypass_simlock_miaccount_auth_desc">Você pode usar este recurso mesmo sem fazer login em sua Conta Xiaomi</string>
     <string name="security_center_remove_simlock_success_dialog">Remover aviso de verificação de segurança do SIM</string>
@@ -1436,7 +1428,6 @@
     <!--Barrage-->
     <string name="barrage">Barragem</string>
     <string name="barrage_any_barrage">Permitir que todos os apps usem notificações de barragem</string>
-    <string name="barrage_global_enable">Permitir uso global de notificações de barragem</string>
     <string name="barrage_not_touchable">Notificação de barragem não tocável</string>
     <string name="barrage_custom_barrage_length">Duração da notificação de barragem personalizada</string>
     <!--Joyose-->

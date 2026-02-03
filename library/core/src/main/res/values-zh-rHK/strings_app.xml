@@ -479,9 +479,6 @@
     <string name="camera_custom_theme_color_picker">選擇主題色</string>
     <string name="camera_cloud_watermark">強制伺服器下發浮水印</string>
     <string name="camera_cloud_watermark_desc">僅支援 6.2 及以上版本，可能會受到 Xiaomi 雲端伺服器影響</string>
-    <!--Calendar-->
-    <string name="calendar">日曆</string>
-    <string name="calendar_unlock_subscription">解鎖訂閱服務</string>
     <!--Community-->
     <string name="community">小米社區</string>
     <string name="community_device_modify">機型偽裝</string>
@@ -1321,8 +1318,6 @@
     <string name="security_center_applock_pin_scramble">應用鎖亂序 PIN</string>
     <string name="security_center_privacy_thumbnail_blur">禁止自啟模糊預覽圖</string>
     <string name="security_center_privacy_thumbnail_blur_desc">開啟後將鎖定後台模糊預覽圖相關設定，建議先設定需要關閉預覽圖的應用程式再開啟此功能</string>
-    <string name="security_center_power_saver">禁止妙享省電</string>
-    <string name="security_center_power_saver_desc">禁止在通過小米妙享镜像流轉熒幕時開啟省電模式</string>
     <string name="security_center_applock_pin_scramble_desc">随機更改應用鎖 PIN 鍵盤順序</string>
     <string name="security_center_beauty_light_auto">解鎖智能調节補光燈亮度</string>
     <string name="security_center_beauty_face">解鎖視頻通話美顏</string>
@@ -1332,7 +1327,6 @@
     <string name="security_center_install_intercept">禁用 USB 安裝拦截</string>
     <string name="security_center_adb_install_verify">繞過開啟 USB 安裝時的網絡校驗</string>
     <string name="security_center_remove_macro_black_list">移除自動連招黑名單</string>
-    <string name="security_center_disable_send_malicious_app_notification">禁止發送 “發现恶意應用程式” 通知</string>
     <string name="security_center_newbox_custom_enable">啟用自定義</string>
     <string name="security_center_newbox_bg_custom">背景模糊</string>
     <string name="security_center_newbox_bg_padding_vertical">水平邊距</string>
@@ -1392,8 +1386,6 @@
     <string name="security_center_sidebar_videobox_title">視頻工具箱</string>
     <string name="security_center_sidebar_gamebox_title">遊戲工具箱</string>
     <string name="security_center_sidebar_function_title">全局側邊欄功能</string>
-    <string name="security_center_game_speed">快速啟動遊戲</string>
-    <string name="security_center_game_speed_desc">在啟動遊戲時倍速通過開屏動畫，僅部分遊戲支持</string>
     <string name="security_center_bypass_simlock_miaccount_auth">SIM 卡安全保護跳過登錄驗證</string>
     <string name="security_center_bypass_simlock_miaccount_auth_desc">開啟 SIM 卡安全保護功能時無需登錄小米賬號</string>
     <string name="security_center_remove_simlock_success_dialog">移除 SIM 卡安全保護驗證成功的彈窗</string>
@@ -1426,7 +1418,6 @@
     <!--Barrage-->
     <string name="barrage">彈幕通知</string>
     <string name="barrage_any_barrage">允許所有應用程式使用彈幕通知</string>
-    <string name="barrage_global_enable">允許全局使用彈幕通知</string>
     <string name="barrage_not_touchable">彈幕通知不可點擊</string>
     <string name="barrage_custom_barrage_length">自定義彈幕長度</string>
     <!--Joyose-->
