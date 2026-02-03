@@ -477,9 +477,6 @@
     <string name="camera_black_leica_desc">تغيير لون علامة Leica المائية إلى الأسود عند استخدامها. بعض الأجهزة لا تدعمها بعد.</string>
     <string name="camera_custom_theme_color">تخصيص لون الثيم</string>
     <string name="camera_custom_theme_color_picker">اختيار لون الثيم</string>
-    <!--Calendar-->
-    <string name="calendar">تقويم</string>
-    <string name="calendar_unlock_subscription">فتح الاشتراك</string>
     <!--Community-->
     <string name="community">مجتمع Xiaomi</string>
     <string name="community_device_modify">نموذج الزائف</string>
@@ -1321,8 +1318,6 @@
     <string name="security_center_applock_pin_scramble">قفل التطبيقات مع تشويش الرقم السري</string>
     <string name="security_center_privacy_thumbnail_blur">تعطيل عرض الصور الضبابية عند التشغيل الذاتي</string>
     <string name="security_center_privacy_thumbnail_blur_desc">بمجرد التفعيل، سيتم قفل عرض صورة الخلفية للصور. من المستحسن أولاً تحديد التطبيقات التي يجب أن تكون معايناتها معطلة قبل تشغيل هذه الميزة.</string>
-    <string name="security_center_power_saver">إزالة القيود عند عرض الشاشة</string>
-    <string name="security_center_power_saver_desc">تعطيل وضع توفير البطارية عند عرض الشاشة عبر Xiaomi Smart Hub</string>
     <string name="security_center_applock_pin_scramble_desc">تغيير عشوائي لترتيب لوحة مفاتيح PIN لقفل التطبيق</string>
     <string name="security_center_beauty_light_auto">فتح إضاءة أمامية</string>
     <string name="security_center_beauty_face">فتح وظيفة التجميل لمكالمات الفيديو</string>
@@ -1332,7 +1327,6 @@
     <string name="security_center_install_intercept">تعطيل اعتراض تثبيت USB</string>
     <string name="security_center_adb_install_verify">تعطيل التحقق الشبكي عند فتح تثبيت USB</string>
     <string name="security_center_remove_macro_black_list">إزالة القائمة السوداء للتركيبات التلقائية</string>
-    <string name="security_center_disable_send_malicious_app_notification">تعطيل إشعارات \"تم العثور على تطبيق خبيث\"</string>
     <string name="security_center_newbox_custom_enable">تمكين التخصيص</string>
     <string name="security_center_newbox_bg_custom">تشويش الخلفية</string>
     <string name="security_center_newbox_bg_padding_vertical">الهامش الأفقي</string>
@@ -1392,8 +1386,6 @@
     <string name="security_center_sidebar_videobox_title">صندوق أدوات الفيديو</string>
     <string name="security_center_sidebar_gamebox_title">صندوق الألعاب</string>
     <string name="security_center_sidebar_function_title">وظائف الشريط الجانبي</string>
-    <string name="security_center_game_speed">إطلاق اللعبة بسرعة</string>
-    <string name="security_center_game_speed_desc">عند إطلاق اللعبة، يتم تجاوز شاشة البداية بسرعة 3x، وهذه الميزة مدعومة فقط من بعض الألعاب.</string>
     <string name="security_center_bypass_simlock_miaccount_auth">تجاوز أمان حساب Xiaomi لبطاقة SIM</string>
     <string name="security_center_bypass_simlock_miaccount_auth_desc">يمكنك استخدام هذه الميزة حتى دون تسجيل الدخول إلى حساب Xiaomi الخاص بك</string>
     <string name="security_center_remove_simlock_success_dialog">إزالة تحذير التحقق من أمان SIM</string>
@@ -1428,7 +1420,6 @@
     <!--Barrage-->
     <string name="barrage">المقذوفات</string>
     <string name="barrage_any_barrage">السماح لجميع التطبيقات باستخدام المقذوفات</string>
-    <string name="barrage_global_enable">السماح بالاستخدام الشامل للإشعارات العائمة</string>
     <string name="barrage_not_touchable">الإشعارات العائمة غير قابلة لللمس</string>
     <string name="barrage_custom_barrage_length">طول المقذوفات المخصص</string>
     <!--Joyose-->

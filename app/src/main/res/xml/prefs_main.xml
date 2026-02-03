@@ -29,7 +29,7 @@
 
         <com.sevtinge.hyperceiler.common.prefs.PreferenceHeader
             android:fragment="com.sevtinge.hyperceiler.hooker.SystemFrameworkFragment"
-            android:icon="@drawable/ic_default"
+            android:icon="@drawable/ic_system"
             android:key="prefs_key_system_framework"
             android:summary="system"
             android:title="@string/system_framework" />
@@ -40,13 +40,6 @@
             android:summary="com.android.browser"
             android:title="@string/browser"
             app:inflatedXml="@xml/browser"/>
-
-        <com.sevtinge.hyperceiler.common.prefs.PreferenceHeader
-            android:icon="@drawable/ic_default"
-            android:key="prefs_key_calendar"
-            android:summary="com.android.calendar"
-            android:title="@string/calendar"
-            app:inflatedXml="@xml/calendar"/>
 
         <com.sevtinge.hyperceiler.common.prefs.PreferenceHeader
             android:fragment="com.sevtinge.hyperceiler.hooker.CameraNewFragment"

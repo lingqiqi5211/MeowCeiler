@@ -450,9 +450,6 @@
     <string name="camera_black_leica_desc">Zmienia kolor znaku wodnego Leica na czarny. Niektóre urządzenia jeszcze tego nie obsługują.</string>
     <string name="camera_custom_theme_color">Dostosuj kolor motywu</string>
     <string name="camera_custom_theme_color_picker">Wybierz kolor motywu</string>
-    <!--Calendar-->
-    <string name="calendar">Kalendarz</string>
-    <string name="calendar_unlock_subscription">Odblokuj subskrypcję</string>
     <!--Community-->
     <string name="community">Społeczność Xiaomi</string>
     <string name="community_device_modify">Kamuflaż modelu</string>
@@ -1231,8 +1228,6 @@
     <string name="security_center_simplify_home_desc">Usuń kartę rekomendacji funkcji</string>
     <string name="security_center_applock_pin_scramble">Blokada aplikacji z zatartym PIN-em</string>
     <string name="security_center_privacy_thumbnail_blur">Wyłącz zamglone obrazy podglądu przy automatycznym uruchamianiu</string>
-    <string name="security_center_power_saver">Usuń ograniczenia podczas duplikowania ekranu</string>
-    <string name="security_center_power_saver_desc">Wyłącza tryb oszczędzania energii podczas duplikowania ekranu za pomocą Xiaomi Smart Hub</string>
     <string name="security_center_applock_pin_scramble_desc">Losowo zmienia sekwencję klawiatury PIN blokady aplikacji</string>
     <string name="security_center_beauty_light_auto">Odblokuj przednie światło wypełniające</string>
     <string name="security_center_beauty_face">Odblokuj funkcję Upiększania w połączeniach wideo</string>
@@ -1242,7 +1237,6 @@
     <string name="security_center_install_intercept">Wyłącz przechwytywanie instalacji USB</string>
     <string name="security_center_adb_install_verify">Wyłącz weryfikację sieci przy otwieraniu instalacji USB</string>
     <string name="security_center_remove_macro_black_list">Usuń automatyczną czarną listę kombinacji</string>
-    <string name="security_center_disable_send_malicious_app_notification">Wyłącz powiadomienia \"Wykryto złośliwą aplikację\"</string>
     <string name="security_center_newbox_custom_enable">Włącz niestandardowe</string>
     <string name="security_center_newbox_bg_custom">Rozmycie tła</string>
     <string name="security_center_newbox_bg_padding_vertical">Poziomy margines</string>
@@ -1300,8 +1294,6 @@
     <string name="security_center_game_performance_wild_mode">Odblokuj Wild Boost</string>
     <string name="security_center_sidebar_videobox_title">Pasek z narzędziami wideo</string>
     <string name="security_center_sidebar_function_title">Funkcja paska bocznego</string>
-    <string name="security_center_game_speed">Szybkie uruchomienie gry</string>
-    <string name="security_center_game_speed_desc">Po uruchomieniu gry animacja ekranu początkowego jest odtwarzana z szybkością 3x większą niż w przypadku innych gier. Taka prędkość jest obsługiwana tylko przez niektóre gry.</string>
     <string name="security_center_bypass_simlock_miaccount_auth">Omiń zabezpieczenia karty SIM konta Xiaomi</string>
     <string name="security_center_bypass_simlock_miaccount_auth_desc">Możesz korzystać z tej funkcji nawet bez logowania się na swoje konto Xiaomi</string>
     <string name="security_center_remove_simlock_success_dialog">Usuń ostrzeżenie o weryfikacji bezpieczeństwa karty SIM</string>

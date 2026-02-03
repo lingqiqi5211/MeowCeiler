@@ -484,9 +484,6 @@
     <string name="camera_custom_theme_color_picker">Chọn màu chủ đề</string>
     <string name="camera_cloud_watermark">Ép hình mờ từ cloud</string>
     <string name="camera_cloud_watermark_desc">Chỉ hỗ trợ trên phiên bản 6.2 trở lên. Có thể bị ảnh hưởng bởi máy chủ Xiaomi cloud.</string>
-    <!--Calendar-->
-    <string name="calendar">Lịch</string>
-    <string name="calendar_unlock_subscription">Mở khóa đăng ký</string>
     <!--Community-->
     <string name="community">Cộng đồng Xiaomi</string>
     <string name="community_device_modify">Giả mạo dòng máy</string>
@@ -1333,8 +1330,6 @@
     <string name="security_center_applock_pin_scramble">Mã PIN khoá ứng dụng ngẫu nhiên</string>
     <string name="security_center_privacy_thumbnail_blur">Tắt hình ảnh xem trước bị mờ</string>
     <string name="security_center_privacy_thumbnail_blur_desc">Sau khi bật, cài đặt hình ảnh xem trước làm mờ nền sẽ bị khóa. Bạn nên cấu hình ứng dụng nào sẽ bị tắt tính năng xem trước trước khi bật tính năng này.</string>
-    <string name="security_center_power_saver">Dịch vụ bảo mật không tiết kiệm pin</string>
-    <string name="security_center_power_saver_desc">Tắt chế độ tiết kiệm pin khi phản chiếu màn hình qua Mi Smart Hub</string>
     <string name="security_center_applock_pin_scramble_desc">Thay đổi ngẫu nhiên thứ tự bàn phím mã PIN khóa ứng dụng</string>
     <string name="security_center_beauty_light_auto">Mở khóa Độ sáng Flash tự động</string>
     <string name="security_center_beauty_face">Làm đẹp cho cuộc gọi video</string>
@@ -1344,7 +1339,6 @@
     <string name="security_center_install_intercept">Tắt chặn cài đặt USB</string>
     <string name="security_center_adb_install_verify">Tắt xác minh mạng khi mở cài đặt USB</string>
     <string name="security_center_remove_macro_black_list">Xóa danh sách đen combo tự động</string>
-    <string name="security_center_disable_send_malicious_app_notification">Tắt thông báo \"Tìm thấy ứng dụng độc hại\"</string>
     <string name="security_center_newbox_custom_enable">Mở tùy chỉnh</string>
     <string name="security_center_newbox_bg_custom">Làm mờ nền</string>
     <string name="security_center_newbox_bg_padding_vertical">Lề ngang</string>
@@ -1404,8 +1398,6 @@
     <string name="security_center_sidebar_videobox_title">Hộp công cụ video</string>
     <string name="security_center_sidebar_gamebox_title">Phím tắt trong trò chơi</string>
     <string name="security_center_sidebar_function_title">Chức năng thanh bên</string>
-    <string name="security_center_game_speed">Mở trò chơi nhanh chóng</string>
-    <string name="security_center_game_speed_desc">Khi khởi chạy trò chơi, nó chuyển hoạt ảnh màn hình mở đầu với tốc độ gấp 3 lần, tốc độ này chỉ được hỗ trợ bởi một số trò chơi</string>
     <string name="security_center_bypass_simlock_miaccount_auth">Bảo mật thẻ SIM bỏ qua xác minh đăng nhập</string>
     <string name="security_center_bypass_simlock_miaccount_auth_desc">Không cần đăng nhập tài khoản Xiaomi khi bật bảo mật thẻ SIM</string>
     <string name="security_center_remove_simlock_success_dialog">Xóa hộp thoại xác minh bảo mật thẻ SIM thành công</string>
@@ -1442,7 +1434,6 @@
     <!--Barrage-->
     <string name="barrage">Rào cản</string>
     <string name="barrage_any_barrage">Cho phép tất cả ứng dụng sử dụng barrage</string>
-    <string name="barrage_global_enable">Cho phép sử dụng thông báo global</string>
     <string name="barrage_not_touchable">Thông báo hiệu ứng không thể chạm vào</string>
     <string name="barrage_custom_barrage_length">Tùy chỉnh độ dài barrage</string>
     <!--Joyose-->

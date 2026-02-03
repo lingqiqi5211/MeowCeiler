@@ -351,9 +351,6 @@
     <string name="camera_shot_hand_gesture">Buka kunci rana Palm</string>
     <string name="camera_settings_lab_options">Aktifkan opsi Lab</string>
     <string name="camera_settings_track_eyes">Buka kunci Lacak mata</string>
-    <!--Calendar-->
-    <string name="calendar">Kalender</string>
-    <string name="calendar_unlock_subscription">Buka Kunci Langganan</string>
     <!--Community-->
     <!--File Manager-->
     <string name="fileexplorer">Manajer File</string>
@@ -1019,7 +1016,6 @@
     <string name="security_center_disable_root_check">Nonaktifkan deteksi root</string>
     <string name="security_center_install_intercept">Nonaktifkan intersepsi instalasi USB</string>
     <string name="security_center_remove_macro_black_list">Hapus daftar hitam kombo otomatis</string>
-    <string name="security_center_disable_send_malicious_app_notification">Nonaktifkan notifikasi \"Aplikasi berbahaya ditemukan\".</string>
     <string name="security_center_newbox_custom_enable">Aktifkan kustom</string>
     <string name="security_center_newbox_bg_custom">Latar belakang kabur</string>
     <string name="security_center_newbox_bg_padding_vertical">Margin horisontal</string>
@@ -1076,8 +1072,6 @@
     <string name="security_center_sidebar_videobox_title">Kotak Video</string>
     <string name="security_center_sidebar_gamebox_title">Kotak Permainan</string>
     <string name="security_center_sidebar_function_title">Fungsi Bilah Sisi</string>
-    <string name="security_center_game_speed">Luncurkan game dengan cepat</string>
-    <string name="security_center_game_speed_desc">Saat meluncurkan game, animasi layar pembuka diputar dengan kecepatan 3x, yang hanya didukung oleh beberapa game</string>
     <string name="security_center_bypass_simlock_miaccount_auth">Keamanan SIM tidak memerlukan Akun</string>
     <string name="security_center_bypass_simlock_miaccount_auth_desc">Lewati keamanan SIM Mi Account yang diperlukan, Anda dapat membuka fungsi ini bahkan tanpa masuk ke Akun XiaoMi</string>
     <string name="security_center_power_consumption_ranking">Tampilkan Peringkat Konsumsi Daya</string>

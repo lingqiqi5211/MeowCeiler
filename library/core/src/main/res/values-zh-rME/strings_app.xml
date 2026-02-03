@@ -424,9 +424,6 @@
     <string name="camera_black_leica_desc">徕卡水印の黑化。有些机子的徕卡水印无法黑化。</string>
     <string name="camera_custom_theme_color">自定义主题色</string>
     <string name="camera_custom_theme_color_picker">选择主题色</string>
-    <!--Calendar-->
-    <string name="calendar">调休表</string>
-    <string name="calendar_unlock_subscription">解锁字幕</string>
     <!--Community-->
     <string name="community">啸米社蛆</string>
     <string name="community_device_modify">机型伪装</string>

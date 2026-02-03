@@ -32,7 +32,6 @@ import com.sevtinge.hyperceiler.libhook.rules.securitycenter.InstallIntercept;
 import com.sevtinge.hyperceiler.libhook.rules.securitycenter.IsSbnBelongToActiveBubbleApp;
 import com.sevtinge.hyperceiler.libhook.rules.securitycenter.NewBoxBlur;
 import com.sevtinge.hyperceiler.libhook.rules.securitycenter.NewPrivacyThumbnailBlur;
-import com.sevtinge.hyperceiler.libhook.rules.securitycenter.PowerSaver;
 import com.sevtinge.hyperceiler.libhook.rules.securitycenter.RemoveConversationBubbleSettingsRestriction;
 import com.sevtinge.hyperceiler.libhook.rules.securitycenter.RemoveOpenAppConfirmationPopup;
 import com.sevtinge.hyperceiler.libhook.rules.securitycenter.ScLockApp;
@@ -58,7 +57,6 @@ import com.sevtinge.hyperceiler.libhook.rules.securitycenter.beauty.BeautyPc;
 import com.sevtinge.hyperceiler.libhook.rules.securitycenter.beauty.BeautyPrivacy;
 import com.sevtinge.hyperceiler.libhook.rules.securitycenter.other.BypassSimLockMiAccountAuth;
 import com.sevtinge.hyperceiler.libhook.rules.securitycenter.other.DisableRootCheck;
-import com.sevtinge.hyperceiler.libhook.rules.securitycenter.other.FuckRiskPkg;
 import com.sevtinge.hyperceiler.libhook.rules.securitycenter.other.LockOneHundredPoints;
 import com.sevtinge.hyperceiler.libhook.rules.securitycenter.other.NoLowBatteryWarning;
 import com.sevtinge.hyperceiler.libhook.rules.securitycenter.other.RemoveSIMLockSuccessDialog;
@@ -121,7 +119,6 @@ public class SecurityCenter extends BaseLoad {
         initHook(LockOneHundredPoints.INSTANCE, mPrefsMap.getBoolean("security_center_score"));
         initHook(new SkipCountDownLimit(), mPrefsMap.getBoolean("security_center_skip_count_down_limit"));
         initHook(DisableRootCheck.INSTANCE, mPrefsMap.getBoolean("security_center_disable_root_check"));
-        initHook(FuckRiskPkg.INSTANCE, mPrefsMap.getBoolean("security_center_disable_send_malicious_app_notification"));
         initHook(NoLowBatteryWarning.INSTANCE, mPrefsMap.getBoolean("security_center_remove_low_battery_reminder"));
         initHook(RemoveSIMLockSuccessDialog.INSTANCE, mPrefsMap.getBoolean("security_center_remove_simlock_success_dialog"));
         initHook(BypassSimLockMiAccountAuth.INSTANCE, mPrefsMap.getBoolean("security_center_bypass_simlock_miaccount_auth"));
@@ -143,7 +140,6 @@ public class SecurityCenter extends BaseLoad {
                 mPrefsMap.getBoolean("security_center_unlock_enhance_contours");
 
         initHook(NewPrivacyThumbnailBlur.INSTANCE, mPrefsMap.getBoolean("security_center_privacy_thumbnail_blur"));
-        initHook(new PowerSaver(), mPrefsMap.getBoolean("security_center_power_saver"));
         initHook(new NewBoxBlur(), mPrefsMap.getBoolean("security_center_newbox_custom_enable"));
         initHook(BlurSecurity.INSTANCE, mPrefsMap.getBoolean("se_enable"));
         initHook(SidebarLineCustom.INSTANCE, mPrefsMap.getBoolean("security_center_sidebar_line_color"));

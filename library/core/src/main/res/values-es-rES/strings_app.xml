@@ -415,9 +415,6 @@
     <string name="camera_settings_lab_options">Activar opciones de laboratorio</string>
     <string name="camera_settings_track_eyes">Desbloquear enfoque ocular</string>
     <string name="camera_custom_theme_color">Personalizar el color de tema</string>
-    <!--Calendar-->
-    <string name="calendar">Calendario</string>
-    <string name="calendar_unlock_subscription">Desbloquear suscripción</string>
     <!--Community-->
     <string name="community">Comunidad de Xiaomi</string>
     <!--File Manager-->
@@ -1087,7 +1084,6 @@
     <string name="security_center_disable_root_check">No detecta Root</string>
     <string name="security_center_install_intercept">Se permite la instalación vía USB</string>
     <string name="security_center_remove_macro_black_list">Quitar lista negra de autocombo</string>
-    <string name="security_center_disable_send_malicious_app_notification">Desactivar notificaciones de \"Aplicación maliciosa encontrada\"</string>
     <string name="security_center_newbox_custom_enable">Activar personalización</string>
     <string name="security_center_newbox_bg_custom">Desenfoque del fondo</string>
     <string name="security_center_newbox_bg_padding_vertical">Margen horizontal</string>
@@ -1145,8 +1141,6 @@
     <string name="security_center_sidebar_videobox_title">Caja de vídeo</string>
     <string name="security_center_sidebar_gamebox_title">Caja de juegos</string>
     <string name="security_center_sidebar_function_title">Función de barra lateral</string>
-    <string name="security_center_game_speed">Se inician juegos rápidamente</string>
-    <string name="security_center_game_speed_desc">Al iniciarse el juego, cuya animación de pantalla de apertura pasa a una velocidad de 3 veces, que solo funciona con algunos juegos</string>
     <string name="security_center_bypass_simlock_miaccount_auth">Saltar seguridad SIM de la cuenta Xiaomi</string>
     <string name="security_center_bypass_simlock_miaccount_auth_desc">Puede utilizar esta función incluso sin iniciar sesión en su cuenta de Xiaomi</string>
     <string name="security_center_power_consumption_ranking">Se muestra la clasificación de consumo de energía</string>
