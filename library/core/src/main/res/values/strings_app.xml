@@ -144,7 +144,7 @@
     <string name="development">Developer options</string>
     <string name="development_tools">Debug</string>
     <string name="development_system">Manager</string>
-    <string name="development_cache">Cache Cleanup</string>
+    <string name="development_cache">Cache &amp; Log</string>
     <string name="development_ui">UI</string>
     <string name="development_debug_info">Debug info</string>
     <string name="development_prefs">Share preference</string>
