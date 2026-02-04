@@ -27,7 +27,6 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getAdditionalInstance
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.setAdditionalInstanceField
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.setStaticObject
-import io.github.kyuubiran.ezxhelper.core.util.ObjectUtil.invokeMethodBestMatch
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHooks
 
 // from SetoHook by SetoSkins
@@ -60,8 +59,7 @@ class AllDarkMode : BaseHook() {
                         val info = param.args[0] as ApplicationInfo?
                         param.result =
                             !(info == null || (
-                                invokeMethodBestMatch(info, "isSystemApp") as Boolean
-                                ) || info.uid < 10000)
+                                callMethod(info, "isSystemApp") as Boolean) || info.uid < 10000)
                     }
                 }
         }
