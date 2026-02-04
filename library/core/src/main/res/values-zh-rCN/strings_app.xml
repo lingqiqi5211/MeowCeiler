@@ -90,7 +90,7 @@
     <string name="development">开发者选项</string>
     <string name="development_tools">调试</string>
     <string name="development_system">管理</string>
-    <string name="development_cache">缓存清理</string>
+    <string name="development_cache">缓存与日志</string>
     <string name="development_ui">界面元素测试</string>
     <string name="development_debug_info">调试信息</string>
     <string name="development_prefs">共享首选项</string>

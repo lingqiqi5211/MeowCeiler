@@ -85,7 +85,7 @@ public class HomepageEntrance extends DashboardFragment implements Preference.On
         SwitchPreference switchPreference = findPreference(key);
         if (switchPreference != null) {
             String summary = String.valueOf(switchPreference.getSummary());
-            if (!"android".equals(summary) && PackagesUtils.checkAppStatus(getContext(), summary)) {
+            if (!"system".equals(summary) && PackagesUtils.checkAppStatus(getContext(), summary)) {
                 switchPreference.setVisible(false);
             }
             switchPreference.setOnPreferenceChangeListener(this);
@@ -134,7 +134,7 @@ public class HomepageEntrance extends DashboardFragment implements Preference.On
             if (!isAdded()) return;
             requireActivity().runOnUiThread(() -> {
                 header.setIcon(icon);
-                if (!"android".equals(packageName)) {
+                if (!"system".equals(packageName)) {
                     header.setTitle(name);
                 }
             });
