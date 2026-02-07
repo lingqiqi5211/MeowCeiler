@@ -558,9 +558,6 @@
     <string name="system_ui_statusbar_music_title">Fokus-Liedtexte</string>
     <string name="system_ui_status_bar_double_tap_to_sleep">Doppeltippen auf Statusleiste zum Schlafen</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_title">Doppelreihige Signalleiste</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme">Symbol-Themes</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_classic">Klassisch</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_oa">Abgerundet</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_style">Symbol-Stil</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_size">Symbol-Skalierung</string>
     <string name="system_ui_status_bar_mobile_type_single">Mobilnetzwerk-Typ-Symbol separat anzeigen</string>

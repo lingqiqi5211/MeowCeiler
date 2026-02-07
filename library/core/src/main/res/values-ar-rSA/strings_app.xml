@@ -570,9 +570,6 @@
     <string name="system_ui_statusbar_music_title">تركيز الكلمات</string>
     <string name="system_ui_status_bar_double_tap_to_sleep">نقر مزدوج للنوم</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_title">شريط مزدوج لشريط الإشارة</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme">ثيمات الأيقونات</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_classic">كلاسيكي</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_oa">المنشأ الأصل</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_style">أنماط الأيقونات</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_size">حجم الأيقونات</string>
     <string name="system_ui_status_bar_mobile_type_single">يتم عرض أيقونة نوع شبكة الهاتف المحمول بشكل منفصل</string>

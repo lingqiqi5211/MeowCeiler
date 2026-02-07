@@ -767,16 +767,6 @@
         <item>4</item>
     </string-array>
 
-    <string-array name="system_ui_status_bar_network_icon_theme">
-        <item>@string/system_ui_statusbar_iconmanage_mobile_network_icon_theme_classic</item>
-        <item>@string/system_ui_statusbar_iconmanage_mobile_network_icon_theme_oa</item>
-    </string-array>
-
-    <string-array name="system_ui_status_bar_network_icon_theme_value">
-        <item>1</item>
-        <item>2</item>
-    </string-array>
-
     <string-array name="security_center_suggest">
         <item>@string/array_default</item>
         <item>@string/disable_suggest</item>

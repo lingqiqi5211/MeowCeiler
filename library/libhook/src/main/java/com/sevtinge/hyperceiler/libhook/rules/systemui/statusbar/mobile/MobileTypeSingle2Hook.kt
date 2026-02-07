@@ -20,6 +20,10 @@
 package com.sevtinge.hyperceiler.libhook.rules.systemui.statusbar.mobile
 
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Typeface
 import android.telephony.SubscriptionManager
 import android.view.View
@@ -37,6 +41,7 @@ import com.sevtinge.hyperceiler.libhook.utils.api.SubscriptionManagerProvider
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.StateFlowHelper.getStateFlowValue
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.StateFlowHelper.newReadonlyStateFlow
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.StateFlowHelper.setStateFlowValue
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.DataSimFlowProxy
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.Dependency
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MiuiStub
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobileClass.mOperatorConfig
@@ -54,6 +59,7 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobilePrefs.mobil
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobilePrefs.rightMargin
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobilePrefs.showMobileType
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobilePrefs.verticalOffset
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobileViewHelper
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.afterHookMethod
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callMethod
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callMethodAs
@@ -92,6 +98,15 @@ object MobileTypeSingle2Hook : BaseHook() {
     private var get0: Float = 0.0f
     private var get1: Int = 0
     private var get2: Int = 0
+
+    /** showName 代理：始终反映当前上网卡的网络类型 */
+    private val showNameFlowProxy = DataSimFlowProxy("")
+
+    @Volatile
+    private var slot0SubId: Int = -1
+
+    @Volatile
+    private var broadcastRegistered = false
 
     override fun init() {
         hookMobileViewAndVM()
@@ -160,8 +175,8 @@ object MobileTypeSingle2Hook : BaseHook() {
     }
 
     private fun hookMobileViewAndVM() {
-        if (showMobileType || mobileNetworkType == 3) {
-            if (isMoreAndroidVersion(36) || isMoreHyperOSVersion(3f)) {
+        if ((showMobileType && !isEnableDouble) || mobileNetworkType == 3) {
+            if (isMoreAndroidVersion(36)) {
                 loadClass("com.miui.systemui.statusbar.views.MobileTypeDrawable")
             } else {
                 loadClass("com.android.systemui.statusbar.views.MobileTypeDrawable")
@@ -174,6 +189,23 @@ object MobileTypeSingle2Hook : BaseHook() {
             val viewModel = param.thisObject
             viewModel.setAdditionalInstanceField("interactor", param.args[1])
             viewModel.setObjectField("wifiAvailable", param.args[2]?.getObjectField("wifiAvailable"))
+
+            // 双排信号：在 VM 构造时替换 showName，确保 binder 订阅的是代理 Flow
+            if (isEnableDouble) {
+                val miuiInteractor = param.args[2] ?: return@createAfterHook
+                val subId = runCatching { miuiInteractor.getObjectFieldAs<Int>("subId") }.getOrNull() ?: return@createAfterHook
+                val slotIndex = SubscriptionManager.getSlotIndex(subId)
+                if (slotIndex == 0) slot0SubId = subId
+
+                // showName 代理
+                val originalShowName = viewModel.getObjectField("showName") ?: return@createAfterHook
+                showNameFlowProxy.setupForSlot(slotIndex, subId, originalShowName, MobileViewHelper::isSingleSimMode)
+                if (slotIndex == 0) {
+                    viewModel.setObjectField("showName", showNameFlowProxy.proxy!!)
+                }
+
+                registerDataSimBroadcast()
+            }
         }
 
         modernStatusBarMobileView.methodFinder()
@@ -208,8 +240,8 @@ object MobileTypeSingle2Hook : BaseHook() {
                         mobileGroup.findViewByIdName("mobile_container_right") as ViewGroup
                 }
 
-                // 添加大 5G 并设置样式
-                if (showMobileType) {
+                // 大 5G 样式（仅非双排模式）
+                if (showMobileType && !isEnableDouble) {
                     val mobileType = containerLeft.findViewByIdName("mobile_type") as? ImageView
                     val textView = mobileGroup.findViewByIdName("mobile_type_single") as TextView
                     if (!getLocation) {
@@ -230,24 +262,19 @@ object MobileTypeSingle2Hook : BaseHook() {
                         topMargin = marginTop
                     }
                     textView.setPadding(marginLeft, topMargin, marginRight, 0)
-
-                    // 大 5G 始终删除小 5G
                     containerLeft.removeView(mobileType)
                 }
 
-                // 调整初始样式
                 val isDataConnectedFlow = interactor.getObjectFieldAs<Any>("isDataConnected")
-                // 在 200 版本 isDataConnected 初始总为 false
                 val isDataConnected = getStateFlowValue(isDataConnectedFlow) as Boolean
 
-                if (showMobileType) {
-                    // 大 5G 显示逻辑
+                if (showMobileType && !isEnableDouble) {
+                    // 大 5G 可见性
                     if (mobileNetworkType == 0 || mobileNetworkType == 2) {
                         viewModel.setObjectField(
                             "mobileTypeSingleVisible",
                             newReadonlyStateFlow(false)
                         )
-
                         MiuiStub.javaAdapter.alwaysCollectFlow(
                             viewModel.getObjectFieldAs("wifiAvailable"),
                             Consumer<Boolean> {
@@ -259,16 +286,22 @@ object MobileTypeSingle2Hook : BaseHook() {
                     } else if (mobileNetworkType != 4) {
                         viewModel.setObjectField(
                             "mobileTypeSingleVisible",
-                            newReadonlyStateFlow(true)
+                            newReadonlyStateFlow(mobileNetworkType == 1)
                         )
                     }
                 } else {
-                    // 小 5G 显示逻辑
-                    if (mobileNetworkType == 2) {
+                    // 双排模式下 showMobileType 启用时，隐藏大 5G
+                    if (showMobileType) {
+                        viewModel.setObjectField("mobileTypeSingleVisible", newReadonlyStateFlow(false))
+                    }
+                    // 小 5G 可见性
+                    if (isEnableDouble && !MobileViewHelper.isSingleSimMode() && slotIndex != 0) {
+                        // slot 1+: 视图已隐藏
+                    } else if (mobileNetworkType == 2) {
                         MiuiStub.javaAdapter.alwaysCollectFlow(
                             viewModel.getObjectFieldAs("wifiAvailable"),
                             Consumer<Boolean> {
-                                if (subId == SubscriptionManager.getDefaultDataSubscriptionId()) {
+                                if (isEnableDouble || subId == SubscriptionManager.getDefaultDataSubscriptionId()) {
                                     val paddingLeft = if (it || hideIndicator) 20 else 0
                                     containerLeft.setPadding(if (!it) 0 else paddingLeft, 0, 0, 0)
                                     if (!isMoreOS3) {
@@ -287,7 +320,17 @@ object MobileTypeSingle2Hook : BaseHook() {
                             when (mobileNetworkType) {
                                 1 -> newReadonlyStateFlow(true)
                                 3 -> newReadonlyStateFlow(false)
-                                else -> if (isMore200SmallVersion) {
+                                else -> if (isEnableDouble && (MobileViewHelper.isSingleSimMode() || slotIndex == 0)) {
+                                    // 双排模式：WiFi 可用时隐藏小 5G，与大 5G 逻辑一致
+                                    val flow = newReadonlyStateFlow(!isDataConnected)
+                                    MiuiStub.javaAdapter.alwaysCollectFlow(
+                                        viewModel.getObjectFieldAs("wifiAvailable"),
+                                        Consumer<Boolean> { wifiOn ->
+                                            setStateFlowValue(flow, !wifiOn)
+                                        }
+                                    )
+                                    flow
+                                } else if (isMore200SmallVersion) {
                                     isDataConnectedFlow
                                 } else {
                                     newReadonlyStateFlow(isDataConnected)
@@ -304,17 +347,32 @@ object MobileTypeSingle2Hook : BaseHook() {
             }
         }
 
-        if (showMobileType && mobileNetworkType == 4) {
+        if (showMobileType && mobileNetworkType == 4 && !isEnableDouble) {
             showMobileTypeSingle()
         }
     }
 
     private fun showMobileTypeSingle() {
         mOperatorConfig.constructors[0].createAfterHook {
-            // 启用系统的网络类型单独显示
-            // 系统的单独显示只有一个大 5G
             it.thisObject.setObjectField("showMobileDataTypeSingle", true)
         }
+    }
+
+    /** 监听上网卡切换 + SIM 变化，同步所有代理 */
+    @Synchronized
+    private fun registerDataSimBroadcast() {
+        if (broadcastRegistered) return
+        broadcastRegistered = true
+
+        val filter = IntentFilter().apply {
+            addAction("android.intent.action.ACTION_DEFAULT_DATA_SUBSCRIPTION_CHANGED")
+            addAction("android.intent.action.SIM_STATE_CHANGED")
+        }
+        EzXposed.appContext.registerReceiver(object : BroadcastReceiver() {
+            override fun onReceive(ctx: Context?, intent: Intent?) {
+                showNameFlowProxy.syncFromBroadcast(slot0SubId)
+            }
+        }, filter)
     }
 
     @SuppressLint("NewApi")
@@ -332,10 +390,7 @@ object MobileTypeSingle2Hook : BaseHook() {
             .getObjectFieldAs<Any>("defaultConnections")
         val dataConnected = miuiInt.getObjectFieldAs<Any>("dataConnected")
 
-        // 监听移动网络
         MiuiStub.javaAdapter.alwaysCollectFlow(dataConnected, Consumer<BooleanArray> {
-            XposedLog.d(TAG, lpparam.packageName, "MobileDataConnected -> ${it.contentToString()}")
-
             val simCount = it.size
             val isNoDataConnected = when (simCount) {
                 1 -> !it[0]
@@ -383,20 +438,24 @@ object MobileTypeSingle2Hook : BaseHook() {
                 view.findViewByIdName("mobile_container_right") as ViewGroup
         }
 
-        val b = !showMobileType && mobileNetworkType == 4
-        if (subId == SubscriptionManager.getDefaultDataSubscriptionId()) {
+        val b = (!showMobileType || isEnableDouble) && mobileNetworkType == 4
+        val isSlot0InDouble = isEnableDouble && SubscriptionManager.getSlotIndex(subId) == 0
+        if (subId == SubscriptionManager.getDefaultDataSubscriptionId() || isSlot0InDouble) {
             if (b) {
                 val mobileType = view.findViewByIdName("mobile_type") as ImageView
-                mobileType.isVisible = !(isNoDataConnected || showMobileType)
+                mobileType.isVisible = !isNoDataConnected
             }
 
-            val defaultConnections = getStateFlowValue(defaultConnections)
-                ?.getObjectField("wifi")
-                ?.getBooleanField("isDefault")
+            val isWifiDefault = runCatching {
+                getStateFlowValue(defaultConnections)
+                    ?.getObjectField("wifi")
+                    ?.getBooleanField("isDefault")
+            }.getOrNull()
 
             if (!showMobileType) {
-                // Todo: Android 16 此处值获取异常，无法判断，待修复
-                val type = defaultConnections == true && !isEnableDouble && !booleans[SubscriptionManager.getSlotIndex(subId)]
+                val slotIndex = SubscriptionManager.getSlotIndex(subId)
+                val isSlotDataConnected = slotIndex >= 0 && slotIndex < booleans.size && booleans[slotIndex]
+                val type = isWifiDefault == true && !isEnableDouble && !isSlotDataConnected
                 val paddingLeft = if (isNoDataConnected || type) 20 else 0
                 containerLeft.setPadding(if (!isNoDataConnected) 0 else paddingLeft, 0, 0, 0)
                 if (!isMoreOS3) {
