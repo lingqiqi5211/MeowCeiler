@@ -578,9 +578,6 @@
     <string name="system_ui_statusbar_music_title">歌詞のフォーカス</string>
     <string name="system_ui_status_bar_double_tap_to_sleep">ダブルタップでスリープ</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_title">二行のシグナルバー</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme">アイコンテーマ</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_classic">クラシック</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_oa">Origin アーキテクチャ</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_style">アイコンのスタイル</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_size">アイコンの大きさ</string>
     <string name="system_ui_status_bar_mobile_type_single">モバイルネットワークタイプのアイコンを別々に表示</string>

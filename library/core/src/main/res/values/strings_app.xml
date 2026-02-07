@@ -142,9 +142,11 @@
     <string name="success">Success</string>
     <string name="failed">Failed</string>
     <string name="development">Developer options</string>
-    <string name="development_tools">Debug</string>
-    <string name="development_system">Manager</string>
-    <string name="development_cache">Cache &amp; Log</string>
+    <string name="development_tools">Debug Tools</string>
+    <string name="development_system">System Management</string>
+    <string name="development_cache">Cache Cleanup</string>
+    <string name="development_log">Log Settings</string>
+    <string name="development_other">Other</string>
     <string name="development_ui">UI</string>
     <string name="development_debug_info">Debug info</string>
     <string name="development_prefs">Share preference</string>
@@ -549,6 +551,9 @@
     <string name="camera_custom_theme_color_picker">Choose theme color</string>
     <string name="camera_cloud_watermark">Force watermark from cloud</string>
     <string name="camera_cloud_watermark_desc">Only supported on version 6.2 and above. May be affected by Xiaomi cloud servers.</string>
+    <!--Calendar-->
+    <string name="calendar">Calendar</string>
+    <string name="calendar_unlock_subscription">Unlock Subscription</string>
     <!--Community-->
     <string name="community">Xiaomi Community</string>
     <string name="community_device_modify">Spoof model</string>
@@ -1405,6 +1410,8 @@
     <string name="security_center_applock_pin_scramble">App lock with scrambled PIN</string>
     <string name="security_center_privacy_thumbnail_blur">Disable auto-enable blurred preview images</string>
     <string name="security_center_privacy_thumbnail_blur_desc">Once enabled, the preview image background blur will be locked. It\'s recommended to first specify which apps should have their previews disabled before turning on this feature.</string>
+    <string name="security_center_power_saver">Remove restrictions when screen mirroring</string>
+    <string name="security_center_power_saver_desc">Disable Battery saver mode when screen mirroring via Xiaomi Smart Hub</string>
     <string name="security_center_applock_pin_scramble_desc">Randomly change App lock PIN keypad sequence</string>
     <string name="security_center_beauty_light_auto">Unlock Front fill light</string>
     <string name="security_center_beauty_face">Unlock Beautify for video calls</string>
@@ -1414,6 +1421,7 @@
     <string name="security_center_install_intercept">Disable USB installation interception</string>
     <string name="security_center_adb_install_verify">Disable network verify when open USB installation</string>
     <string name="security_center_remove_macro_black_list">Remove auto combo blacklist</string>
+    <string name="security_center_disable_send_malicious_app_notification">Disable \"Malicious app found\" notifications</string>
     <string name="security_center_newbox_custom_enable">Enable customize</string>
     <string name="security_center_newbox_bg_custom">Background blur</string>
     <string name="security_center_newbox_bg_padding_vertical">Horizontal margin</string>
@@ -1473,6 +1481,8 @@
     <string name="security_center_sidebar_videobox_title">Video toolbox</string>
     <string name="security_center_sidebar_gamebox_title">Gamebox</string>
     <string name="security_center_sidebar_function_title">Sidebar function</string>
+    <string name="security_center_game_speed">Launch the game quickly</string>
+    <string name="security_center_game_speed_desc">When launching the game, it passes the opening screen animation at 3x speed, which is only supported by some games.</string>
     <string name="security_center_bypass_simlock_miaccount_auth">Bypass Xiaomi Account SIM security</string>
     <string name="security_center_bypass_simlock_miaccount_auth_desc">You can use this feature even without logging into your Xiaomi Account</string>
     <string name="security_center_remove_simlock_success_dialog">Remove SIM security verification warning</string>
@@ -1511,6 +1521,7 @@
     <!--Barrage-->
     <string name="barrage">Barrage</string>
     <string name="barrage_any_barrage">Allow all apps to use barrage notification</string>
+    <string name="barrage_global_enable">Allow global use of barrage notifications</string>
     <string name="barrage_not_touchable">Barrage notification not touchable</string>
     <string name="barrage_custom_barrage_length">Custom barrage notification length</string>
     <!--Joyose-->

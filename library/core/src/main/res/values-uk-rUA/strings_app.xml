@@ -552,9 +552,6 @@
     <string name="system_ui_statusbar_music_title">Фокус на тексті пісні</string>
     <string name="system_ui_status_bar_double_tap_to_sleep">Подвійний дотик до рядка стану для сну</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_title">Дворядковий індикатор сигналу</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme">Теми іконок</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_classic">Класичний</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_oa">Закруглений</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_style">Стиль іконки</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_size">Масштаб іконки</string>
     <string name="system_ui_status_bar_mobile_type_single">Окреме відображення іконки типу мобільної мережі</string>

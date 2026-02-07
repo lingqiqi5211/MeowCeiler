@@ -575,9 +575,6 @@
     <string name="system_ui_statusbar_music_title">Letras de foco</string>
     <string name="system_ui_status_bar_double_tap_to_sleep">Toque duas vezes na barra de status para desligar a tela</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_title">Barra de sinal de duas linhas</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme">Tema do ícone</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_classic">Clássico</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_oa">Arredondado</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_style">Estilo do ícone</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_size">Escala do ícone</string>
     <string name="system_ui_status_bar_mobile_type_single">Exibir ícone do tipo de rede móvel separadamente</string>

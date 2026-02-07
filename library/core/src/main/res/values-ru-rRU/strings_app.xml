@@ -578,9 +578,6 @@
     <string name="system_ui_statusbar_music_title">Фокус текста</string>
     <string name="system_ui_status_bar_double_tap_to_sleep">Блокировка двойным нажатием</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_title">Двухрядная индикаторная панель</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme">Темы значков</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_classic">Классический</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_oa">Исходная архитектура</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_style">Стили значков</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_size">Масштабирование значка</string>
     <string name="system_ui_status_bar_mobile_type_single">Значок типа мобильной сети отображается отдельно</string>

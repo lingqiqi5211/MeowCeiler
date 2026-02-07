@@ -416,9 +416,6 @@
     <string name="system_ui_statusbar_strong_toast_title">Toast notifica intelligente</string>
     <string name="system_ui_status_bar_double_tap_to_sleep">Doppio tocco per spegnere lo schermo</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_title">Barra del segnale a doppia riga</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme">Tema icone</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_classic">Classico</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_oa">Architettura Originale</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_style">Stili icona</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_size">Ridimensionamento icone</string>
     <string name="system_ui_status_bar_mobile_type_single">Visualizzazione separata icone rete mobile</string>

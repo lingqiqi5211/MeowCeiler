@@ -573,9 +573,6 @@
     <string name="system_ui_statusbar_music_title">焦點歌詞</string>
     <string name="system_ui_status_bar_double_tap_to_sleep">雙擊狀態欄鎖定螢幕</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_title">雙排蜂窩移動網路圖示</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme">圖示主題</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_classic">經典</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_oa">圓滑</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_style">圖示樣式</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_size">圖示縮放</string>
     <string name="system_ui_status_bar_mobile_type_single">蜂窩移動網路類型圖示單獨顯示</string>

@@ -94,7 +94,6 @@ public class IconManageNewSettings extends DashboardFragment {
             setPreVisible(mBigHD, false);
             setPreVisible(mNewHD, false);
             setPreVisible(mHideRoaming, false);
-            setPreVisible(mIconMobileNetwork, false);
         } else if (isMoreSmallVersion(200, 2f)) {
             setFuncHint(mSmallHD, 1);
             setFuncHint(mBigHD, 1);

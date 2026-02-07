@@ -542,9 +542,6 @@
     <string name="system_ui_statusbar_music_title">Skoncentruj słowa piosenek</string>
     <string name="system_ui_status_bar_double_tap_to_sleep">Dwukrotnie dotknij, aby uśpić</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_title">Dwurzędowy pasek sygnału</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme">Motywy ikon</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_classic">Klasyczny</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_oa">Bez ograniczeń</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_style">Styl ikon</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_size">Wielkość ikon</string>
     <string name="system_ui_status_bar_mobile_type_single">Oddzielne wyświetlanie ikon sieci komórkowej</string>

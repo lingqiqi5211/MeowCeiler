@@ -87,6 +87,7 @@ import com.sevtinge.hyperceiler.libhook.rules.systemui.statusbar.icon.all.WifiNe
 import com.sevtinge.hyperceiler.libhook.rules.systemui.statusbar.icon.b.HideBatteryIconB;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.statusbar.icon.v.WifiStandard;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.statusbar.island.HideStrongToast;
+import com.sevtinge.hyperceiler.libhook.rules.systemui.statusbar.mobile.DualRowSignalHookV;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.statusbar.mobile.MobilePublicHookV;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.statusbar.mobile.MobileTypeSingle2Hook;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.statusbar.mobile.MobileTypeTextCustom;
@@ -236,7 +237,7 @@ public class SystemUIB extends BaseLoad {
         initHook(SwapWiFiAndMobileNetwork.INSTANCE, mPrefsMap.getBoolean("system_ui_status_bar_swap_wifi_and_mobile_network"));
         // 移动网络图标
         boolean isEnabledDualRowSignal = mPrefsMap.getBoolean("system_ui_statusbar_network_icon_enable");
-        // initHook(new DualRowSignalHookV(), isEnabledDualRowSignal);
+        initHook(new DualRowSignalHookV(), isEnabledDualRowSignal);
         initHook(new MobilePublicHookV(), isEnabledDualRowSignal ||
             mPrefsMap.getBoolean("system_ui_status_bar_icon_mobile_network_hide_card_1") ||
             mPrefsMap.getBoolean("system_ui_status_bar_icon_mobile_network_hide_card_2") ||

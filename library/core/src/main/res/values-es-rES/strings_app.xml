@@ -488,9 +488,6 @@
     <string name="system_ui_statusbar_strong_toast_title">Toast Inteligente</string>
     <string name="system_ui_status_bar_double_tap_to_sleep">Doble toque para apagar la pantalla</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_title">Barra de señal de fila doble</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme">Tema de iconos</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_classic">Clásico</string>
-    <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_oa">Arquitectura de origen</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_style">Estilo de icono</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_size">Achicar icono</string>
     <string name="system_ui_status_bar_mobile_type_single">Icono separado de tipo de red móvil</string>
