@@ -20,6 +20,7 @@ package com.sevtinge.hyperceiler.libhook.rules.systemui.statusbar.mobile
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.telephony.SubscriptionManager
 import android.util.SparseArray
 import android.view.View
@@ -439,16 +440,37 @@ class DualRowSignalHookV : StatusBarViewUtils() {
 
         val (dataLevel, noDataLevel) = getSignalLevelsForRender()
 
-        val slot1ResId = dualSignalResMap[getSignalIconResName(1, dataLevel, isUseTint, isLight)]
-        val slot2ResId = dualSignalResMap[getSignalIconResName(2, noDataLevel, isUseTint, isLight)]
+        val forceUseTint = selectedIconStyle != "theme"
+
+        val slot1ResId = dualSignalResMap[getSignalIconResName(
+            1, dataLevel,
+            isUseTint = forceUseTint || isUseTint,
+            isLight = isLight
+        )]
+        val slot2ResId = dualSignalResMap[getSignalIconResName(
+            2, noDataLevel,
+            isUseTint = forceUseTint || isUseTint,
+            isLight = isLight
+        )]
 
         if (slot1ResId != null && slot2ResId != null) {
             slot1.setImageResource(slot1ResId)
             slot2.setImageResource(slot2ResId)
 
-            val tintList = color?.let { c ->
-                if (isUseTint) ColorStateList.valueOf(c) else null
-            } ?: slot1.imageTintList
+            val tintList = if (forceUseTint) {
+                when {
+                    isUseTint && color != null -> ColorStateList.valueOf(color)
+                    isUseTint -> {
+                        (rootView.findViewByIdName("mobile_signal") as? ImageView)?.imageTintList
+                    }
+                    isLight -> ColorStateList.valueOf(Color.WHITE)
+                    else -> null
+                }
+            } else {
+                color?.let { c ->
+                    if (isUseTint) ColorStateList.valueOf(c) else null
+                } ?: slot1.imageTintList
+            }
 
             slot1.imageTintList = tintList
             slot2.imageTintList = tintList

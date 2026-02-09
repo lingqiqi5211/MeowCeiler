@@ -206,7 +206,7 @@ abstract class StatusBarViewUtils : BaseHook() {
                     val darkInfo = DarkInfo.fromTintLightColor(
                         isUseTint = pair.callMethodAs("getFirst"),
                         isLight = pair.callMethodAs("getSecond"),
-                        color = null
+                        color = icon.imageTintList?.defaultColor
                     )
 
                     try {
@@ -232,7 +232,7 @@ abstract class StatusBarViewUtils : BaseHook() {
                     val darkInfo = DarkInfo.fromTintLightColor(
                         isUseTint = param.args[1] as Boolean,
                         isLight = param.args[2] as Boolean,
-                        color = null
+                        color = icon.imageTintList?.defaultColor
                     )
 
                     try {
