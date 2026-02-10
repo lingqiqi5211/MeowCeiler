@@ -178,14 +178,25 @@ class DualRowSignalHookV : StatusBarViewUtils() {
 
         mobileSignal.visibility = View.GONE
 
-        // 修正小 5G 定位：将约束锚点从 mobile_signal 切换到 dualContainer
         if (isMoreHyperOSVersion(3f)) {
+            // 修正小 5G 定位：将约束锚点从 mobile_signal 切换到 dualContainer（左上角）
             (signalContainer.findViewByIdName("mobile_type") as? ImageView)?.let { mobileType ->
                 try {
                     val lp = mobileType.layoutParams
                     lp.javaClass.getField("endToStart").setInt(lp, dualContainerId)
                     lp.javaClass.getField("topToTop").setInt(lp, dualContainerId)
                     mobileType.layoutParams = lp
+                } catch (_: Throwable) {}
+            }
+
+            // 修正移动指示器定位：将约束锚点从 mobile_signal 切换到 dualContainer（左下角）
+            (signalContainer.findViewByIdName("mobile_left_mobile_inout") as? ImageView)?.let { inout ->
+                try {
+                    val lp = inout.layoutParams
+                    lp.javaClass.getField("endToStart").setInt(lp, dualContainerId)
+                    lp.javaClass.getField("bottomToBottom").setInt(lp, dualContainerId)
+                    lp.javaClass.getField("topToTop").setInt(lp, -1)
+                    inout.layoutParams = lp
                 } catch (_: Throwable) {}
             }
         }
