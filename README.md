@@ -20,7 +20,7 @@ Android 15-16 的 HyperOS
 
 本模块<b>不支持</b>`修改较多的第三方 Xiaomi HyperOS ROM`、`修改较多的系统软件`，以及`部分国际 Xiaomi HyperOS ROM`。
 
-目前 HyperCeiler 是基于 Android 16 的 Xiaomi HyperOS 3.0 的手机端设备进行适配，覆盖不是很完整，需要不断测试和改进。
+目前 HyperCeiler 是基于 Android 16 的 Xiaomi HyperOS 3.0.300 的手机端设备进行适配，覆盖不是很完整，需要不断测试和改进。
 
 提交反馈前请注意是否已有相同反馈，避免给开发者造成困扰。花相同精力看相同反馈是一件很浪费时间的事情。
 
@@ -30,15 +30,13 @@ HyperCeiler 已停止维护 Android 11-13 的 MIUI ROM 和 Android 13/14 的 Hyp
 >
 > Android 13 的 MIUI ROM 和 HyperOS 1.0 ROM 请使用[此版本](https://github.com/Xposed-Modules-Repo/com.sevtinge.hyperceiler/releases/download/3866-2.5.156_20250118/HyperCeiler_2.5.156_20250118_3866_release_miui.apk)。
 >
-> Android 14 的 HyperOS 1.0/2.0 已归档，从 2.6.162 版本开始将移除对 Android 14 的支持。
+> Android 14 的 HyperOS 1.0/2.0 请使用[此版本](https://github.com/Xposed-Modules-Repo/com.sevtinge.hyperceiler/releases/download/4257-2.6.161_20251108/Android14-HyperCeiler_2.6.161_20250829_4257_release.apk)。
 
 ## 项目规划
 
-Xiaomi HyperOS 3 or 4 将是本项目的一个终点，就目前来说，小米官方有选择性的根据 Xposed 的功能调整了自己的（反人类）功能，模块的功能也随着系统的更新在逐渐减少。
+Xiaomi HyperOS 3 将是本项目的一个终点，之后的版本不会再适配（不会去适配澎湃架构的应用），有聚也有散
 
-也是一步步看着澎湃从没 Root 不能用到变得差不多能用的样子（小米平板除外）
-
-未来本模块会深度适配 HyperOS 3.0 及以上版本（但不保证功能上都能用），HyperOS 2 会在后续维护中归档（因为变化差距大）
+未来本模块会深度适配 HyperOS 3.0 及以上版本（但不保证功能上都能用），HyperOS 2 将会单独开分支维护
 
 ## 作用域包含的应用
 
