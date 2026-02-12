@@ -20,7 +20,7 @@ Please enable HyperCeiler in [LSPosed](https://github.com/LSPosed/LSPosed/releas
 
 This module <b>does not support</b> `third-party Xiaomi HyperOS ROMs with a lot of modifications`, `system software with a lot of modifications`, and some `international Xiaomi HyperOS ROMs`.
 
-Currently, HyperCeiler is adapted for Xiaomi HyperOS 3.0 mobile devices based on Android 16. The coverage isn't very comprehensive and requires ongoing testing and improvements.
+Currently, HyperCeiler is adapted for Xiaomi HyperOS 3.0.300 mobile devices based on Android 16. The coverage isn't very comprehensive and requires ongoing testing and improvements.
 
 Before submitting feedback, please pay attention to whether there is already the same feedback to avoid causing trouble to developers. Spending the same energy reading the same feedback is a waste of time.
 
@@ -30,15 +30,13 @@ HyperCeiler has stopped maintaining MIUI ROMs for Android 11-13 and HyperOS 1.0/
 >
 > For MIUI ROMs on Android 13 and HyperOS 1.0 ROM, please use [this version](https://github.com/Xposed-Modules-Repo/com.sevtinge.hyperceiler/releases/download/3866-2.5.156_20250118/HyperCeiler_2.5.156_20250118_3866_release_miui.apk).
 >
-> Android 14's HyperOS 1.0/2.0 has been archived, and support for Android 14 will be removed starting from version 2.6.162.
+> For Android 14 HyperOS 1.0/2.0 please use [this version](https://github.com/Xposed-Modules-Repo/com.sevtinge.hyperceiler/releases/download/4257-2.6.161_20251108/Android14-HyperCeiler_2.6.161_20250829_4257_release.apk).
 
-## Project planning
+## Project plan
 
-Xiaomi HyperOS 3 or 4 will be the endpoint of this project. For now, Xiaomi has selectively incorporated some of Xposed's features into its own (user‑unfriendly) devices, and the module's capabilities have been gradually reduced as the system is updated.
+Xiaomi HyperOS 3 will be an endpoint for this project; later versions will no longer be supported (we will not adapt for apps built on the Pengpai/Surge architecture). There will be both convergence and divergence.
 
-I also watched Xiaomi HyperOS evolve, step by step, from something completely unusable without root to something almost usable (except for the Xiaomi Pad).
-
-In the future, this module will be extensively adapted to Xiaomi HyperOS 3.0 and later versions, although there's no guarantee that all features will be available. Xiaomi HyperOS 2 will be discontinued in future maintenance updates due to significant differences compared to the newer versions.
+In the future this module will be deeply adapted for HyperOS 3.0 and above (but functionality is not guaranteed). HyperOS 2 will be maintained in a separate branch.
 
 ## Supported apps
 
