@@ -480,7 +480,7 @@ class DualRowSignalHookV : StatusBarViewUtils() {
             } else {
                 color?.let { c ->
                     if (isUseTint) ColorStateList.valueOf(c) else null
-                } ?: slot1.imageTintList
+                } ?: (rootView.findViewByIdName("mobile_signal") as? ImageView)?.imageTintList
             }
 
             slot1.imageTintList = tintList
@@ -520,6 +520,6 @@ class DualRowSignalHookV : StatusBarViewUtils() {
         } else {
             "_tint"
         }
-        return "statusbar_signal_oa_${slot}_$level$colorMode$iconStyle"
+        return "statusbar_signal_${slot}_$level$colorMode$iconStyle"
     }
 }

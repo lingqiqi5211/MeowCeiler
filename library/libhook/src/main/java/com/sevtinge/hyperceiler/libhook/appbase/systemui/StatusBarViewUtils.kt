@@ -27,6 +27,7 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobileClass.moder
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobileClass.statusBarIconControllerImpl
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobileViewHelper
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callMethodAs
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getAdditionalInstanceField
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getIntField
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectField
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.hookAllConstructors
@@ -196,24 +197,22 @@ abstract class StatusBarViewUtils : BaseHook() {
             .filter { name.contains("setImageResWithTintLight") }
             .firstOrNull()
 
-        if (setImageResMethod != null) {
-            setImageResMethod.createHook {
-                before { param ->
-                    val icon = param.args[0] as? ImageView ?: return@before
-                    val pair = param.args[2] ?: return@before
+        setImageResMethod?.createHook {
+            before { param ->
+                val icon = param.args[0] as? ImageView ?: return@before
+                val pair = param.args[2] ?: return@before
 
-                    val ctx = MobileViewHelper.buildContextFromSignalView(icon, config.targetSlot) ?: return@before
-                    val darkInfo = DarkInfo.fromTintLightColor(
-                        isUseTint = pair.callMethodAs("getFirst"),
-                        isLight = pair.callMethodAs("getSecond"),
-                        color = icon.imageTintList?.defaultColor
-                    )
+                val ctx = MobileViewHelper.buildContextFromSignalView(icon, config.targetSlot) ?: return@before
+                val darkInfo = DarkInfo.fromTintLightColor(
+                    isUseTint = pair.callMethodAs("getFirst"),
+                    isLight = pair.callMethodAs("getSecond"),
+                    color = pair.callMethodAs<Int>("getThird")
+                )
 
-                    try {
-                        onDarkModeChanged(ctx, darkInfo)
-                    } catch (e: Throwable) {
-                        XposedLog.e(TAG, lpparam.packageName, "onDarkModeChanged error", e)
-                    }
+                try {
+                    onDarkModeChanged(ctx, darkInfo)
+                } catch (e: Throwable) {
+                    XposedLog.e(TAG, lpparam.packageName, "onDarkModeChanged error", e)
                 }
             }
         }
@@ -227,12 +226,20 @@ abstract class StatusBarViewUtils : BaseHook() {
             resetMethod.createHook {
                 before { param ->
                     val icon = param.args[0] as? ImageView ?: return@before
+                    val isUseTint = param.args[1] as Boolean
+                    val isLight = param.args[2] as Boolean
 
                     val ctx = MobileViewHelper.buildContextFromSignalView(icon, config.targetSlot) ?: return@before
+                    val color = if (isUseTint) {
+                        icon.imageTintList?.defaultColor
+                    } else {
+                        // 非 tint 模式下，从缓存的 darkColor 回退
+                        ctx.rootView.getAdditionalInstanceField("dualDarkColor") as? Int
+                    }
                     val darkInfo = DarkInfo.fromTintLightColor(
-                        isUseTint = param.args[1] as Boolean,
-                        isLight = param.args[2] as Boolean,
-                        color = icon.imageTintList?.defaultColor
+                        isUseTint = isUseTint,
+                        isLight = isLight,
+                        color = color
                     )
 
                     try {

@@ -307,6 +307,7 @@
     <string name="array_default_thin">Default font</string>
     <string name="array_default_bold">Default font-bold</string>
     <string name="array_bold">Bold</string>
+    <string name="array_class">Classic</string>
     <string name="array_theme">Follow the subject</string>
     <string name="array_global_actions_none">No action</string>
     <string name="array_global_actions_notif">Open the Notification shade</string>

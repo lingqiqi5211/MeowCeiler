@@ -248,6 +248,7 @@
     <string name="array_default_thin">默认字体</string>
     <string name="array_default_bold">默认字体-粗</string>
     <string name="array_bold">加粗</string>
+    <string name="array_class">经典</string>
     <string name="array_theme">跟随主题</string>
     <string name="array_global_actions_none">无动作</string>
     <string name="array_global_actions_notif">打开通知中心</string>
