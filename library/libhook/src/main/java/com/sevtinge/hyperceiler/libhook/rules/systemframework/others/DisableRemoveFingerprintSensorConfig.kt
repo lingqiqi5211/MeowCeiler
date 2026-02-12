@@ -16,10 +16,10 @@
 
  * Copyright (C) 2023-2026 HyperCeiler Contributions
  */
-package com.sevtinge.hyperceiler.hook.module.rules.systemframework
+package com.sevtinge.hyperceiler.libhook.rules.systemframework.others
 
-import com.sevtinge.hyperceiler.hook.module.base.BaseHook
-import com.sevtinge.hyperceiler.hook.utils.replaceMethod
+import com.sevtinge.hyperceiler.libhook.base.BaseHook
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.hookReplace
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
 
@@ -28,7 +28,7 @@ object DisableRemoveFingerprintSensorConfig : BaseHook() {
     override fun init() {
         loadClass("com.android.server.biometrics.sensors.fingerprint.aidl.FingerprintProvider")
             .methodFinder().filterByName("copyFingerprintXml")
-            .first().replaceMethod {
+            .first().hookReplace {
                 null
             }
     }
