@@ -18,11 +18,16 @@
  */
 package com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui
 
+import android.Manifest
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.provider.Settings
 import android.telephony.SubscriptionManager
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.annotation.RequiresPermission
 import com.sevtinge.hyperceiler.libhook.appbase.systemui.StatusBarViewContext
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isMoreAndroidVersion
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.StateFlowHelper.getStateFlowValue
@@ -101,6 +106,7 @@ object MobileViewHelper {
     private const val TAG = "MobileViewHelper"
 
     /** 判断当前是否为单卡模式 */
+    @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
     fun isSingleSimMode(): Boolean {
         return try {
             val sm = SubscriptionManager.from(EzXposed.appContext)
@@ -120,6 +126,25 @@ object MobileViewHelper {
         } catch (_: Throwable) {
             false
         }
+    }
+
+    // ==================== 网络状态检测 ====================
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
+    fun isWifiConnected(): Boolean {
+        val cm = EzXposed.appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            ?: return false
+        val network = cm.activeNetwork ?: return false
+        val caps = cm.getNetworkCapabilities(network) ?: return false
+        return caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+    }
+
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
+    fun isMobileDataConnected(): Boolean {
+        val cm = EzXposed.appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            ?: return false
+        val network = cm.activeNetwork ?: return false
+        val caps = cm.getNetworkCapabilities(network) ?: return false
+        return caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
     }
 
     /** 按 subId 遍历关联的 ModernStatusBarMobileView */

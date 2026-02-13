@@ -350,6 +350,8 @@
     <string name="status_bar_icon_mode_off">Always hidden</string>
     <string name="status_bar_icon_mode_on_control_center">Only show in control center</string>
     <string name="status_bar_icon_mode_on_status_bar">Only show in status bar</string>
+    <string name="status_bar_mobile_mode_on_status_bar">Show only when connected</string>
+    <string name="status_bar_mobile_mode_2_on_status_bar">Show only the data SIM</string>
     <string name="status_bar_icon_mode_off_unconnect">Hide only when not connected</string>
     <string name="status_bar_icon_mode_on_beforering">Show only before ringing</string>
     <string name="seek_points_roll">Show only when swiping the screen</string>
@@ -688,6 +690,7 @@
     <string name="system_ui_status_bar_icon_new_hd">New HD icon</string>
     <string name="system_ui_status_bar_icon_small_hd">Small HD icon</string>
     <string name="system_ui_status_bar_icon_big_hd">Big HD icon</string>
+    <string name="system_ui_status_bar_icon_mobile_network_signal_mode">Mobile signal display logic</string>
     <string name="system_ui_status_bar_icon_mobile_network_signal_no_card">No SIM card icon</string>
     <string name="system_ui_status_bar_icon_mobile_network_hide_card_1">Hide SIM 1 signal icon</string>
     <string name="system_ui_status_bar_icon_mobile_network_hide_card_2">Hide SIM 2 signal icon</string>

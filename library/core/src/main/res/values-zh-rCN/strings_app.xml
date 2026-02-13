@@ -293,6 +293,8 @@
     <string name="status_bar_icon_mode_on_beforering">仅在响铃前显示</string>
     <string name="status_bar_icon_mode_on_control_center">仅在控制中心显示</string>
     <string name="status_bar_icon_mode_on_status_bar">仅在状态栏显示</string>
+    <string name="status_bar_mobile_mode_on_status_bar">仅在连接时显示</string>
+    <string name="status_bar_mobile_mode_2_on_status_bar">仅显示上网卡</string>
     <string name="seek_points_roll">仅在滑动屏幕时显示</string>
     <string name="seek_points_edit">仅在编辑模式中显示</string>
     <string name="home_mode_day">浅色模式</string>
@@ -629,6 +631,7 @@
     <string name="system_ui_status_bar_icon_new_hd">新 HD 图标</string>
     <string name="system_ui_status_bar_icon_small_hd">小 HD 图标</string>
     <string name="system_ui_status_bar_icon_big_hd">大 HD 图标</string>
+    <string name="system_ui_status_bar_icon_mobile_network_signal_mode">移动信号显示逻辑</string>
     <string name="system_ui_status_bar_icon_mobile_network_signal_no_card">无 SIM 卡图标</string>
     <string name="system_ui_status_bar_icon_mobile_network_hide_card_1">隐藏 SIM 卡 1 信号图标</string>
     <string name="system_ui_status_bar_icon_mobile_network_hide_card_2">隐藏 SIM 卡 2 信号图标</string>

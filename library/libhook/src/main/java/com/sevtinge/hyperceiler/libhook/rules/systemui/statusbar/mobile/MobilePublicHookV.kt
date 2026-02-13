@@ -18,11 +18,16 @@
 */
 package com.sevtinge.hyperceiler.libhook.rules.systemui.statusbar.mobile
 
+import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.telephony.SubscriptionManager
+import androidx.annotation.RequiresPermission
 import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isMoreAndroidVersion
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isMoreHyperOSVersion
@@ -35,7 +40,10 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobilePrefs.card2
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobilePrefs.hideIndicator
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobilePrefs.hideRoaming
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobilePrefs.isEnableDouble
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobilePrefs.signalShowMode
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobileViewHelper
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobileViewHelper.isMobileDataConnected
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobileViewHelper.isWifiConnected
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectFieldAs
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.hookAllConstructors
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.setObjectField
@@ -46,42 +54,44 @@ import java.util.concurrent.ConcurrentHashMap
 
 class MobilePublicHookV : BaseHook() {
 
-    /** 双排模式下每个 subId 的 isVisible Flow，用于广播刷新可见性 */
     private val visibilityFlows = ConcurrentHashMap<Int, Any>()
 
     @Volatile
     private var broadcastRegistered = false
 
+    @RequiresPermission(allOf = [Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.READ_PHONE_STATE])
     override fun init() {
         miuiCellularIconVM.hookAllConstructors {
             after { param ->
                 val cellularIcon = param.thisObject
                 val mobileIconInteractor = param.args[2] ?: return@after
                 val subId = mobileIconInteractor.getObjectFieldAs<Int>("subId")
-                val isVisible = if (isMoreAndroidVersion(36) || isMoreHyperOSVersion(3f)) {
-                    val pair = loadClass("kotlin.Pair")
-                        .getConstructor(Object::class.java, Object::class.java)
-                        .newInstance(false, false)
-                    newReadonlyStateFlow(pair)
-                } else {
-                    newReadonlyStateFlow(false)
-                }
+                val isVisible = createVisibilityFlow()
 
-                if (isEnableDouble && !(card1 || card2)) {
-                    // 双排信号：始终显示 slot 0，隐藏 slot 1+（飞行模式时全部隐藏）
-                    cellularIcon.setObjectField("isVisible", isVisible)
-                    visibilityFlows[subId] = isVisible
-
-                    val slotIndex = SubscriptionManager.getSlotIndex(subId)
-                    val shouldShow = !MobileViewHelper.isAirplaneModeOn() &&
-                        (MobileViewHelper.isSingleSimMode() || (slotIndex == 0))
-                    updateVisibility(isVisible, shouldShow)
-
-                    registerDefaultDataSubChangedReceiver(EzXposed.appContext)
-                } else {
-                    val getSlotIndex = SubscriptionManager.getSlotIndex(subId)
-                    if ((card1 && getSlotIndex == 0) || (card2 && getSlotIndex == 1)) {
+                when {
+                    // 信号显示逻辑
+                    signalShowMode >= 1 -> {
                         cellularIcon.setObjectField("isVisible", isVisible)
+                        visibilityFlows[subId] = isVisible
+                        refreshVisibility(subId, isVisible)
+                        registerReceiver(EzXposed.appContext)
+                    }
+                    // 双排信号（signalShowMode == 0 且未隐藏卡）
+                    isEnableDouble && !(card1 || card2) -> {
+                        cellularIcon.setObjectField("isVisible", isVisible)
+                        visibilityFlows[subId] = isVisible
+                        val slotIndex = SubscriptionManager.getSlotIndex(subId)
+                        val shouldShow = !MobileViewHelper.isAirplaneModeOn() &&
+                            (MobileViewHelper.isSingleSimMode() || slotIndex == 0)
+                        updateVisibility(isVisible, shouldShow)
+                        registerReceiver(EzXposed.appContext)
+                    }
+                    // 隐藏指定卡
+                    else -> {
+                        val slotIndex = SubscriptionManager.getSlotIndex(subId)
+                        if ((card1 && slotIndex == 0) || (card2 && slotIndex == 1)) {
+                            cellularIcon.setObjectField("isVisible", isVisible)
+                        }
                     }
                 }
 
@@ -92,7 +102,6 @@ class MobilePublicHookV : BaseHook() {
                     cellularIcon.setObjectField("smallRoamVisible", newReadonlyStateFlow(false))
                     cellularIcon.setObjectField("mobileRoamVisible", newReadonlyStateFlow(false))
                 }
-                // 隐藏 hd
                 if (!isMoreSmallVersion(200, 2f)) {
                     updateIconState(param, "smallHdVisible", "system_ui_status_bar_icon_small_hd")
                     updateIconState(param, "volteVisibleCn", "system_ui_status_bar_icon_big_hd")
@@ -102,7 +111,18 @@ class MobilePublicHookV : BaseHook() {
         }
     }
 
-    /** 更新 isVisible Flow（适配 a15/a16 类型差异） */
+    // ==================== Flow 工具 ====================
+    private fun createVisibilityFlow(): Any {
+        return if (isMoreAndroidVersion(36) || isMoreHyperOSVersion(3f)) {
+            val pair = loadClass("kotlin.Pair")
+                .getConstructor(Object::class.java, Object::class.java)
+                .newInstance(false, false)
+            newReadonlyStateFlow(pair)
+        } else {
+            newReadonlyStateFlow(false)
+        }
+    }
+
     private fun updateVisibility(isVisible: Any, shouldShow: Boolean) {
         if (isMoreAndroidVersion(36) || isMoreHyperOSVersion(3f)) {
             val pair = loadClass("kotlin.Pair")
@@ -114,9 +134,42 @@ class MobilePublicHookV : BaseHook() {
         }
     }
 
-    /** 监听上网卡切换 + SIM 状态变化，作为可见性更新的安全网 */
+    // ==================== 统一可见性刷新 ====================
+    @RequiresPermission(allOf = [Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.READ_PHONE_STATE])
+    private fun refreshVisibility(subId: Int, isVisible: Any) {
+        val isAirplane = MobileViewHelper.isAirplaneModeOn()
+        val defaultDataSubId = SubscriptionManager.getDefaultDataSubscriptionId()
+        val slotIndex = SubscriptionManager.getSlotIndex(subId)
+
+        val shouldShow = when (signalShowMode) {
+            1 -> !isAirplane && !isWifiConnected()
+            2 -> !isAirplane && subId == defaultDataSubId && isMobileDataConnected()
+            3 -> !isAirplane && subId == defaultDataSubId
+            else -> !isAirplane && (MobileViewHelper.isSingleSimMode() || slotIndex == 0)
+        }
+        updateVisibility(isVisible, shouldShow)
+    }
+
+    @RequiresPermission(allOf = [Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.READ_PHONE_STATE])
+    private fun refreshAllVisibility() {
+        visibilityFlows.forEach { (subId, isVisible) ->
+            if (signalShowMode >= 1) {
+                refreshVisibility(subId, isVisible)
+            } else {
+                // 双排模式
+                val isAirplane = MobileViewHelper.isAirplaneModeOn()
+                val slotIndex = SubscriptionManager.getSlotIndex(subId)
+                val shouldShow = !isAirplane &&
+                    (MobileViewHelper.isSingleSimMode() || slotIndex == 0)
+                updateVisibility(isVisible, shouldShow)
+            }
+        }
+    }
+
+    // ==================== 广播监听 ====================
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     @Synchronized
-    private fun registerDefaultDataSubChangedReceiver(context: Context) {
+    private fun registerReceiver(context: Context) {
         if (broadcastRegistered) return
         broadcastRegistered = true
 
@@ -126,25 +179,34 @@ class MobilePublicHookV : BaseHook() {
             addAction("android.intent.action.AIRPLANE_MODE")
         }
         context.registerReceiver(object : BroadcastReceiver() {
+            @RequiresPermission(allOf = [Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.READ_PHONE_STATE])
             override fun onReceive(ctx: Context?, intent: Intent?) {
-                val isAirplane = MobileViewHelper.isAirplaneModeOn()
-                val isSingle = MobileViewHelper.isSingleSimMode()
-                visibilityFlows.forEach { (subId, isVisible) ->
-                    val slotIndex = SubscriptionManager.getSlotIndex(subId)
-                    val shouldShow = !isAirplane && (isSingle || (slotIndex == 0))
-                    updateVisibility(isVisible, shouldShow)
-                }
+                refreshAllVisibility()
             }
         }, filter)
+
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        cm.registerDefaultNetworkCallback(
+            object : ConnectivityManager.NetworkCallback() {
+                @RequiresPermission(allOf = [Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.READ_PHONE_STATE])
+                override fun onAvailable(network: Network) = refreshAllVisibility()
+
+                @RequiresPermission(allOf = [Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.READ_PHONE_STATE])
+                override fun onLost(network: Network) = refreshAllVisibility()
+
+                @RequiresPermission(allOf = [Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.READ_PHONE_STATE])
+                override fun onCapabilitiesChanged(
+                    network: Network,
+                    networkCapabilities: NetworkCapabilities
+                ) = refreshAllVisibility()
+            }
+        )
     }
 
     private fun updateIconState(param: AfterHookParam, fieldName: String, key: String) {
         val opt = mPrefsMap.getStringAsInt(key, 0)
         if (opt != 0) {
-            val value = when (opt) {
-                1 -> true
-                else -> false
-            }
+            val value = opt == 1
             param.thisObject.setObjectField(fieldName, newReadonlyStateFlow(value))
         }
     }

@@ -152,6 +152,20 @@
         <item>@string/status_bar_icon_mode_off</item>
     </string-array>
 
+    <string-array name="status_bar_icon_signal_mode">
+        <item>@string/status_bar_icon_mode_default</item>
+        <item>@string/status_bar_icon_mode_on_non_wifi</item>
+        <item>@string/status_bar_mobile_mode_on_status_bar</item>
+        <item>@string/status_bar_mobile_mode_2_on_status_bar</item>
+    </string-array>
+
+    <string-array name="status_bar_icon_signal_mode_value">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
     <string-array name="control_center_sunshine_mode">
         <item>@string/control_center_sunshine_mode_default</item>
         <item>@string/control_center_sunshine_mode_one</item>

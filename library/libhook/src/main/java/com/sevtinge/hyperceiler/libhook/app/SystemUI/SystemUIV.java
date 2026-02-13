@@ -292,11 +292,13 @@ public class SystemUIV extends BaseLoad {
         // 移动网络图标
         boolean isEnabledDualRowSignal = mPrefsMap.getBoolean("system_ui_statusbar_network_icon_enable");
         initHook(new DualRowSignalHookV(), isEnabledDualRowSignal && !(
+                mPrefsMap.getStringAsInt("system_ui_status_bar_icon_mobile_network_signal_mode", 0) != 0 ||
                 mPrefsMap.getBoolean("system_ui_status_bar_icon_mobile_network_hide_card_1") ||
-                    mPrefsMap.getBoolean("system_ui_status_bar_icon_mobile_network_hide_card_2")
+                mPrefsMap.getBoolean("system_ui_status_bar_icon_mobile_network_hide_card_2")
             )
         );
         initHook(new MobilePublicHookV(), isEnabledDualRowSignal ||
+            mPrefsMap.getStringAsInt("system_ui_status_bar_icon_mobile_network_signal_mode", 0) != 0 ||
             mPrefsMap.getBoolean("system_ui_status_bar_icon_mobile_network_hide_card_1") ||
             mPrefsMap.getBoolean("system_ui_status_bar_icon_mobile_network_hide_card_2") ||
             mPrefsMap.getBoolean("system_ui_status_bar_mobile_hide_roaming_icon") ||

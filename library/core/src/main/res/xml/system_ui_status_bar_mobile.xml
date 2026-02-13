@@ -24,6 +24,13 @@
     <PreferenceCategory android:title="@string/system_ui_statusbar_iconmanage_title">
         <fan.preference.DropDownPreference
             android:defaultValue="0"
+            android:key="prefs_key_system_ui_status_bar_icon_mobile_network_signal_mode"
+            android:title="@string/system_ui_status_bar_icon_mobile_network_signal_mode"
+            app:entries="@array/status_bar_icon_signal_mode"
+            app:entryValues="@array/status_bar_icon_signal_mode_value" />
+
+        <fan.preference.DropDownPreference
+            android:defaultValue="0"
             android:key="prefs_key_system_ui_status_bar_icon_mobile_network_signal_no_card"
             android:title="@string/system_ui_status_bar_icon_mobile_network_signal_no_card"
             app:entries="@array/status_bar_icon_mode_new"
