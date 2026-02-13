@@ -73,11 +73,11 @@ import com.sevtinge.hyperceiler.hooker.systemui.StatusBarSettings;
 import com.sevtinge.hyperceiler.hooker.systemui.TileSettings;
 import com.sevtinge.hyperceiler.hooker.systemui.statusbar.BatteryStyleSettings;
 import com.sevtinge.hyperceiler.hooker.systemui.statusbar.DoubleLineNetworkSettings;
+import com.sevtinge.hyperceiler.hooker.systemui.statusbar.FocusNotification;
 import com.sevtinge.hyperceiler.hooker.systemui.statusbar.IconManageNewSettings;
 import com.sevtinge.hyperceiler.hooker.systemui.statusbar.MobileNetworkTypeSettings;
 import com.sevtinge.hyperceiler.hooker.systemui.statusbar.NetworkSpeedIndicatorSettings;
 import com.sevtinge.hyperceiler.hooker.systemui.statusbar.NewClockIndicatorSettings;
-import com.sevtinge.hyperceiler.hooker.systemui.statusbar.StrongToastSettings;
 import com.sevtinge.hyperceiler.hooker.various.AOSPSettings;
 import com.sevtinge.hyperceiler.libhook.utils.api.ThreadPoolManager;
 import com.sevtinge.hyperceiler.libhook.utils.log.AndroidLog;
@@ -138,13 +138,13 @@ public class SearchHelper {
         parsePrefXml(context, MobileNetworkTypeSettings.class, R.xml.system_ui_status_bar_mobile_network_type,
                 R.string.system_ui,
                 R.string.system_ui_statusbar_title,
-                R.string.system_ui_statusbar_iconmanage_title
+                R.string.system_ui_status_bar_mobile_title
         );
 
         parsePrefXml(context, DoubleLineNetworkSettings.class, R.xml.system_ui_status_bar_doubleline_network,
                 R.string.system_ui,
                 R.string.system_ui_statusbar_title,
-                R.string.system_ui_statusbar_iconmanage_title
+                R.string.system_ui_status_bar_mobile_title
         );
 
         parsePrefXml(context, BatteryStyleSettings.class, R.xml.system_ui_status_bar_battery_styles,
@@ -165,8 +165,8 @@ public class SearchHelper {
                 R.string.system_ui_statusbar_title
         );
 
-        parsePrefXml(context, StrongToastSettings.class,
-                R.xml.system_ui_status_bar_strong_toast,
+        parsePrefXml(context, FocusNotification.class,
+                R.xml.system_ui_status_bar_focus_notif,
                 R.string.system_ui,
                 R.string.system_ui_statusbar_title
         );

@@ -643,12 +643,15 @@
     <string name="system_ui_navigation_frame_custom_height_land">Horizontal navigation frame height</string>
     <string name="system_ui_statusbar_title">Status bar</string>
     <string name="system_ui_statusbar_iconmanage_title">Manage icons</string>
+    <string name="system_ui_status_bar_mobile_title">Mobile network</string>
     <string name="system_ui_statusbar_network_speed_indicator_title">Manage network speed indicator</string>
     <string name="system_ui_statusbar_clock_title">Manage clock indicator</string>
+    <string name="system_ui_statusbar_focus_notif_title">Focus notification</string>
     <string name="system_ui_statusbar_strong_toast_title">Smart strong toast</string>
     <string name="system_ui_statusbar_music_title">Focus lyrics</string>
     <string name="system_ui_status_bar_double_tap_to_sleep">Double-tap status bar to sleep</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_title">Double row signal bar</string>
+    <string name="system_ui_statusbar_iconmanage_nosupport_mobile_network">This feature is disabled because the mobile network signal card icon is currently hidden</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme">Icon themes</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_classic">Classic</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_oa">Rounded</string>

@@ -584,12 +584,15 @@
     <string name="system_ui_navigation_frame_custom_height_land">横屏导航栏框架高度</string>
     <string name="system_ui_statusbar_title">状态栏</string>
     <string name="system_ui_statusbar_iconmanage_title">图标</string>
+    <string name="system_ui_status_bar_mobile_title">移动网络</string>
     <string name="system_ui_statusbar_network_speed_indicator_title">网速指示器</string>
     <string name="system_ui_statusbar_clock_title">时钟指示器</string>
+    <string name="system_ui_statusbar_focus_notif_title">焦点通知</string>
     <string name="system_ui_statusbar_strong_toast_title">灵动舞台</string>
     <string name="system_ui_statusbar_music_title">焦点歌词</string>
     <string name="system_ui_status_bar_double_tap_to_sleep">双击状态栏锁屏</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_title">双排移动网络图标</string>
+    <string name="system_ui_statusbar_iconmanage_nosupport_mobile_network">当前因隐藏信号卡图标，此功能将禁止使用</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme">图标主题</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_classic">经典</string>
     <string name="system_ui_statusbar_iconmanage_mobile_network_icon_theme_oa">圆滑</string>

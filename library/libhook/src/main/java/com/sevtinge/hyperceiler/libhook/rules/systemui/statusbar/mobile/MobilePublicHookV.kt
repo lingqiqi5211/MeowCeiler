@@ -67,7 +67,7 @@ class MobilePublicHookV : BaseHook() {
                     newReadonlyStateFlow(false)
                 }
 
-                if (isEnableDouble) {
+                if (isEnableDouble && !(card1 || card2)) {
                     // 双排信号：始终显示 slot 0，隐藏 slot 1+（飞行模式时全部隐藏）
                     cellularIcon.setObjectField("isVisible", isVisible)
                     visibilityFlows[subId] = isVisible
