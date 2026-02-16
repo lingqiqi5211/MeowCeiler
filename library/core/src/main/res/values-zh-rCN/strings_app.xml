@@ -1523,6 +1523,9 @@
     <string name="scanner_excel">解锁提取表格</string>
     <string name="scanner_ppt">解锁提取 PPT</string>
     <string name="scanner_doc_ppt">解锁扫文件</string>
+    <!--小米服务框架-->
+    <string name="xmsf">小米服务框架</string>
+    <string name="xmsf_unlock_foucs_app_sign_white_list">解锁焦点通知白名单签名验证</string>
     <!--通话管理-->
     <string name="telecom">通话管理</string>
     <string name="scam_reminder_bypass_caption">允许直接拨打呼叫转移 MMI 码</string>
@@ -1544,6 +1547,7 @@
     <!--Health-->
     <string name="health">小米运动健康</string>
     <string name="health_disable_splash_ad">禁用开屏广告</string>
+    <string name="health_unlock_foucs_app_sign_white_list_title">允许所有应用发送焦点通知到手表/手环</string>
     <!--剪贴板与常用语-->
     <string name="phrase">剪贴板与常用语</string>
     <!--其他-->
