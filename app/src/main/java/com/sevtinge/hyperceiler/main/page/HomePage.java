@@ -42,6 +42,7 @@ import com.sevtinge.hyperceiler.main.page.main.HomeFragment;
 
 import fan.appcompat.app.ActionBar;
 import fan.preference.PreferenceFragment;
+import fan.recyclerview.card.CardItemDecoration;
 
 public class HomePage extends PageFragment
     implements IFragmentChange, ModSearchCallback.OnSearchListener,
@@ -50,8 +51,10 @@ public class HomePage extends PageFragment
     private View mSearchBar;
     private TextView mSearchInputView;
     private RecyclerView mSearchResultView;
+    private View mScrollableViewGroup; // 主内容区域
     private ModSearchAdapter mSearchAdapter;
     private ModSearchCallback mSearchCallBack;
+    private boolean mInSearchMode = false;
 
     @Override
     public PreferenceFragment getPreferenceFragment() {
@@ -68,23 +71,35 @@ public class HomePage extends PageFragment
         mSearchBar = view.findViewById(R.id.search_bar);
         mSearchInputView = view.findViewById(android.R.id.input);
         mSearchResultView = view.findViewById(R.id.search_result);
+        mScrollableViewGroup = view.findViewById(R.id.scrollable_view_group);
 
         if (mSearchAdapter == null) {
             mSearchAdapter = new ModSearchAdapter();
             mSearchResultView.setLayoutManager(new LinearLayoutManager(requireContext()));
+            mSearchResultView.addItemDecoration(new CardItemDecoration(requireContext()));
+            mSearchResultView.setItemAnimator(null);
             mSearchResultView.setAdapter(mSearchAdapter);
             mSearchAdapter.setOnItemClickListener((v, ad) -> onSearchItemClickListener(ad));
         }
-        mSearchInputView.setHint(getResources().getString(com.sevtinge.hyperceiler.core.R.string.search));
-
+        mSearchInputView.setHint(getResources().getString(
+            com.sevtinge.hyperceiler.core.R.string.search));
         mSearchBar.setOnClickListener(v -> onTextSearch());
     }
 
-    void findMod(String filter) {
-        mSearchResultView.setVisibility(filter.isEmpty() ? View.GONE : View.VISIBLE);
-        ModSearchAdapter adapter = (ModSearchAdapter) mSearchResultView.getAdapter();
-        if (adapter == null) return;
-        adapter.getFilter(requireContext()).filter(filter);
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        if (newText == null || newText.isEmpty()) {
+            mSearchResultView.setVisibility(View.GONE);
+        } else {
+            mSearchResultView.setVisibility(View.VISIBLE);
+            mSearchAdapter.submitSearch(requireContext(), newText);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
     }
 
     public void onTextSearch() {
@@ -108,27 +123,22 @@ public class HomePage extends PageFragment
     }
 
     @Override
-    public boolean onQueryTextChange(String newText) {
-        findMod(newText);
-        return true;
-    }
-
-    @Override
-    public boolean onQueryTextSubmit(String query) {
-        return false;
-    }
-
-
-    @Override
     public void onCreateSearchMode(ActionMode mode, Menu menu) {
+        mInSearchMode = true;
         if (isAdded()) {
-            mNestedHeaderLayout.getScrollableView().setVisibility(View.INVISIBLE);
+            mScrollableViewGroup.setVisibility(View.GONE);
         }
     }
 
     @Override
     public void onDestroySearchMode(ActionMode mode) {
-        mNestedHeaderLayout.getScrollableView().setVisibility(View.VISIBLE);
+        mInSearchMode = false;
+        mSearchResultView.setVisibility(View.GONE);
+        mScrollableViewGroup.setVisibility(View.VISIBLE);
+        if (mNestedHeaderLayout != null) {
+            mNestedHeaderLayout.getScrollableView().setVisibility(View.VISIBLE);
+        }
+        mSearchAdapter.submitSearch(requireContext(), "");
     }
 
     private void onSearchItemClickListener(ModData ad) {
@@ -137,11 +147,11 @@ public class HomePage extends PageFragment
         args.putString(":settings:fragment_args_key", ad.key);
         args.putInt(":settings:fragment_resId", ad.xml);
         SettingLauncherHelper.onStartSettingsForArguments(
-                requireContext(),
-                SubSettings.class,
-                ad.fragment,
-                args,
-                ad.catTitleResId
+            requireContext(),
+            SubSettings.class,
+            ad.fragment,
+            args,
+            ad.catTitleResId
         );
     }
 
@@ -149,5 +159,14 @@ public class HomePage extends PageFragment
     public void onEnter(ActionBar actionBar) {}
 
     @Override
-    public void onLeave(ActionBar actionBar) {}
+    public void onLeave(ActionBar actionBar) {
+        // 确保搜索结果隐藏
+        if (mSearchResultView != null) {
+            mSearchResultView.setVisibility(View.GONE);
+        }
+        if (mScrollableViewGroup != null) {
+            mScrollableViewGroup.setVisibility(View.VISIBLE);
+        }
+    }
+
 }

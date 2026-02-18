@@ -53,6 +53,19 @@ public class PageFragment extends Fragment {
     @Override
     public void onViewInflated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewInflated(view, savedInstanceState);
+
+        view.setBackground(null);
+        if (mNestedHeaderLayout != null) {
+            mNestedHeaderLayout.setBackground(null);
+        }
+        View scrollableGroup = view.findViewById(R.id.scrollable_view_group);
+        if (scrollableGroup != null) {
+            scrollableGroup.setBackground(null);
+        }
+        View scrollview = view.findViewById(R.id.scrollview);
+        if (scrollview != null) {
+            scrollview.setBackground(null);
+        }
     }
 
     public void setSearchViewEnabled() {
