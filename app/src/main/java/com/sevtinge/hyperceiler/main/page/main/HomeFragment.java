@@ -22,7 +22,7 @@ import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
-import android.os.Looper;
+import android.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.preference.PreferenceCategory;
@@ -40,6 +40,8 @@ import com.sevtinge.hyperceiler.utils.XmlResourceParserHelper;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import fan.preference.TextButtonPreference;
 
@@ -99,8 +101,56 @@ public class HomeFragment extends PagePreferenceFragment implements HomepageEntr
             final SharedPreferences sp = getSharedPreferences();
             XmlResourceParserHelper.processCachedXmlResource(getResources(), R.xml.prefs_set_homepage_entrance,
                 (key, summary) -> processSwitchPreference(key, sp));
+
+            // 先收集所有需要加载图标的 header
+            List<Pair<PreferenceHeader, String>> pendingHeaders = new ArrayList<>();
             XmlResourceParserHelper.processCachedXmlResource(getResources(), R.xml.prefs_main,
-                (key, summary) -> processPreferenceHeader(key, summary, sp));
+                (key, summary) -> {
+                    processPreferenceHeader(key, summary, sp);
+                    if (key != null && summary != null) {
+                        PreferenceHeader header = findPreference(key);
+                        if (header != null && header.isVisible()) {
+                            pendingHeaders.add(new Pair<>(header, summary));
+                        }
+                    }
+                });
+
+            // 批量加载所有图标
+            if (!pendingHeaders.isEmpty()) {
+                mAppsList.setVisible(false);
+                new Thread(() -> {
+                    PackageManager pm = requireContext().getPackageManager();
+                    List<Runnable> uiUpdates = new ArrayList<>();
+
+                    for (Pair<PreferenceHeader, String> pair : pendingHeaders) {
+                        String packageName = pair.second;
+                        try {
+                            pm.getPackageInfo(packageName, 0);
+                        } catch (PackageManager.NameNotFoundException e) {
+                            continue;
+                        }
+                        ApplicationInfo appInfo = AppInfoCache.getInstance(getContext()).getAppInfo(packageName);
+                        if (appInfo == null) continue;
+
+                        Drawable icon = appInfo.loadIcon(pm);
+                        CharSequence name = appInfo.loadLabel(pm);
+
+                        uiUpdates.add(() -> {
+                            pair.first.setIcon(icon);
+                            if (!"android".equals(packageName)) {
+                                pair.first.setTitle(name);
+                            }
+                        });
+                    }
+
+                    if (!isAdded()) return;
+                    requireActivity().runOnUiThread(() -> {
+                        for (Runnable r : uiUpdates) r.run();
+                        mAppsList.setVisible(true);
+                    });
+                }, "BatchIconLoader").start();
+            }
+
         } catch (XmlPullParserException | IOException e) {
             AndroidLog.e(TAG, "An error occurred when reading the XML:", e);
         }
@@ -119,49 +169,11 @@ public class HomeFragment extends PagePreferenceFragment implements HomepageEntr
 
     private void processPreferenceHeader(String key, String summary, SharedPreferences sp) {
         if (key == null || summary == null) return;
-
         PreferenceHeader header = findPreference(key);
         if (header == null) return;
-
-        setIconAndTitle(header, summary);
         String title = header.getTitle() != null ? header.getTitle().toString() : "";
         String summary1 = header.getSummary() != null ? header.getSummary().toString() : "";
         header.setVisible(LSPosedScopeHelper.isInSelectedScope(requireContext(), title, summary1, key, sp));
-    }
-
-    private void setIconAndTitle(PreferenceHeader header, String packageName) {
-        if (header == null || packageName == null) return;
-        PackageManager pm = requireContext().getPackageManager();
-
-        try {
-            pm.getPackageInfo(packageName, 0);
-        } catch (PackageManager.NameNotFoundException e) {
-            return;
-        }
-
-        ApplicationInfo appInfo = AppInfoCache.getInstance(getContext()).getAppInfo(packageName);
-        if (appInfo == null) return;
-
-        mAppsList.setVisible(false);
-        Runnable loadAndApply = () -> {
-            Drawable icon = appInfo.loadIcon(pm);
-            CharSequence name = appInfo.loadLabel(pm);
-
-            if (!isAdded()) return;
-            requireActivity().runOnUiThread(() -> {
-                header.setIcon(icon);
-                if (!"android".equals(packageName)) {
-                    header.setTitle(name);
-                }
-                mAppsList.setVisible(true);
-            });
-        };
-
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            new Thread(loadAndApply, "SetIconAndTitle").start();
-        } else {
-            loadAndApply.run();
-        }
     }
 
     @Override
