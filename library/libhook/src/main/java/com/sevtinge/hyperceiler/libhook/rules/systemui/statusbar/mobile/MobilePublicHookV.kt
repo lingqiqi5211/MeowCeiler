@@ -59,6 +59,9 @@ class MobilePublicHookV : BaseHook() {
     @Volatile
     private var broadcastRegistered = false
 
+    @Volatile
+    private var pairCtor: java.lang.reflect.Constructor<*>? = null
+
     @RequiresPermission(allOf = [Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.READ_PHONE_STATE])
     override fun init() {
         miuiCellularIconVM.hookAllConstructors {
@@ -112,23 +115,28 @@ class MobilePublicHookV : BaseHook() {
     }
 
     // ==================== Flow 工具 ====================
+    private fun needPairFlow(): Boolean {
+        return isMoreAndroidVersion(36) || isMoreHyperOSVersion(3f)
+    }
+
+    private fun newPair(value: Boolean): Any {
+        val ctor = pairCtor ?: loadClass("kotlin.Pair")
+            .getConstructor(Object::class.java, Object::class.java)
+            .also { pairCtor = it }
+        return ctor.newInstance(value, value)
+    }
+
     private fun createVisibilityFlow(): Any {
-        return if (isMoreAndroidVersion(36) || isMoreHyperOSVersion(3f)) {
-            val pair = loadClass("kotlin.Pair")
-                .getConstructor(Object::class.java, Object::class.java)
-                .newInstance(false, false)
-            newReadonlyStateFlow(pair)
+        return if (needPairFlow()) {
+            newReadonlyStateFlow(newPair(false))
         } else {
             newReadonlyStateFlow(false)
         }
     }
 
     private fun updateVisibility(isVisible: Any, shouldShow: Boolean) {
-        if (isMoreAndroidVersion(36) || isMoreHyperOSVersion(3f)) {
-            val pair = loadClass("kotlin.Pair")
-                .getConstructor(Object::class.java, Object::class.java)
-                .newInstance(shouldShow, shouldShow)
-            setStateFlowValue(isVisible, pair)
+        if (needPairFlow()) {
+            setStateFlowValue(isVisible, newPair(shouldShow))
         } else {
             setStateFlowValue(isVisible, shouldShow)
         }
@@ -152,17 +160,22 @@ class MobilePublicHookV : BaseHook() {
 
     @RequiresPermission(allOf = [Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.READ_PHONE_STATE])
     private fun refreshAllVisibility() {
+        val isAirplane = MobileViewHelper.isAirplaneModeOn()
+        val isSingleSim = MobileViewHelper.isSingleSimMode()
+        val defaultDataSubId = SubscriptionManager.getDefaultDataSubscriptionId()
+
         visibilityFlows.forEach { (subId, isVisible) ->
-            if (signalShowMode >= 1) {
-                refreshVisibility(subId, isVisible)
+            val shouldShow = if (signalShowMode >= 1) {
+                when (signalShowMode) {
+                    1 -> !isAirplane && !isWifiConnected()
+                    2 -> !isAirplane && subId == defaultDataSubId && isMobileDataConnected()
+                    3 -> !isAirplane && subId == defaultDataSubId
+                    else -> !isAirplane && (isSingleSim || SubscriptionManager.getSlotIndex(subId) == 0)
+                }
             } else {
-                // 双排模式
-                val isAirplane = MobileViewHelper.isAirplaneModeOn()
-                val slotIndex = SubscriptionManager.getSlotIndex(subId)
-                val shouldShow = !isAirplane &&
-                    (MobileViewHelper.isSingleSimMode() || slotIndex == 0)
-                updateVisibility(isVisible, shouldShow)
+                !isAirplane && (isSingleSim || SubscriptionManager.getSlotIndex(subId) == 0)
             }
+            updateVisibility(isVisible, shouldShow)
         }
     }
 
@@ -195,10 +208,9 @@ class MobilePublicHookV : BaseHook() {
                 override fun onLost(network: Network) = refreshAllVisibility()
 
                 @RequiresPermission(allOf = [Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.READ_PHONE_STATE])
-                override fun onCapabilitiesChanged(
-                    network: Network,
-                    networkCapabilities: NetworkCapabilities
-                ) = refreshAllVisibility()
+                override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+                    refreshAllVisibility()
+                }
             }
         )
     }
@@ -206,8 +218,7 @@ class MobilePublicHookV : BaseHook() {
     private fun updateIconState(param: AfterHookParam, fieldName: String, key: String) {
         val opt = mPrefsMap.getStringAsInt(key, 0)
         if (opt != 0) {
-            val value = opt == 1
-            param.thisObject.setObjectField(fieldName, newReadonlyStateFlow(value))
+            param.thisObject.setObjectField(fieldName, newReadonlyStateFlow(opt == 1))
         }
     }
 }

@@ -88,7 +88,8 @@ class DualRowSignalHookV : StatusBarViewUtils() {
     @Volatile
     private var networkControllerInstance: Any? = null
 
-    // ==================== 框架回调 ====================
+    @Volatile
+    private var dualSignalResLoaded = false
 
     override fun onCreateViewConfig() = statusBarViewConfig {
         hookPoint = StatusBarViewConfig.HookPoint.MOBILE_CONSTRUCT_AND_BIND
@@ -106,16 +107,8 @@ class DualRowSignalHookV : StatusBarViewUtils() {
         val signalContainer = ctx.getSignalContainer() ?: return
         val mobileSignal = ctx.getMobileSignal() ?: return
 
-        // 判断当前活跃 SIM 卡数量
-        val simCount = getActiveMobileControllerCount()
-        val isDualSim = simCount > 1
+        if (getActiveMobileControllerCount() <= 1) return
 
-        // 单卡模式：保留系统原始图标，不做任何修改
-        if (!isDualSim) {
-            return
-        }
-
-        // 设置 mobile_group 边距
         mobileGroup.setPadding(
             DisplayUtils.dp2px(leftMargin * 0.5f), 0,
             DisplayUtils.dp2px(rightMargin * 0.5f), 0
@@ -155,8 +148,7 @@ class DualRowSignalHookV : StatusBarViewUtils() {
 
         val signalLp = ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT,
-            if (iconScale != 10) DisplayUtils.dp2px(iconScale * 2.0f)
-            else ViewGroup.LayoutParams.MATCH_PARENT
+            if (iconScale != 10) DisplayUtils.dp2px(iconScale * 2.0f) else ViewGroup.LayoutParams.MATCH_PARENT
         )
         dualContainer.addView(slot1, ViewGroup.LayoutParams(signalLp))
         dualContainer.addView(slot2, ViewGroup.LayoutParams(signalLp))
@@ -164,45 +156,42 @@ class DualRowSignalHookV : StatusBarViewUtils() {
         // 给双排容器分配 ID 以供约束引用（替代 mobile_signal 的锚点角色）
         val dualContainerId = View.generateViewId()
         dualContainer.id = dualContainerId
-
         signalContainer.addView(dualContainer)
 
         // 约束双排容器到 parent end（与 mobile_signal 原位置一致）
         try {
             val dlp = dualContainer.layoutParams
-            dlp.javaClass.getField("endToEnd").setInt(dlp, 0)     // PARENT_ID
+            dlp.javaClass.getField("endToEnd").setInt(dlp, 0)
             dlp.javaClass.getField("topToTop").setInt(dlp, 0)
             dlp.javaClass.getField("bottomToBottom").setInt(dlp, 0)
             dualContainer.layoutParams = dlp
-        } catch (_: Throwable) {}
+        } catch (_: Throwable) {
+        }
 
         mobileSignal.visibility = View.GONE
 
         if (isMoreHyperOSVersion(3f)) {
             // 修正小 5G 定位：将约束锚点从 mobile_signal 切换到 dualContainer（左上角）
             (signalContainer.findViewByIdName("mobile_type") as? ImageView)?.let { mobileType ->
-                try {
+                runCatching {
                     val lp = mobileType.layoutParams
                     lp.javaClass.getField("endToStart").setInt(lp, dualContainerId)
                     lp.javaClass.getField("topToTop").setInt(lp, dualContainerId)
                     mobileType.layoutParams = lp
-                } catch (_: Throwable) {}
+                }
             }
 
             // 修正移动指示器定位：将约束锚点从 mobile_signal 切换到 dualContainer（左下角）
             (signalContainer.findViewByIdName("mobile_left_mobile_inout") as? ImageView)?.let { inout ->
-                try {
+                runCatching {
                     val lp = inout.layoutParams
                     lp.javaClass.getField("endToStart").setInt(lp, dualContainerId)
                     lp.javaClass.getField("bottomToBottom").setInt(lp, dualContainerId)
                     lp.javaClass.getField("topToTop").setInt(lp, -1)
                     inout.layoutParams = lp
-                } catch (_: Throwable) {}
+                }
             }
-        }
-
-        // 调整小标签的上边距（非 OS3）
-        if (!isMoreHyperOSVersion(3f)) {
+        } else {
             fun adjustTopMargin(view: View?) {
                 (view?.layoutParams as? FrameLayout.LayoutParams)?.let {
                     it.topMargin = -18
@@ -216,8 +205,7 @@ class DualRowSignalHookV : StatusBarViewUtils() {
 
         // 垂直偏移
         if (verticalOffset != 40) {
-            dualContainer.translationY =
-                DisplayUtils.dp2px((verticalOffset - 40) * 0.1f).toFloat()
+            dualContainer.translationY = DisplayUtils.dp2px((verticalOffset - 40) * 0.1f).toFloat()
         }
 
         // 缓存视图（每张卡的 View 都缓存）
@@ -229,24 +217,9 @@ class DualRowSignalHookV : StatusBarViewUtils() {
         }
 
         // 小 5G 定位尺寸
-        setDensityReplacement(
-            "com.android.systemui",
-            "dimen",
-            "status_bar_mobile_type_half_to_top_distance",
-            3f
-        )
-        setDensityReplacement(
-            "com.android.systemui",
-            "dimen",
-            "status_bar_mobile_left_inout_over_strength",
-            0f
-        )
-        setDensityReplacement(
-            "com.android.systemui",
-            "dimen",
-            "status_bar_mobile_type_middle_to_strength_start",
-            -0.4f
-        )
+        setDensityReplacement("com.android.systemui", "dimen", "status_bar_mobile_type_half_to_top_distance", 3f)
+        setDensityReplacement("com.android.systemui", "dimen", "status_bar_mobile_left_inout_over_strength", 0f)
+        setDensityReplacement("com.android.systemui", "dimen", "status_bar_mobile_type_middle_to_strength_start", -0.4f)
     }
 
     /**
@@ -254,8 +227,7 @@ class DualRowSignalHookV : StatusBarViewUtils() {
      * 所以这里同时承担反色和信号图标刷新。
      */
     override fun onDarkModeChanged(ctx: StatusBarViewContext, darkInfo: DarkInfo) {
-        val subId = ctx.subId
-        if (subId == -1 || simSignalLevels.isEmpty()) return
+        if (ctx.subId == -1 || simSignalLevels.isEmpty()) return
 
         // 保存当前反色状态到 rootView
         ctx.rootView.setAdditionalInstanceField("dualDarkIsUseTint", darkInfo.isUseTint)
@@ -276,9 +248,7 @@ class DualRowSignalHookV : StatusBarViewUtils() {
     private fun getActiveMobileControllerCount(): Int {
         val controller = networkControllerInstance ?: return 0
         return try {
-            val controllers = controller
-                .getObjectFieldAs<SparseArray<*>>("mMobileSignalControllers")
-            controllers.size
+            controller.getObjectFieldAs<SparseArray<*>>("mMobileSignalControllers").size
         } catch (e: Throwable) {
             XposedLog.w(TAG, lpparam.packageName, "getActiveMobileControllerCount error: ${e.message}")
             0
@@ -293,24 +263,20 @@ class DualRowSignalHookV : StatusBarViewUtils() {
             .filterByName("onCreate")
             .single()
             .createHook {
-                var isHooked = false
                 after { param ->
-                    if (!isHooked) {
-                        isHooked = true
-                        val modRes = getModuleRes(
-                            param.thisObject.callMethodAs<Context>("getApplicationContext")
-                        )
-                        (1..2).forEach { slot ->
-                            (0..5).forEach { lvl ->
-                                arrayOf("", "dark", "tint").forEach { colorMode ->
-                                    val isUseTint = colorMode == "tint"
-                                    val isLight = colorMode.isNotEmpty()
-                                    val resName =
-                                        getSignalIconResName(slot, lvl, isUseTint, isLight)
-                                    dualSignalResMap[resName] = modRes.getIdentifier(
-                                        resName, "drawable", ProjectApi.mAppModulePkg
-                                    )
-                                }
+                    if (dualSignalResLoaded) return@after
+                    dualSignalResLoaded = true
+
+                    val modRes = getModuleRes(param.thisObject.callMethodAs<Context>("getApplicationContext"))
+                    (1..2).forEach { slot ->
+                        (0..5).forEach { lvl ->
+                            arrayOf("", "dark", "tint").forEach { mode ->
+                                val isUseTint = mode == "tint"
+                                val isLight = mode.isNotEmpty()
+                                val resName = getSignalIconResName(slot, lvl, isUseTint, isLight)
+                                dualSignalResMap[resName] = modRes.getIdentifier(
+                                    resName, "drawable", ProjectApi.mAppModulePkg
+                                )
                             }
                         }
                     }
@@ -318,10 +284,8 @@ class DualRowSignalHookV : StatusBarViewUtils() {
             }
     }
 
-    // ==================== 信号监听 ====================
-
     private fun listenMobileSignal() {
-        // Hook notifyListeners：记录每张 SIM 的信号等级和 dataSim 状态
+        // 记录每张 SIM 的信号等级和 dataSim 状态
         mobileSignalController.methodFinder()
             .filterByName("notifyListeners")
             .single()
@@ -329,35 +293,19 @@ class DualRowSignalHookV : StatusBarViewUtils() {
                 after { param ->
                     val signalController = param.thisObject
 
-                    // 同时捕获 NetworkControllerImpl 实例
                     if (networkControllerInstance == null) {
-                        runCatching {
-                            networkControllerInstance =
-                                signalController.getObjectField("mNetworkController")
-                        }
+                        runCatching { networkControllerInstance = signalController.getObjectField("mNetworkController") }
                     }
 
-                    val subscriptionInfo =
-                        signalController.getObjectFieldAs<Any>("mSubscriptionInfo")
-                    val subscriptionId =
-                        subscriptionInfo.callMethodAs<Int>("getSubscriptionId")
-                    val currentState =
-                        signalController.getObjectFieldAs<Any>("mCurrentState")
+                    val subscriptionInfo = signalController.getObjectFieldAs<Any>("mSubscriptionInfo")
+                    val subscriptionId = subscriptionInfo.callMethodAs<Int>("getSubscriptionId")
+                    val currentState = signalController.getObjectFieldAs<Any>("mCurrentState")
+
                     val dataSim = currentState.getBooleanField("dataSim")
                     val connected = currentState.getBooleanField("connected")
                     val signalStrength = currentState.getObjectField("signalStrength")
-                    val rawLevel = if (!connected) {
-                        0
-                    } else {
-                        signalStrength?.callMethodAs<Int>("getMiuiLevel") ?: 0
-                    }
-
-                    // OS3 rawLevel >= 2 时需要 +1
-                    val level = if (isMoreHyperOSVersion(3f) && rawLevel >= 2) {
-                        rawLevel + 1
-                    } else {
-                        rawLevel
-                    }
+                    val rawLevel = if (!connected) 0 else signalStrength?.callMethodAs<Int>("getMiuiLevel") ?: 0
+                    val level = if (isMoreHyperOSVersion(3f) && rawLevel >= 2) rawLevel + 1 else rawLevel
 
                     // 记录旧状态用于变化检测
                     val oldLevel = simSignalLevels[subscriptionId]
@@ -367,20 +315,12 @@ class DualRowSignalHookV : StatusBarViewUtils() {
                     simSignalLevels[subscriptionId] = level
                     simDataSimState[subscriptionId] = dataSim
 
-                    // 检测是否有变化（包括 level 变化和 dataSim 切换）
-                    val levelChanged = oldLevel != level
-                    val dataSimChanged = oldDataSim != null && oldDataSim != dataSim
-
-                    if (!levelChanged && !dataSimChanged) {
-                        return@after
-                    }
-
-                    // 刷新所有缓存视图
+                    if (oldLevel == level && (oldDataSim == null || oldDataSim == dataSim)) return@after
                     refreshAllCachedViews()
                 }
             }
 
-        // Hook setCurrentSubscriptionsLocked：捕获 NetworkController 实例 + SIM 变化时重置信号数据
+        // 捕获 NetworkController 实例 + SIM 变化时重置信号数据
         networkController.methodFinder()
             .filterByName("setCurrentSubscriptionsLocked")
             .single()
@@ -390,10 +330,7 @@ class DualRowSignalHookV : StatusBarViewUtils() {
                     networkControllerInstance = networkCtrl
 
                     val subList = param.args[0] as List<*>
-                    val currentSubscriptions =
-                        networkCtrl.getObjectFieldAs<List<*>>("mCurrentSubscriptions")
-
-                    // 提取新 subId 集合
+                    val currentSubscriptions = networkCtrl.getObjectFieldAs<List<*>>("mCurrentSubscriptions")
                     val newSubIds = subList.filterNotNull().mapNotNull { subInfo ->
                         runCatching { subInfo.callMethodAs<Int>("getSubscriptionId") }.getOrNull()
                     }.toSet()
@@ -419,18 +356,12 @@ class DualRowSignalHookV : StatusBarViewUtils() {
     /** @return Pair(dataSimLevel, noDataSimLevel) */
     private fun getSignalLevelsForRender(): Pair<Int, Int> {
         val defaultDataSubId = SubscriptionManager.getDefaultDataSubscriptionId()
-
         var dataSimLevel = 0
         var noDataSimLevel = 0
 
         simSignalLevels.forEach { (subId, level) ->
-            if (subId == defaultDataSubId) {
-                dataSimLevel = level
-            } else {
-                noDataSimLevel = level
-            }
+            if (subId == defaultDataSubId) dataSimLevel = level else noDataSimLevel = level
         }
-
         return Pair(dataSimLevel, noDataSimLevel)
     }
 
@@ -440,52 +371,36 @@ class DualRowSignalHookV : StatusBarViewUtils() {
         isLight: Boolean,
         color: Int? = null
     ) {
-        val dualContainer =
-            rootView.findViewWithTag<FrameLayout>(TAG_DUAL_CONTAINER) ?: return
+        val dualContainer = rootView.findViewWithTag<FrameLayout>(TAG_DUAL_CONTAINER) ?: return
         if (dualContainer.visibility != View.VISIBLE) return
 
-        val slot1 =
-            dualContainer.findViewWithTag<ImageView>(TAG_SIGNAL_SLOT1) ?: return
-        val slot2 =
-            dualContainer.findViewWithTag<ImageView>(TAG_SIGNAL_SLOT2) ?: return
+        val slot1 = dualContainer.findViewWithTag<ImageView>(TAG_SIGNAL_SLOT1) ?: return
+        val slot2 = dualContainer.findViewWithTag<ImageView>(TAG_SIGNAL_SLOT2) ?: return
 
         val (dataLevel, noDataLevel) = getSignalLevelsForRender()
-
         val forceUseTint = selectedIconStyle != "theme"
 
-        val slot1ResId = dualSignalResMap[getSignalIconResName(
-            1, dataLevel,
-            isUseTint = forceUseTint || isUseTint,
-            isLight = isLight
-        )]
-        val slot2ResId = dualSignalResMap[getSignalIconResName(
-            2, noDataLevel,
-            isUseTint = forceUseTint || isUseTint,
-            isLight = isLight
-        )]
+        val slot1ResId = dualSignalResMap[getSignalIconResName(1, dataLevel, forceUseTint || isUseTint, isLight)]
+        val slot2ResId = dualSignalResMap[getSignalIconResName(2, noDataLevel, forceUseTint || isUseTint, isLight)]
+        if (slot1ResId == null || slot2ResId == null) return
 
-        if (slot1ResId != null && slot2ResId != null) {
-            slot1.setImageResource(slot1ResId)
-            slot2.setImageResource(slot2ResId)
+        slot1.setImageResource(slot1ResId)
+        slot2.setImageResource(slot2ResId)
 
-            val tintList = if (forceUseTint) {
-                when {
-                    isUseTint && color != null -> ColorStateList.valueOf(color)
-                    isUseTint -> {
-                        (rootView.findViewByIdName("mobile_signal") as? ImageView)?.imageTintList
-                    }
-                    isLight -> ColorStateList.valueOf(Color.WHITE)
-                    else -> null
-                }
-            } else {
-                color?.let { c ->
-                    if (isUseTint) ColorStateList.valueOf(c) else null
-                } ?: (rootView.findViewByIdName("mobile_signal") as? ImageView)?.imageTintList
+        val baseTint = (rootView.findViewByIdName("mobile_signal") as? ImageView)?.imageTintList
+        val tintList = if (forceUseTint) {
+            when {
+                isUseTint && color != null -> ColorStateList.valueOf(color)
+                isUseTint -> baseTint
+                isLight -> ColorStateList.valueOf(Color.WHITE)
+                else -> null
             }
-
-            slot1.imageTintList = tintList
-            slot2.imageTintList = tintList
+        } else {
+            if (isUseTint && color != null) ColorStateList.valueOf(color) else baseTint
         }
+
+        slot1.imageTintList = tintList
+        slot2.imageTintList = tintList
     }
 
     /** 刷新所有缓存视图的双排信号图标（使用存储的反色状态） */
@@ -503,18 +418,8 @@ class DualRowSignalHookV : StatusBarViewUtils() {
     }
 
     // ==================== 图标资源名称生成 ====================
-
-    private fun getSignalIconResName(
-        slot: Int,
-        level: Int,
-        isUseTint: Boolean,
-        isLight: Boolean
-    ): String {
-        val iconStyle = if (selectedIconStyle.isNotEmpty()) {
-            "_$selectedIconStyle"
-        } else {
-            ""
-        }
+    private fun getSignalIconResName(slot: Int, level: Int, isUseTint: Boolean, isLight: Boolean): String {
+        val iconStyle = if (selectedIconStyle.isNotEmpty()) "_$selectedIconStyle" else ""
         val colorMode = if (!isUseTint || selectedIconStyle == "theme") {
             if (!isLight) "_dark" else ""
         } else {
