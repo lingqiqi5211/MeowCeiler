@@ -138,7 +138,7 @@ jobs:
           COMMIT_MESSAGE: |+
             New push to GitHub
             Branch: OS2
-            ${{ env.USE_FULL_MESSAGE == 'true' && format('```{0}```', env.TRUNCATED_COMMIT_MSG) || env.TRUNCATED_COMMIT_MSG }}
+            ${{ format('```{0}```', env.TRUNCATED_COMMIT_MSG) }}
             by `${{ github.event.head_commit.author.name }}`
             See commit detail [here](${{ github.event.head_commit.url }})
         run: |
