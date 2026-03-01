@@ -256,8 +256,8 @@ object MobileTypeSingle2Hook : BaseHook() {
 
                             if (isEnableDouble) {
                                 val defaultConnections = runCatching {
-                                    interactor.getObjectFieldAs<Any>("connectRepo")
-                                        .getObjectFieldAs<Any>("defaultConnections")
+                                    interactor?.getObjectFieldAs<Any>("connectRepo")
+                                        ?.getObjectFieldAs<Any>("defaultConnections")
                                 }.getOrNull()
 
                                 if (defaultConnections != null) {
@@ -318,7 +318,7 @@ object MobileTypeSingle2Hook : BaseHook() {
                                     flow
                                 } else {
                                     // 使用系统原始 isDataConnected Flow
-                                    interactor.getObjectFieldAs("isDataConnected")
+                                    interactor?.getObjectFieldAs("isDataConnected")
                                 }
                             )
                         }
