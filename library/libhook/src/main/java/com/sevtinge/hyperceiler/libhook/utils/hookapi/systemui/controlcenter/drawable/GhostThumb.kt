@@ -18,9 +18,18 @@
  */
 package com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.drawable
 
-// https://github.com/HowieHChen/XiaomiHelper/blob/6a0e424ad9276205fdf47f523cc6c8bb72e49e7f/app/src/main/kotlin/dev/lackluster/mihelper/hook/drawable/AnimationState.kt
-enum class AnimationState {
-    STARTING,
-    RUNNING,
-    DONE
+import android.graphics.Canvas
+import android.graphics.ColorFilter
+import android.graphics.PixelFormat
+import android.graphics.drawable.Drawable
+
+// https://github.com/HowieHChen/XiaomiHelper/blob/6a0e424ad9276205fdf47f523cc6c8bb72e49e7f/app/src/main/kotlin/dev/lackluster/mihelper/hook/drawable/GhostThumb.kt
+class GhostThumb(private val w: Int, private val h: Int) : Drawable() {
+    override fun getIntrinsicWidth() = w
+    override fun getIntrinsicHeight() = h
+    override fun draw(canvas: Canvas) {}
+    override fun setAlpha(alpha: Int) {}
+    override fun setColorFilter(cf: ColorFilter?) {}
+    @Deprecated("Deprecated in Java")
+    override fun getOpacity() = PixelFormat.TRANSLUCENT
 }

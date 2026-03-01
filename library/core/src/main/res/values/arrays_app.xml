@@ -600,6 +600,18 @@
         <item>2</item>
     </string-array>
 
+    <string-array name="system_ui_island_media_control_ambient_light_mode">
+        <item>@string/array_default</item>
+        <item>@string/disable</item>
+        <item>@string/customization</item>
+    </string-array>
+
+    <string-array name="system_ui_island_media_control_ambient_light_mode_value">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
     <string-array name="system_ui_control_center_media_control_button_mode">
         <item>@string/array_default</item>
         <item>@string/media_control_button_mode_1</item>

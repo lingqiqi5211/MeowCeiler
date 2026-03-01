@@ -38,12 +38,13 @@ import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.OldWeather;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.RedirectToNotificationChannelSetting;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.UnimportantNotification;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.ZenModeFix;
-import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.media2.CustomBackground;
-import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.media2.MediaViewLayout;
-import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.media2.MediaViewSize;
-import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.media2.UnlockCustomActions;
-import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.media2.b.MediaPicture;
-import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.media2.b.MediaSeekBar;
+import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.media3.AlwaysDark;
+import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.media3.AmbientLight;
+import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.media3.CustomBackground;
+import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.media3.MediaSeekBar;
+import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.media3.MediaViewLayout;
+import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.media3.MediaViewSize;
+import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.media3.NewUnlockCustomActions;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.tiles.AutoCollapse;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.tiles.FiveGTile;
 import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.tiles.FixTilesList;
@@ -156,7 +157,7 @@ public class SystemUIB extends BaseLoad {
         // 时钟指示器
         initHook(StatusBarClockNew.INSTANCE, mPrefsMap.getBoolean("system_ui_statusbar_clock_all_status_enable"));
 
-        // 焦点歌词
+        // 焦点通知
         /*if (mPrefsMap.getBoolean("system_ui_statusbar_music_switch")) {
             initHook(FocusNotifLyric.INSTANCE);
             initHook(HideFakeStatusBar.INSTANCE, mPrefsMap.getBoolean("system_ui_statusbar_music_hide_clock") && !isPad());
@@ -196,17 +197,18 @@ public class SystemUIB extends BaseLoad {
         initHook(new FixTilesList(), mPrefsMap.getBoolean("system_ui_control_center_fix_tiles_list"));
 
         // Media Card
-        initHook(new UnlockCustomActions(), mPrefsMap.getBoolean("system_ui_control_center_media_control_unlock_custom_actions"));
-        initHook(MediaControlBgFactory.INSTANCE, mPrefsMap.getStringAsInt("system_ui_control_center_media_control_background_mode", 0) != 0);
-        initHook(CustomBackground.INSTANCE, mPrefsMap.getStringAsInt("system_ui_control_center_media_control_background_mode", 0) != 0);
+        int ncBgMode = mPrefsMap.getStringAsInt("system_ui_control_center_media_control_background_mode", 0);
+        int diBgMode = mPrefsMap.getStringAsInt("system_ui_island_media_control_background_mode", 0);
+        initHook(NewUnlockCustomActions.INSTANCE, mPrefsMap.getBoolean("system_ui_control_center_media_control_unlock_custom_actions"));
+        initHook(MediaControlBgFactory.INSTANCE, ncBgMode != 0 || diBgMode != 0);
+        initHook(CustomBackground.INSTANCE, ncBgMode != 0 || diBgMode != 0);
         initHook(MediaViewLayout.INSTANCE, mPrefsMap.getBoolean("system_ui_control_center_media_control_media_button_layout_switch"));
         initHook(MediaViewSize.INSTANCE, mPrefsMap.getBoolean("system_ui_control_center_media_control_media_button_size_switch"));
-        initHook(MediaPicture.INSTANCE, mPrefsMap.getBoolean("system_ui_control_center_media_control_album_picture_rounded_corners") ||
-            mPrefsMap.getStringAsInt("system_ui_control_center_media_control_media_album_mode", 0) == 1);
-        initHook(MediaSeekBar.INSTANCE, mPrefsMap.getInt("system_ui_control_center_media_control_seekbar_color", -1) != -1
-            || mPrefsMap.getInt("system_ui_control_center_media_control_seekbar_thumb_color", -1) != -1
-            || mPrefsMap.getStringAsInt("system_ui_control_center_media_control_progress_mode", 0) != 0
-            || mPrefsMap.getStringAsInt("system_ui_control_center_media_control_progress_thumb_mode", 0) != 0);
+        initHook(MediaSeekBar.INSTANCE, mPrefsMap.getBoolean("system_ui_control_center_media_control_progress_on") ||
+            mPrefsMap.getBoolean("system_ui_island_media_control_progress_on"));
+        // OS3
+        initHook(AmbientLight.INSTANCE, ncBgMode == 0 || diBgMode == 0);
+        initHook(AlwaysDark.INSTANCE, ncBgMode == 0 && mPrefsMap.getBoolean("system_ui_control_center_media_control_always_dark"));
 
         // Other
         initHook(DoubleTapToSleep.INSTANCE, mPrefsMap.getBoolean("system_ui_status_bar_double_tap_to_sleep"));

@@ -18,6 +18,7 @@
 */
 package com.sevtinge.hyperceiler.libhook.utils.hookapi
 
+import android.content.Context
 import android.content.res.Resources.getSystem
 import android.view.Window
 import io.github.kyuubiran.ezxhelper.core.extension.MemberExtension.isStatic
@@ -212,3 +213,6 @@ fun Any.invokeMethod(
 
 val Int.dp: Int get() = (this.toFloat().dp).toInt()
 val Float.dp: Float get() = this / getSystem().displayMetrics.density
+
+fun Number.dp(context: Context) = dpFloat(context).toInt()
+fun Number.dpFloat(context: Context) = toFloat() * context.resources.displayMetrics.density

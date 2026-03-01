@@ -16,12 +16,12 @@
 
  * Copyright (C) 2023-2026 HyperCeiler Contributions
  */
-package com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.mediabackground
+package com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.progress
 
-// https://github.com/HowieHChen/XiaomiHelper/blob/b1ab58484326372575a72f6509580cc60c272300/app/src/main/kotlin/dev/lackluster/mihelper/hook/rules/systemui/media/bg/MediaViewColorConfig.kt
-data class MediaViewColorConfig(
-    val textPrimary: Int,
-    val textSecondary: Int,
-    val bgStartColor: Int,
-    val bgEndColor: Int,
-)
+// https://github.com/HowieHChen/XiaomiHelper/blob/6a0e424ad9276205fdf47f523cc6c8bb72e49e7f/app/src/main/kotlin/dev/lackluster/mihelper/hook/view/ThumbStyle.kt
+enum class ThumbStyle {
+    Circle,
+    VerticalBar,
+    RoundRect,
+    Hidden
+}

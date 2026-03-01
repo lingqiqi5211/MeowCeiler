@@ -16,17 +16,23 @@
 
  * Copyright (C) 2023-2026 HyperCeiler Contributions
  */
-package com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.mediabackground
+package com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.mediabg
 
 import android.content.Context
+import android.graphics.Canvas
 import android.graphics.drawable.Drawable
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.MediaControlBgFactory.brightness
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.MediaControlBgFactory.toSquare
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.drawable.LinearGradientDrawable
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.drawable.MediaControlBgDrawable
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.drawable.RadialGradientDrawable
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.media.MediaViewColorConfig
 import com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils
 
-// https://github.com/HowieHChen/XiaomiHelper/blob/b1ab58484326372575a72f6509580cc60c272300/app/src/main/kotlin/dev/lackluster/mihelper/hook/rules/systemui/media/bg/RadialGradientProcessor.kt
-class RadialGradientProcessor : BgProcessor {
+// https://github.com/HowieHChen/XiaomiHelper/blob/6a0e424ad9276205fdf47f523cc6c8bb72e49e7f/app/src/main/kotlin/dev/lackluster/mihelper/hook/rules/systemui/media/bg/LinearGradientProcessor.kt
+class LinearGradientProcessor : BgProcessor {
+    private val allowReverse = PrefsUtils.mPrefsMap.getBoolean("system_ui_control_center_media_control_inverse_color")
     private val useAnim = PrefsUtils.mPrefsMap.getBoolean("system_ui_control_center_media_control_control_color_anim")
 
     override fun convertToColorConfig(
@@ -36,11 +42,32 @@ class RadialGradientProcessor : BgProcessor {
         accent1: List<Int>,
         accent2: List<Int>
     ): MediaViewColorConfig {
+        // 获取 Bitmap 并缩小用于亮度分析
+        val artworkBitmap = createBitmap(artwork.intrinsicWidth, artwork.intrinsicHeight)
+        Canvas(artworkBitmap).also {
+            artwork.setBounds(0, 0, artwork.intrinsicWidth, artwork.intrinsicHeight)
+            artwork.draw(it)
+        }
+        val tmpBitmapXS = artworkBitmap.scale(66, 66)
+        artworkBitmap.recycle()
+
+        val textPrimary: Int
+        val backgroundPrimary: Int
+        val bright = tmpBitmapXS.brightness()
+        tmpBitmapXS.recycle()
+
+        if (allowReverse && bright >= 192) {
+            textPrimary = accent1[8]
+            backgroundPrimary = accent1[3]
+        } else {
+            textPrimary = accent1[2]
+            backgroundPrimary = accent1[8]
+        }
         return MediaViewColorConfig(
-            neutral1[1],
-            neutral2[3],
-            accent2[9],
-            accent1[9]
+            textPrimary,
+            textPrimary,
+            backgroundPrimary,
+            backgroundPrimary
         )
     }
 
@@ -58,7 +85,7 @@ class RadialGradientProcessor : BgProcessor {
         artwork: Drawable,
         colorConfig: MediaViewColorConfig
     ): MediaControlBgDrawable {
-        return RadialGradientDrawable(
+        return LinearGradientDrawable(
             artwork,
             colorConfig,
             useAnim

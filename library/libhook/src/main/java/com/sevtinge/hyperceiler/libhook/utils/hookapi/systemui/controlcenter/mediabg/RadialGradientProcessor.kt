@@ -16,25 +16,18 @@
 
  * Copyright (C) 2023-2026 HyperCeiler Contributions
  */
-package com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.mediabackground
+package com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.mediabg
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Paint
 import android.graphics.drawable.Drawable
-import androidx.core.graphics.createBitmap
-import androidx.core.graphics.drawable.toBitmap
-import androidx.core.graphics.drawable.toDrawable
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.MediaControlBgFactory.hardwareBlur
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.MediaControlBgFactory.toSquare
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.drawable.MediaControlBgDrawable
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.drawable.RadialMaskedDrawable
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.drawable.TransitionDrawable
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.drawable.RadialGradientDrawable
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.media.MediaViewColorConfig
 import com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils
-import kotlin.math.max
 
-// https://github.com/HowieHChen/XiaomiHelper/blob/b1ab58484326372575a72f6509580cc60c272300/app/src/main/kotlin/dev/lackluster/mihelper/hook/rules/systemui/media/bg/BlurredCoverProcessor.kt
-class BlurredCoverProcessor : BgProcessor {
-    private val blurRadius = PrefsUtils.mPrefsMap.getInt("system_ui_control_center_media_control_panel_background_blur", 10).coerceIn(1, 20)
+// https://github.com/HowieHChen/XiaomiHelper/blob/6a0e424ad9276205fdf47f523cc6c8bb72e49e7f/app/src/main/kotlin/dev/lackluster/mihelper/hook/rules/systemui/media/bg/RadialGradientProcessor.kt
+class RadialGradientProcessor : BgProcessor {
     private val useAnim = PrefsUtils.mPrefsMap.getBoolean("system_ui_control_center_media_control_control_color_anim")
 
     override fun convertToColorConfig(
@@ -59,25 +52,17 @@ class BlurredCoverProcessor : BgProcessor {
         width: Int,
         height: Int
     ): Drawable {
-        val bitmap = RadialMaskedDrawable(artwork, colorConfig.bgStartColor, colorConfig.bgEndColor)
-            .toBitmap()
-            .hardwareBlur(height.toFloat() / 100 * blurRadius)
-        val finalSize = max(bitmap.width, bitmap.height)
-        val newBitmap = createBitmap(finalSize, finalSize)
-        val canvas = Canvas(newBitmap)
-        val deltaW = (bitmap.width - finalSize) / 2f
-        val deltaH = (bitmap.height - finalSize) / 2f
-        canvas.drawBitmap(bitmap, -deltaW, -deltaH, Paint())
-        if (!bitmap.isRecycled) {
-            bitmap.recycle()
-        }
-        return newBitmap.toDrawable(context.resources)
+        return artwork.toSquare(context.resources, false, colorConfig.bgStartColor)
     }
 
     override fun createBackground(
         artwork: Drawable,
         colorConfig: MediaViewColorConfig
     ): MediaControlBgDrawable {
-        return TransitionDrawable(artwork, colorConfig, useAnim)
+        return RadialGradientDrawable(
+            artwork,
+            colorConfig,
+            useAnim
+        )
     }
 }

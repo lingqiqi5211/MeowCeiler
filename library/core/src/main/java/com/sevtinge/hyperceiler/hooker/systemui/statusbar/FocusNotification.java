@@ -18,6 +18,7 @@
  */
 package com.sevtinge.hyperceiler.hooker.systemui.statusbar;
 
+import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Miui.isPad;
 import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isMoreSmallVersion;
 
 import androidx.preference.Preference;
@@ -28,6 +29,7 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.miuiStringToast.MiuiString
 
 public class FocusNotification extends DashboardFragment {
 
+    Preference mIslandMediaCard;
     Preference mShortToast;
     Preference mLongToast;
 
@@ -38,12 +40,18 @@ public class FocusNotification extends DashboardFragment {
 
     @Override
     public void initPrefs() {
+        mIslandMediaCard = findPreference("prefs_key_system_ui_status_bar_island_media_card");
         mShortToast = findPreference("prefs_key_system_ui_status_bar_strong_toast_test_short_text");
         mLongToast = findPreference("prefs_key_system_ui_status_bar_strong_toast_test_long_text");
 
         if (isMoreSmallVersion(200, 2f)) {
             setFuncHint(mShortToast, 1);
             setFuncHint(mLongToast, 1);
+        }
+        if (!isMoreSmallVersion(300, 3f)) {
+            if (isPad()) {
+                setFuncHint(mIslandMediaCard, 1);
+            }
         }
 
         mShortToast.setOnPreferenceClickListener(preference -> {

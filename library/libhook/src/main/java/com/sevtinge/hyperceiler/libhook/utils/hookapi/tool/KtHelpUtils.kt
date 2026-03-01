@@ -230,7 +230,7 @@ fun Any.getAdditionalInstanceField(field: String): Any? =
     EzxHelpUtils.getAdditionalInstanceField(this, field)
 
 fun <T> Any.getAdditionalInstanceFieldAs(field: String) =
-    EzxHelpUtils.getAdditionalInstanceField(this, field) as T
+    EzxHelpUtils.getAdditionalInstanceField(this, field) as? T
 
 fun Any.setAdditionalInstanceField(
     field: String,
