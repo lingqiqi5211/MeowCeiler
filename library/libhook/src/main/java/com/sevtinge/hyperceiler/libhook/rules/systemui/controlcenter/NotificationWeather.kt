@@ -35,6 +35,8 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils.findMeth
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callMethodAs
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callStaticMethod
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callStaticMethodAs
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getDimenByName
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getIdByName
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectFieldAs
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
@@ -227,11 +229,7 @@ object NotificationWeather : BaseHook() {
 
             val resources = context.resources
             setTextAppearance(
-                resources.getIdentifier(
-                    appearance,
-                    "style",
-                    context.packageName
-                )
+                context.getIdByName(appearance, "style")
             )
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -239,11 +237,7 @@ object NotificationWeather : BaseHook() {
             ).apply {
                 gravity = Gravity.CENTER_VERTICAL
                 marginStart = resources.getDimensionPixelSize(
-                    resources.getIdentifier(
-                        "notification_panel_time_date_space",
-                        "dimen",
-                        context.packageName
-                    )
+                    context.getDimenByName("notification_panel_time_date_space")
                 ) + dp2px(5f)
             }
 

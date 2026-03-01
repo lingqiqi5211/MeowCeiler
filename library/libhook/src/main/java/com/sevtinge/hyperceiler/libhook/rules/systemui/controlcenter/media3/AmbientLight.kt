@@ -54,6 +54,7 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.beforeHookMethod
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.findField
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.findFieldOrNull
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getAdditionalInstanceFieldAs
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getIdByName
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectFieldOrNull
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectFieldOrNullAs
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.setAdditionalInstanceField
@@ -95,7 +96,7 @@ object AmbientLight : BaseHook() {
     var inFullAod = false
 
     private val mediaBgViewId by lazy {
-        appContext.resources.getIdentifier("media_bg_view", "id", lpparam.packageName)
+        appContext.getIdByName("media_bg_view")
     }
 
     private val fldIsPlaying by lazy { mediaData?.findFieldOrNull("isPlaying") }

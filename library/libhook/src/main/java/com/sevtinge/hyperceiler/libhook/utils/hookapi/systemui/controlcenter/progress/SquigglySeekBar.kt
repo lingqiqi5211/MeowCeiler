@@ -39,7 +39,7 @@ import com.sevtinge.hyperceiler.libhook.utils.api.MathUtils.lerp
 import com.sevtinge.hyperceiler.libhook.utils.api.MathUtils.lerpInv
 import com.sevtinge.hyperceiler.libhook.utils.api.MathUtils.lerpInvSat
 import com.sevtinge.hyperceiler.libhook.utils.api.MathUtils.linearInterpolate
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.dp
+import com.sevtinge.hyperceiler.libhook.utils.api.dp
 import kotlin.math.abs
 import kotlin.math.cos
 

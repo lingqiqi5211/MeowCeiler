@@ -43,7 +43,6 @@ import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Miui.isPad
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isMoreSmallVersion
 import com.sevtinge.hyperceiler.libhook.utils.api.HostExecutor
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.getValueByField
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.MediaControlBgFactory.defaultColorConfig
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.MediaControlBgFactory.fldColorSchemeAccent1
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.MediaControlBgFactory.fldColorSchemeAccent2
@@ -78,8 +77,11 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.beforeHookMethod
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.findField
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getAdditionalInstanceFieldAs
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getBooleanField
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getDimenByName
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getIdByName
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectFieldOrNull
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectFieldOrNullAs
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getValueByField
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.replaceMethod
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.setAdditionalInstanceField
 import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog
@@ -103,13 +105,13 @@ object CustomBackground : BaseHook() {
     }
 
     private val mediaBgId by lazy {
-        appContext.resources.getIdentifier("media_bg", "id", lpparam.packageName)
+        appContext.getIdByName("media_bg")
     }
     private val mediaBgViewId by lazy {
-        appContext.resources.getIdentifier("media_bg_view", "id", lpparam.packageName)
+        appContext.getIdByName("media_bg_view")
     }
     private val mediaBgRadiusDi by lazy {
-        appContext.resources.getIdentifier("media_control_bg_radius", "dimen", lpparam.packageName)
+        appContext.getDimenByName("media_control_bg_radius")
     }
 
     private var ncProcessor: BgProcessor? = null

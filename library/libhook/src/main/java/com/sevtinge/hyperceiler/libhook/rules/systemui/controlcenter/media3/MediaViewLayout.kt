@@ -45,6 +45,7 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.afterHookConstructor
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.afterHookMethod
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.beforeHookMethod
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.findField
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getIdByName
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectFieldOrNull
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectFieldOrNullAs
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.setObjectField
@@ -55,37 +56,37 @@ object MediaViewLayout : BaseHook() {
     // ==================== 资源 ID ====================
 
     private val headerTitle by lazy {
-        appContext.resources.getIdentifier("header_title", "id", lpparam.packageName)
+        appContext.getIdByName("header_title")
     }
     private val headerArtist by lazy {
-        appContext.resources.getIdentifier("header_artist", "id", lpparam.packageName)
+        appContext.getIdByName("header_artist")
     }
     private val icon by lazy {
-        appContext.resources.getIdentifier("icon", "id", lpparam.packageName)
+        appContext.getIdByName("icon")
     }
     private val albumArt by lazy {
-        appContext.resources.getIdentifier("album_art", "id", lpparam.packageName)
+        appContext.getIdByName("album_art")
     }
     private val mediaSeamless by lazy {
-        appContext.resources.getIdentifier("media_seamless", "id", lpparam.packageName)
+        appContext.getIdByName("media_seamless")
     }
     private val actions by lazy {
-        appContext.resources.getIdentifier("actions", "id", lpparam.packageName)
+        appContext.getIdByName("actions")
     }
     private val action0 by lazy {
-        appContext.resources.getIdentifier("action0", "id", lpparam.packageName)
+        appContext.getIdByName("action0")
     }
     private val action1 by lazy {
-        appContext.resources.getIdentifier("action1", "id", lpparam.packageName)
+        appContext.getIdByName("action1")
     }
     private val action2 by lazy {
-        appContext.resources.getIdentifier("action2", "id", lpparam.packageName)
+        appContext.getIdByName("action2")
     }
     private val action3 by lazy {
-        appContext.resources.getIdentifier("action3", "id", lpparam.packageName)
+        appContext.getIdByName("action3")
     }
     private val action4 by lazy {
-        appContext.resources.getIdentifier("action4", "id", lpparam.packageName)
+        appContext.getIdByName("action4")
     }
 
     // ==================== 通知中心配置 ====================

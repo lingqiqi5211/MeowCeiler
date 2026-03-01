@@ -37,7 +37,7 @@ import android.view.MotionEvent
 import android.widget.SeekBar
 import androidx.core.graphics.withClip
 import com.sevtinge.hyperceiler.libhook.utils.api.MathUtils.linearInterpolate
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.dp
+import com.sevtinge.hyperceiler.libhook.utils.api.dp
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.drawable.GhostThumb
 
 // https://github.com/HowieHChen/XiaomiHelper/blob/6a0e424ad9276205fdf47f523cc6c8bb72e49e7f/app/src/main/kotlin/dev/lackluster/mihelper/hook/view/CometSeekBar.kt

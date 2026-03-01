@@ -24,6 +24,7 @@ import android.widget.TextView
 
 import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.WeatherView
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getIdByName
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.setObjectField
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
@@ -53,35 +54,22 @@ object OldWeather : BaseHook() {
 
                 layoutParam.setObjectField(
                     "endToStart",
-                    context.resources.getIdentifier(
-                        "notification_shade_shortcut",
-                        "id",
-                        context.packageName
-                    )
+                    context.getIdByName("notification_shade_shortcut")
                 )
                 layoutParam.setObjectField(
                     "topToTop",
-                    context.resources.getIdentifier(
-                        "notification_shade_shortcut",
-                        "id",
-                        context.packageName
-                    )
+                    context.getIdByName("notification_shade_shortcut")
                 )
                 layoutParam.setObjectField(
                     "bottomToBottom",
-                    context.resources.getIdentifier(
-                        "notification_shade_shortcut",
-                        "id",
-                        context.packageName
-                    )
+                    context.getIdByName("notification_shade_shortcut")
                 )
 
                 mWeatherView = WeatherView(context, isDisplayCity).apply {
                     setTextAppearance(
-                        context.resources.getIdentifier(
+                        context.getIdByName(
                             "TextAppearance.StatusBar.Expanded.Clock.QuickSettingDate",
-                            "style",
-                            context.packageName
+                            "style"
                         )
                     )
                     layoutParams = layoutParam

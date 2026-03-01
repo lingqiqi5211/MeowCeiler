@@ -32,8 +32,8 @@ import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.media3.Cust
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Hardware.isDarkMode
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isMoreAndroidVersion
 import com.sevtinge.hyperceiler.libhook.utils.api.DisplayUtils.dp2px
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.dp
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.dpFloat
+import com.sevtinge.hyperceiler.libhook.utils.api.dp
+import com.sevtinge.hyperceiler.libhook.utils.api.dpFloat
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.PublicClass.hyperProgressSeekBar
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.PublicClass.mediaViewHolderNew
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.PublicClass.miuiIslandMediaViewBinderImpl
@@ -50,6 +50,7 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.afterHookMethod
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.beforeHookMethod
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.findFieldOrNull
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getAdditionalInstanceField
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getIdByName
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectFieldOrNull
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectFieldOrNullAs
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.setAdditionalInstanceField
@@ -159,7 +160,7 @@ object MediaSeekBar : BaseHook() {
     }
 
     private val mediaBgViewId by lazy {
-        appContext.resources.getIdentifier("media_progress_bar", "id", lpparam.packageName)
+        appContext.getIdByName("media_progress_bar")
     }
 
     override fun init() {
