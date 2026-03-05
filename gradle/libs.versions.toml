@@ -1,6 +1,6 @@
 [versions]
 # Build tools
-agp = "9.0.1"
+agp = "9.1.0"
 lsparanoid = "0.6.0"
 autoService = "1.1.1"
 
@@ -27,7 +27,7 @@ expansions = "1.0.0"
 gson = "2.13.2"
 hyperfocusapi = "2.0"
 lunarcalendar = "latest.release"
-superLyricApi = "2.4"
+superLyricApi = "2.5"
 
 [libraries]
 # AndroidX
