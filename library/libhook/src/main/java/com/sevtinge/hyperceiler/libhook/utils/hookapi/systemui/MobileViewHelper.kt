@@ -109,7 +109,7 @@ object MobileViewHelper {
     @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
     fun isSingleSimMode(): Boolean {
         return try {
-            val sm = SubscriptionManager.from(EzXposed.appContext)
+            val sm = EzXposed.appContext.getSystemService(SubscriptionManager::class.java)
             sm.activeSubscriptionInfoCount <= 1
         } catch (_: Throwable) {
             false

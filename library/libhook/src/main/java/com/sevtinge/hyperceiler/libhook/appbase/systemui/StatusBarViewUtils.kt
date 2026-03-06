@@ -27,7 +27,6 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobileClass.moder
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobileClass.statusBarIconControllerImpl
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobileViewHelper
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callMethodAs
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getAdditionalInstanceField
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getIntField
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectField
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.hookAllConstructors
@@ -37,6 +36,7 @@ import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFi
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createAfterHook
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
+import java.lang.reflect.Method
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 
@@ -191,6 +191,32 @@ abstract class StatusBarViewUtils : BaseHook() {
 
     private fun hookTintLightColorFlow() {
         val javaAdapterKt = loadClass("com.android.systemui.util.kotlin.JavaAdapterKt")
+        val targetSlot = config.targetSlot
+
+        // 反色状态变化追踪
+        var lastRawTintState: String = ""
+
+        // 缓存 Triple 方法引用，避免热路径反复反射查找
+        var tripleGetFirst: Method? = null
+        var tripleGetSecond: Method? = null
+        var tripleGetThird: Method? = null
+
+        fun resolveTripleMethods(triple: Any) {
+            if (tripleGetFirst != null) return
+            val cls = triple.javaClass
+            tripleGetFirst = cls.getMethod("getFirst")
+            tripleGetSecond = cls.getMethod("getSecond")
+            tripleGetThird = cls.getMethod("getThird")
+        }
+
+        fun extractDarkInfo(triple: Any): DarkInfo {
+            resolveTripleMethods(triple)
+            return DarkInfo.fromTintLightColor(
+                isUseTint = tripleGetFirst!!.invoke(triple) as Boolean,
+                isLight = tripleGetSecond!!.invoke(triple) as Boolean,
+                color = tripleGetThird!!.invoke(triple) as Int
+            )
+        }
 
         // Hook setImageResWithTintLight（新版直接方法 / 旧版 access$ 方法）
         val setImageResMethod = miuiMobileIconBinder.methodFinder()
@@ -200,14 +226,18 @@ abstract class StatusBarViewUtils : BaseHook() {
         setImageResMethod?.createHook {
             before { param ->
                 val icon = param.args[0] as? ImageView ?: return@before
-                val pair = param.args[2] ?: return@before
+                val triple = param.args[2] ?: return@before
 
-                val ctx = MobileViewHelper.buildContextFromSignalView(icon, config.targetSlot) ?: return@before
-                val darkInfo = DarkInfo.fromTintLightColor(
-                    isUseTint = pair.callMethodAs("getFirst"),
-                    isLight = pair.callMethodAs("getSecond"),
-                    color = pair.callMethodAs<Int>("getThird")
-                )
+                val ctx = MobileViewHelper.buildContextFromSignalView(icon, targetSlot) ?: return@before
+                val darkInfo = extractDarkInfo(triple)
+
+                val rawState = "${darkInfo.isUseTint}|${darkInfo.isLight}|${darkInfo.color?.let { "0x${Integer.toHexString(it)}" }}"
+                if (rawState != lastRawTintState) {
+                    lastRawTintState = rawState
+                    XposedLog.d(TAG, lpparam.packageName,
+                        "setImageResWithTintLight: subId=${ctx.subId}, isUseTint=${darkInfo.isUseTint}, isLight=${darkInfo.isLight}, color=${darkInfo.color?.let { "0x${Integer.toHexString(it)}" }}"
+                    )
+                }
 
                 try {
                     onDarkModeChanged(ctx, darkInfo)
@@ -223,33 +253,40 @@ abstract class StatusBarViewUtils : BaseHook() {
             .singleOrNull()
 
         if (resetMethod != null) {
+            XposedLog.d(TAG, lpparam.packageName, "hookTintLightColorFlow: using resetImageWithTintLight path")
             resetMethod.createHook {
                 before { param ->
                     val icon = param.args[0] as? ImageView ?: return@before
                     val isUseTint = param.args[1] as Boolean
                     val isLight = param.args[2] as Boolean
 
-                    val ctx = MobileViewHelper.buildContextFromSignalView(icon, config.targetSlot) ?: return@before
+                    val ctx = MobileViewHelper.buildContextFromSignalView(icon, targetSlot) ?: return@before
+                    // resetImageWithTintLight 没有 color 参数；
+                    // isUseTint=true 时取 icon 当前 tintList，isUseTint=false 时传 null
+                    // 让子类根据 isLight 自行决定颜色
                     val color = if (isUseTint) {
                         icon.imageTintList?.defaultColor
                     } else {
-                        // 非 tint 模式下，从缓存的 darkColor 回退
-                        ctx.rootView.getAdditionalInstanceField("dualDarkColor") as? Int
+                        null
                     }
-                    val darkInfo = DarkInfo.fromTintLightColor(
-                        isUseTint = isUseTint,
-                        isLight = isLight,
-                        color = color
-                    )
+
+                    val rawState = "$isUseTint|$isLight|${color?.let { "0x${Integer.toHexString(it)}" }}|${icon.imageTintList?.defaultColor?.let { "0x${Integer.toHexString(it)}" }}"
+                    if (rawState != lastRawTintState) {
+                        lastRawTintState = rawState
+                        XposedLog.d(TAG, lpparam.packageName,
+                            "resetImageWithTintLight: subId=${ctx.subId}, isUseTint=$isUseTint, isLight=$isLight, derivedColor=${color?.let { "0x${Integer.toHexString(it)}" }}, iconTintList=${icon.imageTintList?.defaultColor?.let { "0x${Integer.toHexString(it)}" } ?: "null"}"
+                        )
+                    }
 
                     try {
-                        onDarkModeChanged(ctx, darkInfo)
+                        onDarkModeChanged(ctx, DarkInfo.fromTintLightColor(isUseTint, isLight, color))
                     } catch (e: Throwable) {
                         XposedLog.e(TAG, lpparam.packageName, "onDarkModeChanged error", e)
                     }
                 }
             }
         } else {
+            XposedLog.d(TAG, lpparam.packageName, "hookTintLightColorFlow: using bind+collectFlow path")
             // 新版：hook bind 方法收集 tintLightColorFlow
             miuiMobileIconBinder.methodFinder()
                 .filterByName("bind")
@@ -268,25 +305,19 @@ abstract class StatusBarViewUtils : BaseHook() {
                         container.findViewByIdName("mobile_signal") as? ImageView
                             ?: return@createAfterHook
 
+                    // 预构建 context 避免 Consumer 内反复遍历 view hierarchy
+                    val cachedCtx = MobileViewHelper.buildContextFromSignalView(mobileSignal, targetSlot)
+                        ?: return@createAfterHook
+
                     javaAdapterKt.callMethodAs(
                         "collectFlow",
                         container,
                         tintLightColorFlow,
                         Consumer<Any> { triple ->
-                            val ctx = MobileViewHelper.buildContextFromSignalView(mobileSignal, config.targetSlot) ?: return@Consumer
-                            val darkInfo = DarkInfo.fromTintLightColor(
-                                isUseTint = triple.callMethodAs("getFirst"),
-                                isLight = triple.callMethodAs("getSecond"),
-                                color = triple.callMethodAs("getThird")
-                            )
-
                             try {
-                                onDarkModeChanged(ctx, darkInfo)
+                                onDarkModeChanged(cachedCtx, extractDarkInfo(triple))
                             } catch (e: Throwable) {
-                                XposedLog.e(
-                                    TAG, lpparam.packageName,
-                                    "onDarkModeChanged error", e
-                                )
+                                XposedLog.e(TAG, lpparam.packageName, "onDarkModeChanged error", e)
                             }
                         }
                     )

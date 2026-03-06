@@ -77,7 +77,7 @@ class DualRowSignalHookV : StatusBarViewUtils() {
         mPrefsMap.getString("system_ui_status_mobile_network_icon_style", "")
     }
 
-    private val dualSignalResMap = HashMap<String, Int>()
+    private val dualSignalResMap = HashMap<String, Int>(64)
 
     /** 每张 SIM 的信号等级，以 subscriptionId 为 key */
     private val simSignalLevels = ConcurrentHashMap<Int, Int>()
@@ -90,6 +90,11 @@ class DualRowSignalHookV : StatusBarViewUtils() {
 
     @Volatile
     private var dualSignalResLoaded = false
+
+    /** 上一次反色状态快照，用于变化时打日志 */
+    private var lastTintState: String = ""
+    /** 每个 subId 上一次 DarkInfo 快照 */
+    private val lastDarkInfoBySubId = ConcurrentHashMap<Int, String>()
 
     override fun onCreateViewConfig() = statusBarViewConfig {
         hookPoint = StatusBarViewConfig.HookPoint.MOBILE_CONSTRUCT_AND_BIND
@@ -107,7 +112,8 @@ class DualRowSignalHookV : StatusBarViewUtils() {
         val signalContainer = ctx.getSignalContainer() ?: return
         val mobileSignal = ctx.getMobileSignal() ?: return
 
-        if (getActiveMobileControllerCount() <= 1) return
+        val activeCount = getActiveMobileControllerCount()
+        if (activeCount <= 1) return
 
         mobileGroup.setPadding(
             DisplayUtils.dp2px(leftMargin * 0.5f), 0,
@@ -229,6 +235,14 @@ class DualRowSignalHookV : StatusBarViewUtils() {
     override fun onDarkModeChanged(ctx: StatusBarViewContext, darkInfo: DarkInfo) {
         if (ctx.subId == -1 || simSignalLevels.isEmpty()) return
 
+        val darkState = "${darkInfo.isUseTint}|${darkInfo.isLight}|${darkInfo.color}"
+        val prev = lastDarkInfoBySubId.put(ctx.subId, darkState)
+        if (prev != darkState) {
+            XposedLog.d(TAG, lpparam.packageName,
+                "onDarkModeChanged: subId=${ctx.subId}, isUseTint=${darkInfo.isUseTint}, isLight=${darkInfo.isLight}, color=${darkInfo.color?.let { "0x${Integer.toHexString(it)}" }}"
+            )
+        }
+
         // 保存当前反色状态到 rootView
         ctx.rootView.setAdditionalInstanceField("dualDarkIsUseTint", darkInfo.isUseTint)
         ctx.rootView.setAdditionalInstanceField("dualDarkIsLight", darkInfo.isLight)
@@ -258,6 +272,20 @@ class DualRowSignalHookV : StatusBarViewUtils() {
     // ==================== 资源加载 ====================
 
     private fun loadDualSignalRes() {
+        // theme 模式只需 base + dark；其它风格需要额外 _tint 变体
+        val colorModes = if (selectedIconStyle == "theme") {
+            arrayOf(
+                Triple("", false, true),      // 基础（light）
+                Triple("dark", false, false)   // dark
+            )
+        } else {
+            arrayOf(
+                Triple("", false, true),      // 基础（light）
+                Triple("dark", false, false),  // dark
+                Triple("tint", true, true)     // tint
+            )
+        }
+
         loadClass("com.android.systemui.SystemUIApplication")
             .methodFinder()
             .filterByName("onCreate")
@@ -268,11 +296,9 @@ class DualRowSignalHookV : StatusBarViewUtils() {
                     dualSignalResLoaded = true
 
                     val modRes = getModuleRes(param.thisObject.callMethodAs<Context>("getApplicationContext"))
-                    (1..2).forEach { slot ->
-                        (0..5).forEach { lvl ->
-                            arrayOf("", "dark", "tint").forEach { mode ->
-                                val isUseTint = mode == "tint"
-                                val isLight = mode.isNotEmpty()
+                    for (slot in 1..2) {
+                        for (lvl in 0..5) {
+                            for ((_, isUseTint, isLight) in colorModes) {
                                 val resName = getSignalIconResName(slot, lvl, isUseTint, isLight)
                                 dualSignalResMap[resName] = modRes.getIdentifier(
                                     resName, "drawable", ProjectApi.mAppModulePkg
@@ -280,11 +306,14 @@ class DualRowSignalHookV : StatusBarViewUtils() {
                             }
                         }
                     }
+                    XposedLog.d(TAG, lpparam.packageName, "loadDualSignalRes: loaded ${dualSignalResMap.size} resources")
                 }
             }
     }
 
     private fun listenMobileSignal() {
+        val isOS3 = isMoreHyperOSVersion(3f)
+
         // 记录每张 SIM 的信号等级和 dataSim 状态
         mobileSignalController.methodFinder()
             .filterByName("notifyListeners")
@@ -305,15 +334,11 @@ class DualRowSignalHookV : StatusBarViewUtils() {
                     val connected = currentState.getBooleanField("connected")
                     val signalStrength = currentState.getObjectField("signalStrength")
                     val rawLevel = if (!connected) 0 else signalStrength?.callMethodAs<Int>("getMiuiLevel") ?: 0
-                    val level = if (isMoreHyperOSVersion(3f) && rawLevel >= 2) rawLevel + 1 else rawLevel
+                    val level = if (isOS3 && rawLevel >= 2) rawLevel + 1 else rawLevel
 
-                    // 记录旧状态用于变化检测
-                    val oldLevel = simSignalLevels[subscriptionId]
-                    val oldDataSim = simDataSimState[subscriptionId]
-
-                    // 更新当前 SIM 的信号等级和 dataSim 状态
-                    simSignalLevels[subscriptionId] = level
-                    simDataSimState[subscriptionId] = dataSim
+                    // 快速变化检测：先检查值再决定是否需要刷新
+                    val oldLevel = simSignalLevels.put(subscriptionId, level)
+                    val oldDataSim = simDataSimState.put(subscriptionId, dataSim)
 
                     if (oldLevel == level && (oldDataSim == null || oldDataSim == dataSim)) return@after
                     refreshAllCachedViews()
@@ -336,12 +361,16 @@ class DualRowSignalHookV : StatusBarViewUtils() {
                     }.toSet()
 
                     if (currentSubscriptions.size != subList.size) {
+                        XposedLog.w(TAG, lpparam.packageName, "setCurrentSubscriptionsLocked: SIM count changed ${currentSubscriptions.size} -> ${subList.size}, clearing all data")
                         simSignalLevels.clear()
                         simDataSimState.clear()
                         clearViewCache()
                     } else if (newSubIds.isNotEmpty()) {
                         // 清理过时 subId（如 eSIM 切换）
                         val staleKeys = simSignalLevels.keys.filter { it !in newSubIds }
+                        if (staleKeys.isNotEmpty()) {
+                            XposedLog.w(TAG, lpparam.packageName, "setCurrentSubscriptionsLocked: removing stale subIds=$staleKeys, active=$newSubIds")
+                        }
                         staleKeys.forEach { key ->
                             simSignalLevels.remove(key)
                             simDataSimState.remove(key)
@@ -353,17 +382,18 @@ class DualRowSignalHookV : StatusBarViewUtils() {
 
     // ==================== 视图刷新 ====================
 
-    /** @return Pair(dataSimLevel, noDataSimLevel) */
-    private fun getSignalLevelsForRender(): Pair<Int, Int> {
+    /** 获取信号等级用于渲染，写入 out 数组：out[0]=dataSimLevel, out[1]=noDataSimLevel */
+    private fun getSignalLevelsForRender(out: IntArray) {
         val defaultDataSubId = SubscriptionManager.getDefaultDataSubscriptionId()
-        var dataSimLevel = 0
-        var noDataSimLevel = 0
-
+        out[0] = 0
+        out[1] = 0
         simSignalLevels.forEach { (subId, level) ->
-            if (subId == defaultDataSubId) dataSimLevel = level else noDataSimLevel = level
+            if (subId == defaultDataSubId) out[0] = level else out[1] = level
         }
-        return Pair(dataSimLevel, noDataSimLevel)
     }
+
+    /** 缓存的信号等级数组，避免热路径分配 */
+    private val renderLevels = IntArray(2)
 
     private fun refreshDualIconsForView(
         rootView: ViewGroup,
@@ -377,44 +407,77 @@ class DualRowSignalHookV : StatusBarViewUtils() {
         val slot1 = dualContainer.findViewWithTag<ImageView>(TAG_SIGNAL_SLOT1) ?: return
         val slot2 = dualContainer.findViewWithTag<ImageView>(TAG_SIGNAL_SLOT2) ?: return
 
-        val (dataLevel, noDataLevel) = getSignalLevelsForRender()
+        getSignalLevelsForRender(renderLevels)
+        val dataLevel = renderLevels[0]
+        val noDataLevel = renderLevels[1]
         val forceUseTint = selectedIconStyle != "theme"
 
-        val slot1ResId = dualSignalResMap[getSignalIconResName(1, dataLevel, forceUseTint || isUseTint, isLight)]
-        val slot2ResId = dualSignalResMap[getSignalIconResName(2, noDataLevel, forceUseTint || isUseTint, isLight)]
-        if (slot1ResId == null || slot2ResId == null) return
+        val slot1ResName = getSignalIconResName(1, dataLevel, forceUseTint || isUseTint, isLight)
+        val slot2ResName = getSignalIconResName(2, noDataLevel, forceUseTint || isUseTint, isLight)
+        val slot1ResId = dualSignalResMap[slot1ResName]
+        val slot2ResId = dualSignalResMap[slot2ResName]
+        if (slot1ResId == null || slot2ResId == null) {
+            XposedLog.w(
+                TAG,
+                lpparam.packageName,
+                "refreshDualIcons: res not found! slot1=$slot1ResName(${slot1ResId}), slot2=$slot2ResName(${slot2ResId})"
+            )
+            return
+        }
 
         slot1.setImageResource(slot1ResId)
         slot2.setImageResource(slot2ResId)
 
-        val baseTint = (rootView.findViewByIdName("mobile_signal") as? ImageView)?.imageTintList
         val tintList = if (forceUseTint) {
+            // 非 theme 风格：始终使用 _tint 变体 + 程序化着色
             when {
                 isUseTint && color != null -> ColorStateList.valueOf(color)
-                isUseTint -> baseTint
-                isLight -> ColorStateList.valueOf(Color.WHITE)
-                else -> null
+                isUseTint -> (rootView.findViewByIdName("mobile_signal") as? ImageView)?.imageTintList
+                color != null -> ColorStateList.valueOf(color)
+                !isLight -> ColorStateList.valueOf(Color.WHITE)
+                else -> ColorStateList.valueOf(Color.BLACK)
             }
         } else {
-            if (isUseTint && color != null) ColorStateList.valueOf(color) else baseTint
+            // theme 风格：使用预着色 drawable（_dark / 基础），不叠加 tint
+            null
         }
 
         slot1.imageTintList = tintList
         slot2.imageTintList = tintList
+
+        // 反色状态变化时打日志，避免每帧都打
+        val tintState = "$forceUseTint|$isUseTint|$isLight|${color?.let { "0x${Integer.toHexString(it)}" }}|${tintList?.defaultColor?.let { "0x${Integer.toHexString(it)}" }}"
+        if (tintState != lastTintState) {
+            lastTintState = tintState
+            XposedLog.d(TAG, lpparam.packageName,
+                "refreshDualIcons: style=$selectedIconStyle, forceUseTint=$forceUseTint, isUseTint=$isUseTint, isLight=$isLight, color=${color?.let { "0x${Integer.toHexString(it)}" }}, tint=${tintList?.defaultColor?.let { "0x${Integer.toHexString(it)}" } ?: "null"}, res=$slot1ResName/$slot2ResName"
+            )
+        }
     }
 
     /** 刷新所有缓存视图的双排信号图标（使用存储的反色状态） */
-    private fun refreshAllCachedViews() {
+    private val refreshRunnable = Runnable {
         viewCache.values.forEach { viewSet ->
-            viewSet.forEach { rootView ->
-                rootView.post {
-                    val isUseTint = rootView.getAdditionalInstanceField("dualDarkIsUseTint") as? Boolean ?: false
-                    val isLight = rootView.getAdditionalInstanceField("dualDarkIsLight") as? Boolean ?: true
-                    val color = rootView.getAdditionalInstanceField("dualDarkColor") as? Int
-                    refreshDualIconsForView(rootView, isUseTint, isLight, color)
+            val iter = viewSet.iterator()
+            while (iter.hasNext()) {
+                val rootView = iter.next()
+                if (!rootView.isAttachedToWindow) {
+                    iter.remove()
+                    continue
                 }
+                val isUseTint = rootView.getAdditionalInstanceField("dualDarkIsUseTint") as? Boolean ?: false
+                val isLight = rootView.getAdditionalInstanceField("dualDarkIsLight") as? Boolean ?: true
+                val color = rootView.getAdditionalInstanceField("dualDarkColor") as? Int
+                refreshDualIconsForView(rootView, isUseTint, isLight, color)
             }
         }
+    }
+
+    private fun refreshAllCachedViews() {
+        // 使用第一个可用视图 post，合并为单次刷新避免多次 post
+        val anyView = viewCache.values.firstOrNull()?.firstOrNull() ?: return
+        anyView.removeCallbacks(refreshRunnable)
+        anyView.post(refreshRunnable)
     }
 
     // ==================== 图标资源名称生成 ====================

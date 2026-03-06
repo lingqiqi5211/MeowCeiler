@@ -103,7 +103,11 @@ object MobileTypeSingle2Hook : BaseHook() {
     @Volatile
     private var broadcastRegistered = false
 
+    @Volatile
+    private var cachedIconController: Any? = null
+
     override fun init() {
+        XposedLog.d(TAG, lpparam.packageName, "init: showMobileType=$showMobileType, mobileNetworkType=$mobileNetworkType, isEnableDouble=$isEnableDouble, isMoreOS3=$isMoreOS3")
         hookMobileViewAndVM()
         if (!showMobileType || isMoreOS3) return
 
@@ -196,6 +200,7 @@ object MobileTypeSingle2Hook : BaseHook() {
                 originalShowName,
                 MobileViewHelper::isSingleSimMode
             )
+            XposedLog.d(TAG, lpparam.packageName, "showNameFlowProxy.setupForSlot: slotIndex=$slotIndex, subId=$subId")
             if (slotIndex == 0) {
                 viewModel.setObjectField("showName", showNameFlowProxy.proxy!!)
             }
@@ -250,6 +255,11 @@ object MobileTypeSingle2Hook : BaseHook() {
 
                 if (showMobileType) {
                     // ===== 大 5G 可见性 =====
+                    // 双排模式下 slot 1+ 整个视图已被 MobilePublicHookV 隐藏，跳过避免无效 Flow 订阅
+                    if (isEnableDouble && !MobileViewHelper.isSingleSimMode() && slotIndex != 0) {
+                        return@createAfterHook
+                    }
+
                     when (mobileNetworkType) {
                         0, 2 -> {
                             viewModel.setObjectField("mobileTypeSingleVisible", newReadonlyStateFlow(false))
@@ -288,19 +298,29 @@ object MobileTypeSingle2Hook : BaseHook() {
                     when (mobileNetworkType) {
                         2 -> {
                             // WiFi 可用时隐藏小 5G
-                            MiuiStub.javaAdapter.alwaysCollectFlow(
-                                viewModel.getObjectFieldAs("wifiAvailable"),
-                                Consumer<Boolean> { wifiOn ->
-                                    // OS2: 调整左右容器边距，补偿隐藏元素的间距
-                                    // OS3: ConstraintLayout 不需要 padding 补偿
-                                    if (!isMoreOS3 && !isEnableDouble && subId == SubscriptionManager.getDefaultDataSubscriptionId()) {
-                                        val paddingLeft = if (wifiOn || hideIndicator) 20 else 0
-                                        containerLeft.setPadding(if (wifiOn) paddingLeft else 0, 0, 0, 0)
-                                        containerRight?.setPadding(paddingLeft, 0, 0, 0)
+                            if (isEnableDouble) {
+                                // 双排模式：用独立 Flow 替换，避免与系统 ViewModel 驱动的 Flow 竞争
+                                val flow = newReadonlyStateFlow(true)
+                                viewModel.setObjectField("mobileTypeVisible", flow)
+                                MiuiStub.javaAdapter.alwaysCollectFlow(
+                                    viewModel.getObjectFieldAs("wifiAvailable"),
+                                    Consumer<Boolean> { wifiOn -> setStateFlowValue(flow, !wifiOn) }
+                                )
+                            } else {
+                                MiuiStub.javaAdapter.alwaysCollectFlow(
+                                    viewModel.getObjectFieldAs("wifiAvailable"),
+                                    Consumer<Boolean> { wifiOn ->
+                                        // OS2: 调整左右容器边距，补偿隐藏元素的间距
+                                        // OS3: ConstraintLayout 不需要 padding 补偿
+                                        if (!isMoreOS3 && subId == SubscriptionManager.getDefaultDataSubscriptionId()) {
+                                            val paddingLeft = if (wifiOn || hideIndicator) 20 else 0
+                                            containerLeft.setPadding(if (wifiOn) paddingLeft else 0, 0, 0, 0)
+                                            containerRight?.setPadding(paddingLeft, 0, 0, 0)
+                                        }
+                                        setStateFlowValue(viewModel.getObjectField("mobileTypeVisible"), !wifiOn)
                                     }
-                                    setStateFlowValue(viewModel.getObjectField("mobileTypeVisible"), !wifiOn)
-                                }
-                            )
+                                )
+                            }
                         }
 
                         1 -> viewModel.setObjectField("mobileTypeVisible", newReadonlyStateFlow(true))
@@ -396,6 +416,14 @@ object MobileTypeSingle2Hook : BaseHook() {
             .getObjectFieldAs<Any>("defaultConnections")
         val dataConnected = miuiInt.getObjectFieldAs<Any>("dataConnected")
 
+        // 一次性 hook addIconGroup 来捕获 StatusBarIconController 实例
+        if (isMoreAndroidVersion(36) && cachedIconController == null) {
+            statusBarIconControllerImpl.methodFinder().filterByName("addIconGroup").first().createAfterHook {
+                cachedIconController = it.thisObject
+                XposedLog.d(TAG, lpparam.packageName, "setOnDataChangedListener: cachedIconController captured")
+            }
+        }
+
         MiuiStub.javaAdapter.alwaysCollectFlow(dataConnected, Consumer<BooleanArray> { states ->
             val isNoDataConnected = when (states.size) {
                 1 -> !states[0]
@@ -475,19 +503,18 @@ object MobileTypeSingle2Hook : BaseHook() {
     }
 
     private fun getMobileViewBySubId36(subId: Int, callback: (View) -> Unit) {
-        statusBarIconControllerImpl.methodFinder().filterByName("addIconGroup").first().createAfterHook {
-            val iconGroups = it.thisObject.getObjectFieldAs<ArrayList<*>>("mIconGroups")
-            val iconList = it.thisObject.getObjectFieldAs<Any>("mStatusBarIconList")
+        val controller = cachedIconController ?: return
+        val iconGroups = controller.getObjectFieldAs<ArrayList<*>>("mIconGroups")
+        val iconList = controller.getObjectFieldAs<Any>("mStatusBarIconList")
 
-            val viewIndex = iconList.callMethodAs<Int>("getViewIndex", subId, "mobile")
-            iconGroups.forEach { iconManager ->
-                val child = iconManager?.getObjectFieldAs<ViewGroup>("mGroup")?.getChildAt(viewIndex)
-                if (child is View &&
-                    "ModernStatusBarMobileView" == child::class.java.simpleName &&
-                    "mobile" == child.getObjectField("slot")
-                ) {
-                    callback(child)
-                }
+        val viewIndex = iconList.callMethodAs<Int>("getViewIndex", subId, "mobile")
+        iconGroups.forEach { iconManager ->
+            val child = iconManager?.getObjectFieldAs<ViewGroup>("mGroup")?.getChildAt(viewIndex)
+            if (child is View &&
+                "ModernStatusBarMobileView" == child::class.java.simpleName &&
+                "mobile" == child.getObjectField("slot")
+            ) {
+                callback(child)
             }
         }
     }
