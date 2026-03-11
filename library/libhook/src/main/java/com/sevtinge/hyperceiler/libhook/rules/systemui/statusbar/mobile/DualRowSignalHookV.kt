@@ -235,14 +235,6 @@ class DualRowSignalHookV : StatusBarViewUtils() {
     override fun onDarkModeChanged(ctx: StatusBarViewContext, darkInfo: DarkInfo) {
         if (ctx.subId == -1 || simSignalLevels.isEmpty()) return
 
-        val darkState = "${darkInfo.isUseTint}|${darkInfo.isLight}|${darkInfo.color}"
-        val prev = lastDarkInfoBySubId.put(ctx.subId, darkState)
-        if (prev != darkState) {
-            XposedLog.d(TAG, lpparam.packageName,
-                "onDarkModeChanged: subId=${ctx.subId}, isUseTint=${darkInfo.isUseTint}, isLight=${darkInfo.isLight}, color=${darkInfo.color?.let { "0x${Integer.toHexString(it)}" }}"
-            )
-        }
-
         // 保存当前反色状态到 rootView
         ctx.rootView.setAdditionalInstanceField("dualDarkIsUseTint", darkInfo.isUseTint)
         ctx.rootView.setAdditionalInstanceField("dualDarkIsLight", darkInfo.isLight)
@@ -444,15 +436,6 @@ class DualRowSignalHookV : StatusBarViewUtils() {
 
         slot1.imageTintList = tintList
         slot2.imageTintList = tintList
-
-        // 反色状态变化时打日志，避免每帧都打
-        val tintState = "$forceUseTint|$isUseTint|$isLight|${color?.let { "0x${Integer.toHexString(it)}" }}|${tintList?.defaultColor?.let { "0x${Integer.toHexString(it)}" }}"
-        if (tintState != lastTintState) {
-            lastTintState = tintState
-            XposedLog.d(TAG, lpparam.packageName,
-                "refreshDualIcons: style=$selectedIconStyle, forceUseTint=$forceUseTint, isUseTint=$isUseTint, isLight=$isLight, color=${color?.let { "0x${Integer.toHexString(it)}" }}, tint=${tintList?.defaultColor?.let { "0x${Integer.toHexString(it)}" } ?: "null"}, res=$slot1ResName/$slot2ResName"
-            )
-        }
     }
 
     /** 刷新所有缓存视图的双排信号图标（使用存储的反色状态） */

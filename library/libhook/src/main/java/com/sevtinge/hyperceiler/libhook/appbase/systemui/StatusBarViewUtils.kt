@@ -231,14 +231,6 @@ abstract class StatusBarViewUtils : BaseHook() {
                 val ctx = MobileViewHelper.buildContextFromSignalView(icon, targetSlot) ?: return@before
                 val darkInfo = extractDarkInfo(triple)
 
-                val rawState = "${darkInfo.isUseTint}|${darkInfo.isLight}|${darkInfo.color?.let { "0x${Integer.toHexString(it)}" }}"
-                if (rawState != lastRawTintState) {
-                    lastRawTintState = rawState
-                    XposedLog.d(TAG, lpparam.packageName,
-                        "setImageResWithTintLight: subId=${ctx.subId}, isUseTint=${darkInfo.isUseTint}, isLight=${darkInfo.isLight}, color=${darkInfo.color?.let { "0x${Integer.toHexString(it)}" }}"
-                    )
-                }
-
                 try {
                     onDarkModeChanged(ctx, darkInfo)
                 } catch (e: Throwable) {
@@ -268,14 +260,6 @@ abstract class StatusBarViewUtils : BaseHook() {
                         icon.imageTintList?.defaultColor
                     } else {
                         null
-                    }
-
-                    val rawState = "$isUseTint|$isLight|${color?.let { "0x${Integer.toHexString(it)}" }}|${icon.imageTintList?.defaultColor?.let { "0x${Integer.toHexString(it)}" }}"
-                    if (rawState != lastRawTintState) {
-                        lastRawTintState = rawState
-                        XposedLog.d(TAG, lpparam.packageName,
-                            "resetImageWithTintLight: subId=${ctx.subId}, isUseTint=$isUseTint, isLight=$isLight, derivedColor=${color?.let { "0x${Integer.toHexString(it)}" }}, iconTintList=${icon.imageTintList?.defaultColor?.let { "0x${Integer.toHexString(it)}" } ?: "null"}"
-                        )
                     }
 
                     try {
