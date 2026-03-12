@@ -56,6 +56,7 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.Med
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.PublicClass.clzConstraintSetClass
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.PublicClass.hyperProgressSeekBar
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.PublicClass.mediaData
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.PublicClass.miuiIslandMediaViewBinderImpl
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.PublicClass.miuiMediaViewControllerImpl
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.media.MediaViewColorConfig
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.media.MiuiMediaViewHolderWrapper
@@ -207,11 +208,7 @@ object CustomBackground : BaseHook() {
     // ==================== OS3 灵动岛 ====================
 
     private fun initDynamicIsland() {
-        val diBinderClass = findClassIfExists(
-            "com.android.systemui.statusbar.notification.mediaisland.MiuiIslandMediaViewBinderImpl"
-        ) ?: return
-
-        diBinderClass.apply {
+        miuiIslandMediaViewBinderImpl!!.apply {
             replaceMethod("updateForegroundColors") { null }
 
             afterHookMethod("detach") { finiPlayerConfig(PlayerType.DYNAMIC_ISLAND) }

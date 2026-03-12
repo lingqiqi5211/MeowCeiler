@@ -23,6 +23,7 @@ import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.view.View
+import androidx.core.graphics.withClip
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.media.MediaViewColorConfig
 import kotlin.math.abs
 import kotlin.math.max
@@ -70,6 +71,10 @@ class RadialGradientDrawable(
         val bounds = bounds
         if (bounds.isEmpty) return
 
+        val w = bounds.width()
+        val h = bounds.height()
+        val squareSize = max(w, h)
+
         val alpha = advanceAlbumAnimation { normalized ->
             currentStartColor = argbEvaluator.evaluate(normalized, sourceStartColor, targetStartColor) as Int
             currentEndColor = argbEvaluator.evaluate(normalized, sourceEndColor, targetEndColor) as Int
@@ -80,38 +85,41 @@ class RadialGradientDrawable(
         }
         advanceResizeAnimation()
 
-        background.color = currentStartColor
-        background.setBounds(0, 0, bounds.width(), bounds.width())
-        background.draw(p0)
+        // 裁剪到 View 实际边界，保证 outline 圆角生效
+        p0.withClip(bounds) {
+            background.color = currentStartColor
+            background.setBounds(0, 0, squareSize, squareSize)
+            background.draw(this)
 
-        drawBoundsRect.set(0, -currentSize, bounds.width(), bounds.width() - currentSize)
-        // 各边缘内缩 1px，渐变的不透明外缘覆盖此间隙
-        artworkBoundsRect.set(
-            drawBoundsRect.left + 1, drawBoundsRect.top + 1,
-            drawBoundsRect.right - 1, drawBoundsRect.bottom - 1
-        )
+            drawBoundsRect.set(0, -currentSize, squareSize, squareSize - currentSize)
+            artworkBoundsRect.set(
+                drawBoundsRect.left + 1, drawBoundsRect.top + 1,
+                drawBoundsRect.right - 1, drawBoundsRect.bottom - 1
+            )
 
-        if (alpha == 0 || alpha == 255) {
-            artwork.bounds = artworkBoundsRect
-            artwork.draw(p0)
-        } else {
-            artwork.bounds = artworkBoundsRect
-            artwork.alpha = 255 - alpha
-            artwork.draw(p0)
-            artwork.alpha = 255
-            nextArtwork?.let {
-                it.bounds = artworkBoundsRect
-                it.alpha = alpha
-                it.draw(p0)
-                it.alpha = 255
+            if (alpha == 0 || alpha == 255) {
+                artwork.bounds = artworkBoundsRect
+                artwork.draw(this)
+            } else {
+                artwork.bounds = artworkBoundsRect
+                artwork.alpha = 255 - alpha
+                artwork.draw(this)
+                artwork.alpha = 255
+                nextArtwork?.let {
+                    it.bounds = artworkBoundsRect
+                    it.alpha = alpha
+                    it.draw(this)
+                    it.alpha = 255
+                }
             }
+            gradient.colors = intArrayOf(
+                currentStartColor and 0x00ffffff or (64 shl 24),
+                currentEndColor and 0x00ffffff or (255 shl 24)
+            )
+            gradient.bounds = drawBoundsRect
+            gradient.draw(this)
+
         }
-        gradient.colors = intArrayOf(
-            currentStartColor and 0x00ffffff or (64 shl 24),
-            currentEndColor and 0x00ffffff or (255 shl 24)
-        )
-        gradient.bounds = drawBoundsRect
-        gradient.draw(p0)
         scheduleNextFrameIfAnimating()
     }
 
