@@ -26,16 +26,12 @@ import android.provider.Settings
 import android.telephony.SubscriptionManager
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.annotation.RequiresPermission
-import com.sevtinge.hyperceiler.libhook.appbase.systemui.StatusBarViewContext
-import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isMoreAndroidVersion
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.StateFlowHelper.getStateFlowValue
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.StateFlowHelper.newReadonlyStateFlow
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.StateFlowHelper.setStateFlowValue
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callMethodAs
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getIntField
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectField
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectFieldAs
 import com.sevtinge.hyperceiler.libhook.utils.log.XposedLog
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
@@ -153,32 +149,7 @@ object MobileViewHelper {
         viewCache: ConcurrentHashMap<Int, MutableSet<ViewGroup>>,
         callback: (View) -> Unit
     ) {
-        if (isMoreAndroidVersion(36)) {
-            viewCache[subId]?.forEach { callback(it) }
-        } else {
-            forEachMobileViewA15(subId, callback)
-        }
-    }
-
-    /** a15: Dependency → StatusBarIconController */
-    private fun forEachMobileViewA15(subId: Int, callback: (View) -> Unit) {
-        val statusBarIconController = Dependency.miuiLegacyDependency
-            ?.getObjectField("mStatusBarIconController")
-            ?.callMethodAs<Any>("get") ?: return
-
-        val iconGroups = statusBarIconController.getObjectFieldAs<Map<Any, *>>("mIconGroups")
-        val iconList = statusBarIconController.getObjectFieldAs<Any>("mStatusBarIconList")
-        val viewIndex = iconList.callMethodAs<Int>("getViewIndex", subId, "mobile")
-
-        iconGroups.forEach { (iconManager, _) ->
-            val child = iconManager.getObjectFieldAs<ViewGroup>("mGroup").getChildAt(viewIndex)
-            if (child is View &&
-                "ModernStatusBarMobileView" == child::class.java.simpleName &&
-                "mobile" == child.getObjectField("slot")
-            ) {
-                callback(child)
-            }
-        }
+        viewCache[subId]?.forEach { callback(it) }
     }
 
     /** 通过 IconController 遍历所有 mobile 视图 */
@@ -212,35 +183,12 @@ object MobileViewHelper {
         }
     }
 
-    /** 从 mobile_signal 向上查找 ModernStatusBarMobileView，构建 StatusBarViewContext */
-    fun buildContextFromSignalView(
-        signalView: ImageView,
-        targetSlot: String
-    ): StatusBarViewContext? {
-        var parent: View? = signalView.parent as? View
-        while (parent != null) {
-            if ("ModernStatusBarMobileView" == parent::class.java.simpleName) {
-                val rootView = parent as ViewGroup
-                val subId = try {
-                    rootView.getIntField("subId")
-                } catch (_: Throwable) {
-                    -1
-                }
-                return StatusBarViewContext(
-                    rootView = rootView,
-                    slot = targetSlot,
-                    subId = subId
-                )
-            }
-            parent = parent.parent as? View
-        }
-        return null
-    }
-
     fun collectFlow(view: View, flow: Any, consumer: Consumer<Any>) {
         try {
             val javaAdapterKt = loadClass("com.android.systemui.util.kotlin.JavaAdapterKt")
-            javaAdapterKt.callMethodAs("collectFlow", view, flow, consumer)
+            EzxHelpUtils.callStaticMethod(
+                javaAdapterKt, "collectFlow", view, flow, consumer
+            )
         } catch (e: Throwable) {
             XposedLog.e(TAG, "com.android.systemui", "collectFlow error", e)
         }
