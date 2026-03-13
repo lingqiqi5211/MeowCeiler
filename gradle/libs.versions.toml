@@ -8,7 +8,7 @@ autoService = "1.1.1"
 annotation = "1.9.1"
 constraintlayout = "2.2.1"
 coordinatorlayout = "1.3.0"
-core = "1.17.0"
+core = "1.18.0"
 fragment = "1.8.9"
 recyclerview = "1.4.0"
 
