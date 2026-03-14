@@ -39,6 +39,7 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.graphics.drawable.toDrawable
+import com.sevtinge.hyperceiler.common.utils.PrefsBridge
 import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Miui.isPad
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isMoreSmallVersion
@@ -99,10 +100,10 @@ object CustomBackground : BaseHook() {
     // 3 -> AndroidNewStyle;
     // 4 -> AndroidOldStyle
     private val ncBackgroundStyle by lazy {
-        mPrefsMap.getStringAsInt("system_ui_control_center_media_control_background_mode", 0)
+        PrefsBridge.getStringAsInt("system_ui_control_center_media_control_background_mode", 0)
     }
     private val diBackgroundStyle by lazy {
-        mPrefsMap.getStringAsInt("system_ui_island_media_control_background_mode", 0)
+        PrefsBridge.getStringAsInt("system_ui_island_media_control_background_mode", 0)
     }
 
     private val mediaBgId by lazy {

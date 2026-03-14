@@ -26,6 +26,7 @@ import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.scale
+import com.sevtinge.hyperceiler.common.utils.PrefsBridge
 import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.media3.CustomBackground.isIsland
 import com.sevtinge.hyperceiler.libhook.utils.api.DisplayUtils.dp2px
@@ -92,61 +93,61 @@ object MediaViewLayout : BaseHook() {
     // ==================== 通知中心配置 ====================
 
     private val ncActionsOrder by lazy {
-        mPrefsMap.getStringAsInt("system_ui_control_center_media_control_media_button_mode", 0)
+        PrefsBridge.getStringAsInt("system_ui_control_center_media_control_media_button_mode", 0)
     }
     private val ncAlbum by lazy {
-        mPrefsMap.getStringAsInt("system_ui_control_center_media_control_media_album_mode", 0)
+        PrefsBridge.getStringAsInt("system_ui_control_center_media_control_media_album_mode", 0)
     }
     private val ncHeaderMargin by lazy {
-        mPrefsMap.getInt("system_ui_control_center_media_control_title_margin", 210).toFloat() / 10
+        PrefsBridge.getInt("system_ui_control_center_media_control_title_margin", 210).toFloat() / 10
     }
     private val ncHeaderPadding by lazy {
-        mPrefsMap.getInt("system_ui_control_center_media_control_title_padding", 40).toFloat() / 10
+        PrefsBridge.getInt("system_ui_control_center_media_control_title_padding", 40).toFloat() / 10
     }
     private val ncHideTime by lazy {
-        mPrefsMap.getBoolean("system_ui_control_center_media_control_media_button_hide_time")
+        PrefsBridge.getBoolean("system_ui_control_center_media_control_media_button_hide_time")
     }
     private val ncHideSeamless by lazy {
-        mPrefsMap.getBoolean("system_ui_control_center_media_control_media_button_hide_seamless")
+        PrefsBridge.getBoolean("system_ui_control_center_media_control_media_button_hide_seamless")
     }
     private val ncActionsLeftAligned by lazy {
-        mPrefsMap.getBoolean("system_ui_control_center_media_control_media_button_actions_left_aligned")
+        PrefsBridge.getBoolean("system_ui_control_center_media_control_media_button_actions_left_aligned")
     }
     private val ncButtonSize by lazy {
-        mPrefsMap.getInt("system_ui_control_center_media_control_media_button", 140)
+        PrefsBridge.getInt("system_ui_control_center_media_control_media_button", 140)
     }
     private val ncButtonSizeCustom by lazy {
-        mPrefsMap.getInt("system_ui_control_center_media_control_media_button_custom", 140)
+        PrefsBridge.getInt("system_ui_control_center_media_control_media_button_custom", 140)
     }
     private val ncOnLayout by lazy {
-        mPrefsMap.getBoolean("system_ui_control_center_media_control_media_button_layout_switch")
+        PrefsBridge.getBoolean("system_ui_control_center_media_control_media_button_layout_switch")
     }
 
     // ==================== 灵动岛配置 ====================
 
     private val diActionsOrder by lazy {
-        mPrefsMap.getStringAsInt("system_ui_island_media_control_media_button_mode", 0)
+        PrefsBridge.getStringAsInt("system_ui_island_media_control_media_button_mode", 0)
     }
     private val diAlbum by lazy {
-        mPrefsMap.getStringAsInt("system_ui_island_media_control_media_album_mode", 0)
+        PrefsBridge.getStringAsInt("system_ui_island_media_control_media_album_mode", 0)
     }
     private val diHeaderMargin by lazy {
-        mPrefsMap.getInt("system_ui_island_media_control_title_margin", 210).toFloat() / 10
+        PrefsBridge.getInt("system_ui_island_media_control_title_margin", 210).toFloat() / 10
     }
     private val diHeaderPadding by lazy {
-        mPrefsMap.getInt("system_ui_island_media_control_title_padding", 40).toFloat() / 10
+        PrefsBridge.getInt("system_ui_island_media_control_title_padding", 40).toFloat() / 10
     }
     private val diHideTime by lazy {
-        mPrefsMap.getBoolean("system_ui_island_media_control_media_button_hide_time")
+        PrefsBridge.getBoolean("system_ui_island_media_control_media_button_hide_time")
     }
     private val diHideSeamless by lazy {
-        mPrefsMap.getBoolean("system_ui_island_media_control_media_button_hide_seamless")
+        PrefsBridge.getBoolean("system_ui_island_media_control_media_button_hide_seamless")
     }
     private val diActionsLeftAligned by lazy {
-        mPrefsMap.getBoolean("system_ui_island_media_control_media_button_actions_left_aligned")
+        PrefsBridge.getBoolean("system_ui_island_media_control_media_button_actions_left_aligned")
     }
     private val diOnLayout by lazy {
-        mPrefsMap.getBoolean("system_ui_island_media_control_media_button_layout_switch")
+        PrefsBridge.getBoolean("system_ui_island_media_control_media_button_layout_switch")
     }
 
     // ==================== 初始化 ====================

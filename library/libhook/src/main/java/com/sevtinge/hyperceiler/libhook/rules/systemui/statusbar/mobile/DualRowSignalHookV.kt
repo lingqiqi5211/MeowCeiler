@@ -29,6 +29,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.core.util.size
+import com.sevtinge.hyperceiler.common.utils.PrefsBridge
 import com.sevtinge.hyperceiler.libhook.utils.api.DisplayUtils
 import com.sevtinge.hyperceiler.libhook.utils.api.ProjectApi
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.MobileClass.mobileSignalController
@@ -52,20 +53,20 @@ class DualRowSignalHookV : MobileSignalHook() {
     private val ID_SIGNAL_SLOT2 by lazy { getOrCreateViewId("dual_signal_slot2") }
 
     private val rightMargin by lazy {
-        mPrefsMap.getInt("system_ui_statusbar_mobile_network_icon_right_margin", 8) - 8
+        PrefsBridge.getInt("system_ui_statusbar_mobile_network_icon_right_margin", 8) - 8
     }
     private val leftMargin by lazy {
-        mPrefsMap.getInt("system_ui_statusbar_mobile_network_icon_left_margin", 8) - 8
+        PrefsBridge.getInt("system_ui_statusbar_mobile_network_icon_left_margin", 8) - 8
     }
     private val iconScale by lazy {
-        mPrefsMap.getInt("system_ui_statusbar_mobile_network_icon_size", 10)
+        PrefsBridge.getInt("system_ui_statusbar_mobile_network_icon_size", 10)
     }
     private val verticalOffset by lazy {
-        mPrefsMap.getInt("system_ui_statusbar_mobile_network_icon_vertical_offset", 40)
+        PrefsBridge.getInt("system_ui_statusbar_mobile_network_icon_vertical_offset", 40)
     }
 
     private val selectedIconStyle by lazy {
-        mPrefsMap.getString("system_ui_status_mobile_network_icon_style", "")
+        PrefsBridge.getString("system_ui_status_mobile_network_icon_style", "")
     }
 
     private val dualSignalResMap = HashMap<String, Drawable>(64)
@@ -414,3 +415,5 @@ class DualRowSignalHookV : MobileSignalHook() {
         return "statusbar_signal_${slot}_$level$colorMode$iconStyle"
     }
 }
+
+

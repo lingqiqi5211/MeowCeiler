@@ -20,6 +20,7 @@ package com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.media3
 
 import android.content.Context
 import android.content.res.Configuration
+import com.sevtinge.hyperceiler.common.utils.PrefsBridge
 import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.PublicClass.miuiMediaViewControllerImpl
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.afterHookConstructor
@@ -31,10 +32,10 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.setObjectField
 
 object AlwaysDark : BaseHook() {
     private val backgroundStyle by lazy {
-        mPrefsMap.getStringAsInt("system_ui_control_center_media_control_background_mode", 0)
+        PrefsBridge.getStringAsInt("system_ui_control_center_media_control_background_mode", 0)
     }
     private val alwaysDark by lazy {
-        mPrefsMap.getBoolean("system_ui_control_center_media_control_always_dark")
+        PrefsBridge.getBoolean("system_ui_control_center_media_control_always_dark")
     }
 
     override fun init() {

@@ -35,10 +35,10 @@ import androidx.annotation.XmlRes;
 import androidx.core.view.MenuProvider;
 import androidx.preference.Preference;
 
-import com.sevtinge.hyperceiler.common.utils.DialogHelper;
 import com.sevtinge.hyperceiler.core.R;
 import com.sevtinge.hyperceiler.libhook.utils.log.AndroidLog;
 import com.sevtinge.hyperceiler.libhook.utils.pkg.CheckModifyUtils;
+import com.sevtinge.hyperceiler.utils.DialogHelper;
 
 import org.xmlpull.v1.XmlPullParser;
 
@@ -65,6 +65,9 @@ public class DashboardFragment extends SettingsPreferenceFragment {
         checkHighlightedKeyVisibility();
     }
 
+    /**
+     * 检查搜索跳转的目标 Preference 是否可见/可用，不可用时提示用户
+     */
     private void checkHighlightedKeyVisibility() {
         Bundle args = getArguments();
         if (args == null) return;
@@ -76,8 +79,8 @@ public class DashboardFragment extends SettingsPreferenceFragment {
         boolean unavailable = !pref.isVisible() || !pref.isEnabled();
         if (!unavailable && pref.getDependency() != null) {
             Preference dep = findPreference(pref.getDependency());
-            if (dep instanceof androidx.preference.TwoStatePreference tsp) {
-                unavailable = !tsp.isChecked();
+            if (dep != null) {
+                unavailable = dep.shouldDisableDependents();
             }
         }
 
@@ -93,7 +96,7 @@ public class DashboardFragment extends SettingsPreferenceFragment {
             @Override
             public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
                 if (!TextUtils.isEmpty(mQuickRestartPackageName)) {
-                    menuInflater.inflate(R.menu.navigation_immersion, menu);
+                    menuInflater.inflate(R.menu.settings_sub_menu, menu);
                 }
             }
 

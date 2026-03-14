@@ -36,12 +36,12 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.Med
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.drawable.MediaControlBgDrawable
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.drawable.TransitionDrawable
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.media.MediaViewColorConfig
-import com.sevtinge.hyperceiler.libhook.utils.prefs.PrefsUtils
+import com.sevtinge.hyperceiler.common.utils.PrefsBridge
 import kotlin.random.Random
 
 // https://github.com/HowieHChen/XiaomiHelper/blob/6a0e424ad9276205fdf47f523cc6c8bb72e49e7f/app/src/main/kotlin/dev/lackluster/mihelper/hook/rules/systemui/media/bg/CoverArtProcessor.kt
 class CoverArtProcessor : BgProcessor {
-    private val useAnim = PrefsUtils.mPrefsMap.getBoolean("system_ui_control_center_media_control_control_color_anim")
+    private val useAnim = PrefsBridge.getBoolean("system_ui_control_center_media_control_control_color_anim")
 
     override fun convertToColorConfig(
         artwork: Drawable,
@@ -179,3 +179,5 @@ class CoverArtProcessor : BgProcessor {
         return colorMatrix
     }
 }
+
+

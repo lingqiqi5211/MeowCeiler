@@ -38,6 +38,7 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callStaticMethodAs
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getDimenByName
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getIdByName
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectFieldAs
+import com.sevtinge.hyperceiler.common.utils.PrefsBridge
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createAfterHook
@@ -57,7 +58,7 @@ object NotificationWeather : BaseHook() {
 
     // 是否显示城市
     private val isDisplayCity by lazy {
-        mPrefsMap.getBoolean("system_ui_control_center_show_weather_city")
+        PrefsBridge.getBoolean("system_ui_control_center_show_weather_city")
     }
 
     private val combinedHeaderController by lazy {

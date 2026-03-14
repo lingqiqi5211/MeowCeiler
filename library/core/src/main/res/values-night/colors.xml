@@ -54,5 +54,4 @@
     <color name="headtip_tip_color">#0f274b</color>
     <color name="headtip_warn_color">#280d00</color>
 
-    <color name="search_history_tag_bg">@color/miuix_card_drawable_default_color_dark</color>
 </resources>

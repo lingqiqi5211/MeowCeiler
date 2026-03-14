@@ -29,6 +29,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintSet
+import com.sevtinge.hyperceiler.common.utils.PrefsBridge
 import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.media3.CustomBackground.isIsland
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Hardware.isDarkMode
@@ -67,26 +68,26 @@ object AmbientLight : BaseHook() {
     private const val KEY_MEDIA_BG_COLOR_DARK = "KEY_MEDIA_BG_COLOR_DARK"
 
     private val ncBackgroundStyle by lazy {
-        mPrefsMap.getStringAsInt("system_ui_control_center_media_control_background_mode", 0)
+        PrefsBridge.getStringAsInt("system_ui_control_center_media_control_background_mode", 0)
     }
     private val ncAmbientLight by lazy {
-        mPrefsMap.getBoolean("system_ui_control_center_media_control_ambient_light")
+        PrefsBridge.getBoolean("system_ui_control_center_media_control_ambient_light")
     }
     private val ncAmbientColorOpt by lazy {
-        mPrefsMap.getBoolean("system_ui_control_center_media_control_ambient_light_opt")
+        PrefsBridge.getBoolean("system_ui_control_center_media_control_ambient_light_opt")
     }
     private val ncAlwaysDark by lazy {
-        mPrefsMap.getBoolean("system_ui_control_center_media_control_always_dark")
+        PrefsBridge.getBoolean("system_ui_control_center_media_control_always_dark")
     }
 
     private val diBackgroundStyle by lazy {
-        mPrefsMap.getStringAsInt("system_ui_island_media_control_background_mode", 0)
+        PrefsBridge.getStringAsInt("system_ui_island_media_control_background_mode", 0)
     }
     private val diAmbientLightType by lazy {
-        mPrefsMap.getStringAsInt("system_ui_island_media_control_ambient_light_type", 0)
+        PrefsBridge.getStringAsInt("system_ui_island_media_control_ambient_light_type", 0)
     }
     private val diAmbientColorOpt by lazy {
-        mPrefsMap.getBoolean("system_ui_island_media_control_ambient_light_opt")
+        PrefsBridge.getBoolean("system_ui_island_media_control_ambient_light_opt")
     }
 
     var ncCurrentPkgName = ""

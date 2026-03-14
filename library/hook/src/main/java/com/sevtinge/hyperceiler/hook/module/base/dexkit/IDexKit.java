@@ -16,6 +16,7 @@
 
  * Copyright (C) 2023-2026 HyperCeiler Contributions
  */
+<<<<<<<< HEAD:library/hook/src/main/java/com/sevtinge/hyperceiler/hook/module/base/dexkit/IDexKit.java
 package com.sevtinge.hyperceiler.hook.module.base.dexkit;
 
 import org.luckypray.dexkit.DexKitBridge;
@@ -26,4 +27,18 @@ import org.luckypray.dexkit.result.base.BaseData;
  */
 public interface IDexKit {
     BaseData dexkit(DexKitBridge bridge) throws ReflectiveOperationException;
+========
+package com.sevtinge.hyperceiler.home.helper;
+
+import com.sevtinge.hyperceiler.R;
+import com.sevtinge.hyperceiler.dashboard.SettingsPreferenceFragment;
+
+public class HelpFragment extends SettingsPreferenceFragment {
+
+    @Override
+    public int getPreferenceScreenResId() {
+        return R.xml.prefs_help;
+    }
+
+>>>>>>>> 95be19db1 (refactor: new ui (#1500)):app/src/main/java/com/sevtinge/hyperceiler/home/helper/HelpFragment.java
 }

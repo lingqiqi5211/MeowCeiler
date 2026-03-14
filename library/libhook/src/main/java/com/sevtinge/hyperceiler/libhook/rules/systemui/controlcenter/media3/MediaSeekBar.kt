@@ -27,6 +27,7 @@ import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.core.view.updateMargins
+import com.sevtinge.hyperceiler.common.utils.PrefsBridge
 import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.media3.CustomBackground.isIsland
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Hardware.isDarkMode
@@ -62,25 +63,25 @@ object MediaSeekBar : BaseHook() {
 
     // ==================== 通知中心配置 ====================
     private val ncOn by lazy {
-        mPrefsMap.getBoolean("system_ui_control_center_media_control_progress_on")
+        PrefsBridge.getBoolean("system_ui_control_center_media_control_progress_on")
     }
     private val ncProgressMode by lazy {
-        mPrefsMap.getStringAsInt("system_ui_control_center_media_control_progress_mode", 0)
+        PrefsBridge.getStringAsInt("system_ui_control_center_media_control_progress_mode", 0)
     }
     private val ncThumbMode by lazy {
-        mPrefsMap.getStringAsInt("system_ui_control_center_media_control_progress_thumb_mode", 0)
+        PrefsBridge.getStringAsInt("system_ui_control_center_media_control_progress_thumb_mode", 0)
     }
     private val ncProgressThickness by lazy {
-        mPrefsMap.getInt("system_ui_control_center_media_control_progress_thickness", 80)
+        PrefsBridge.getInt("system_ui_control_center_media_control_progress_thickness", 80)
     }
     private val ncCornerRadius by lazy {
-        mPrefsMap.getInt("system_ui_control_center_media_control_progress_corner_radius", 36)
+        PrefsBridge.getInt("system_ui_control_center_media_control_progress_corner_radius", 36)
     }
     private val ncProgressComet by lazy {
-        mPrefsMap.getBoolean("system_ui_control_center_media_control_progress_comet")
+        PrefsBridge.getBoolean("system_ui_control_center_media_control_progress_comet")
     }
     private val ncProgressRound by lazy {
-        mPrefsMap.getBoolean("system_ui_control_center_media_control_progress_round")
+        PrefsBridge.getBoolean("system_ui_control_center_media_control_progress_round")
     }
 
     private val ncCustomThumbStyle by lazy {
@@ -93,25 +94,25 @@ object MediaSeekBar : BaseHook() {
 
     // ==================== 灵动岛配置 ====================
     private val diOn by lazy {
-        mPrefsMap.getBoolean("system_ui_island_media_control_progress_on")
+        PrefsBridge.getBoolean("system_ui_island_media_control_progress_on")
     }
     private val diProgressMode by lazy {
-        mPrefsMap.getStringAsInt("system_ui_island_media_control_progress_mode", 0)
+        PrefsBridge.getStringAsInt("system_ui_island_media_control_progress_mode", 0)
     }
     private val diThumbMode by lazy {
-        mPrefsMap.getStringAsInt("system_ui_island_media_control_progress_thumb_mode", 0)
+        PrefsBridge.getStringAsInt("system_ui_island_media_control_progress_thumb_mode", 0)
     }
     private val diProgressThickness by lazy {
-        mPrefsMap.getInt("system_ui_island_media_control_progress_thickness", 6)
+        PrefsBridge.getInt("system_ui_island_media_control_progress_thickness", 6)
     }
     private val diCornerRadius by lazy {
-        mPrefsMap.getInt("system_ui_island_media_control_progress_corner_radius", 36)
+        PrefsBridge.getInt("system_ui_island_media_control_progress_corner_radius", 36)
     }
     private val diProgressComet by lazy {
-        mPrefsMap.getBoolean("system_ui_island_media_control_progress_comet")
+        PrefsBridge.getBoolean("system_ui_island_media_control_progress_comet")
     }
     private val diProgressRound by lazy {
-        mPrefsMap.getBoolean("system_ui_island_media_control_progress_round")
+        PrefsBridge.getBoolean("system_ui_island_media_control_progress_round")
     }
 
     private val diCustomThumbStyle by lazy {
@@ -124,10 +125,10 @@ object MediaSeekBar : BaseHook() {
 
     // ==================== 公共字段 ====================
     private val ncBackgroundStyle by lazy {
-        mPrefsMap.getStringAsInt("system_ui_control_center_media_control_background_mode", 0)
+        PrefsBridge.getStringAsInt("system_ui_control_center_media_control_background_mode", 0)
     }
     private val ncAlwaysDark by lazy {
-        mPrefsMap.getBoolean("system_ui_control_center_media_control_always_dark")
+        PrefsBridge.getBoolean("system_ui_control_center_media_control_always_dark")
     }
 
     private val clzProgress by lazy {

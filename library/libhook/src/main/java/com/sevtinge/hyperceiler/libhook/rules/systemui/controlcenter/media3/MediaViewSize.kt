@@ -20,6 +20,7 @@ package com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.media3
 
 import android.util.TypedValue
 import android.widget.TextView
+import com.sevtinge.hyperceiler.common.utils.PrefsBridge
 import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter.media3.CustomBackground.isIsland
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.PublicClass.mediaViewHolderNew
@@ -35,31 +36,31 @@ object MediaViewSize : BaseHook() {
     // ==================== 通知中心配置 ====================
 
     private val ncModifyTextSize by lazy {
-        mPrefsMap.getBoolean("system_ui_control_center_media_control_text_size")
+        PrefsBridge.getBoolean("system_ui_control_center_media_control_text_size")
     }
     private val ncTitleSize by lazy {
-        mPrefsMap.getInt("system_ui_control_center_media_control_title_size", 180).toFloat() / 10
+        PrefsBridge.getInt("system_ui_control_center_media_control_title_size", 180).toFloat() / 10
     }
     private val ncArtistSize by lazy {
-        mPrefsMap.getInt("system_ui_control_center_media_control_artist_size", 120).toFloat() / 10
+        PrefsBridge.getInt("system_ui_control_center_media_control_artist_size", 120).toFloat() / 10
     }
     private val ncTimeSize by lazy {
-        mPrefsMap.getInt("system_ui_control_center_media_control_time_view_text_size", 130).toFloat() / 10
+        PrefsBridge.getInt("system_ui_control_center_media_control_time_view_text_size", 130).toFloat() / 10
     }
 
     // ==================== 灵动岛配置 ====================
 
     private val diModifyTextSize by lazy {
-        mPrefsMap.getBoolean("system_ui_island_media_control_text_size")
+        PrefsBridge.getBoolean("system_ui_island_media_control_text_size")
     }
     private val diTitleSize by lazy {
-        mPrefsMap.getInt("system_ui_island_media_control_title_size", 180).toFloat() / 10
+        PrefsBridge.getInt("system_ui_island_media_control_title_size", 180).toFloat() / 10
     }
     private val diArtistSize by lazy {
-        mPrefsMap.getInt("system_ui_island_media_control_artist_size", 120).toFloat() / 10
+        PrefsBridge.getInt("system_ui_island_media_control_artist_size", 120).toFloat() / 10
     }
     private val diTimeSize by lazy {
-        mPrefsMap.getInt("system_ui_island_media_control_time_view_text_size", 130).toFloat() / 10
+        PrefsBridge.getInt("system_ui_island_media_control_time_view_text_size", 130).toFloat() / 10
     }
 
     override fun init() {
@@ -116,4 +117,3 @@ object MediaViewSize : BaseHook() {
         }
     }
 }
-
