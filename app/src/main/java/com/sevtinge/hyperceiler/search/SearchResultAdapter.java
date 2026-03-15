@@ -1,5 +1,7 @@
 package com.sevtinge.hyperceiler.search;
 
+import static androidx.core.content.ContextCompat.getDrawable;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -147,19 +149,22 @@ public class SearchResultAdapter extends CardGroupAdapter<SearchResultAdapter.Mo
                 if (groupName != null && !groupName.isEmpty()) {
                     Drawable icon = iconCache.get(groupName);
                     if (icon == null) {
-                        String pkg = SearchHelper.getGroupPackageMap().get(groupName);
-                        if (pkg != null) {
-                            try {
-                                icon = itemView.getContext().getPackageManager().getApplicationIcon(pkg);
-                                iconCache.put(groupName, icon);
-                            } catch (PackageManager.NameNotFoundException e) {
-                                icon = loadFallbackIcon(groupName);
-                                if (icon != null) iconCache.put(groupName, icon);
+                        // 有自定义图标的（非 ic_default）直接用定义的
+                        icon = loadCustomIcon(groupName);
+                        // 没有自定义图标的走 PackageManager
+                        if (icon == null) {
+                            String pkg = SearchHelper.getGroupPackageMap().get(groupName);
+                            if (pkg != null) {
+                                try {
+                                    icon = itemView.getContext().getPackageManager().getApplicationIcon(pkg);
+                                } catch (PackageManager.NameNotFoundException ignored) {}
                             }
-                        } else {
-                            icon = loadFallbackIcon(groupName);
-                            if (icon != null) iconCache.put(groupName, icon);
                         }
+                        // 兜底用 ic_default
+                        if (icon == null) {
+                            icon = loadFallbackIcon(groupName);
+                        }
+                        if (icon != null) iconCache.put(groupName, icon);
                     }
                     if (icon != null) {
                         mIcon.setImageDrawable(icon);
@@ -177,11 +182,21 @@ public class SearchResultAdapter extends CardGroupAdapter<SearchResultAdapter.Mo
             itemView.setOnClickListener(listener);
         }
 
+        private Drawable loadCustomIcon(String groupName) {
+            Integer iconResId = SearchHelper.getGroupIconMap().get(groupName);
+            if (iconResId != null && iconResId > 0 && iconResId != com.sevtinge.hyperceiler.core.R.drawable.ic_default) {
+                try {
+                    return getDrawable(itemView.getContext(), iconResId);
+                } catch (Exception ignored) {}
+            }
+            return null;
+        }
+
         private Drawable loadFallbackIcon(String groupName) {
             Integer iconResId = SearchHelper.getGroupIconMap().get(groupName);
             if (iconResId != null && iconResId > 0) {
                 try {
-                    return androidx.core.content.ContextCompat.getDrawable(itemView.getContext(), iconResId);
+                    return getDrawable(itemView.getContext(), iconResId);
                 } catch (Exception ignored) {}
             }
             return null;
