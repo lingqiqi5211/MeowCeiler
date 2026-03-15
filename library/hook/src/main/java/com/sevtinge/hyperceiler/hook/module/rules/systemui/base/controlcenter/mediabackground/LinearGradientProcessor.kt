@@ -29,7 +29,7 @@ import com.sevtinge.hyperceiler.hook.module.rules.systemui.base.controlcenter.dr
 import com.sevtinge.hyperceiler.hook.module.rules.systemui.base.controlcenter.drawable.MediaControlBgDrawable
 import com.sevtinge.hyperceiler.hook.utils.prefs.PrefsUtils
 
-// https://github.com/HowieHChen/XiaomiHelper/blob/b1ab58484326372575a72f6509580cc60c272300/app/src/main/kotlin/dev/lackluster/mihelper/hook/rules/systemui/media/bg/LinearGradientProcessor.kt
+// https://github.com/HowieHChen/XiaomiHelper/blob/26c33c83cc80b4c4df6237227975ad30765d4b16/app/src/main/kotlin/dev/lackluster/mihelper/hook/rules/systemui/media/bg/LinearGradientProcessor.kt
 class LinearGradientProcessor : BgProcessor {
     private val allowReverse = PrefsUtils.mPrefsMap.getBoolean("system_ui_control_center_media_control_inverse_color")
     private val useAnim = PrefsUtils.mPrefsMap.getBoolean("system_ui_control_center_media_control_control_color_anim")

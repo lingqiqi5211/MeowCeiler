@@ -19,7 +19,10 @@
 package com.sevtinge.hyperceiler.libhook.rules.systemui.statusbar.mobile
 
 import android.content.Context
-import android.content.res.ColorStateList
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.PorterDuff
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.telephony.SubscriptionManager
 import android.util.SparseArray
@@ -28,6 +31,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
+import androidx.core.graphics.createBitmap
 import androidx.core.util.size
 import com.sevtinge.hyperceiler.common.utils.PrefsBridge
 import com.sevtinge.hyperceiler.libhook.utils.api.DisplayUtils
@@ -69,7 +73,7 @@ class DualRowSignalHookV : MobileSignalHook() {
         PrefsBridge.getString("system_ui_status_mobile_network_icon_style", "")
     }
 
-    private val dualSignalResMap = HashMap<String, Drawable>(64)
+    private val dualSignalResMap = HashMap<String, Bitmap>(64)
     private val simSignalLevels = ConcurrentHashMap<Int, Int>()
     private val simDataSimState = ConcurrentHashMap<Int, Boolean>()
 
@@ -225,6 +229,19 @@ class DualRowSignalHookV : MobileSignalHook() {
 
     // ==================== 资源加载 ====================
 
+    private fun drawableToBitmap(drawable: Drawable): Bitmap {
+        if (drawable is BitmapDrawable && drawable.bitmap != null) {
+            return drawable.bitmap
+        }
+        val width = drawable.intrinsicWidth.takeIf { it > 0 } ?: 1
+        val height = drawable.intrinsicHeight.takeIf { it > 0 } ?: 1
+        val bitmap = createBitmap(width, height)
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, width, height)
+        drawable.draw(canvas)
+        return bitmap
+    }
+
     private fun loadDualSignalRes() {
         val colorModes = if (selectedIconStyle == "theme") {
             arrayOf(
@@ -258,7 +275,7 @@ class DualRowSignalHookV : MobileSignalHook() {
                                 )
                                 if (resId != 0) {
                                     modRes.getDrawable(resId, null)?.let { drawable ->
-                                        dualSignalResMap[resName] = drawable.mutate()
+                                        dualSignalResMap[resName] = drawableToBitmap(drawable)
                                     }
                                 }
                             }
@@ -363,23 +380,28 @@ class DualRowSignalHookV : MobileSignalHook() {
 
         val slot1ResName = getSignalIconResName(1, dataLevel, isUseTint, isLight)
         val slot2ResName = getSignalIconResName(2, noDataLevel, isUseTint, isLight)
-        val slot1Drawable = dualSignalResMap[slot1ResName]
-        val slot2Drawable = dualSignalResMap[slot2ResName]
-        if (slot1Drawable == null || slot2Drawable == null) {
+        val slot1Bitmap = dualSignalResMap[slot1ResName]
+        val slot2Bitmap = dualSignalResMap[slot2ResName]
+        if (slot1Bitmap == null || slot2Bitmap == null) {
             XposedLog.w(
                 TAG,
                 lpparam.packageName,
-                "refreshDualIcons: drawable not found! slot1=$slot1ResName, slot2=$slot2ResName"
+                "refreshDualIcons: bitmap not found! slot1=$slot1ResName, slot2=$slot2ResName"
             )
             return
         }
 
         val needsTint = isUseTint && selectedIconStyle != "theme"
-        slot1.setImageDrawable(slot1Drawable.constantState?.newDrawable()?.mutate() ?: slot1Drawable)
-        slot2.setImageDrawable(slot2Drawable.constantState?.newDrawable()?.mutate() ?: slot2Drawable)
+        slot1.setImageBitmap(slot1Bitmap)
+        slot2.setImageBitmap(slot2Bitmap)
 
-        slot1.imageTintList = if (needsTint) color?.let { ColorStateList.valueOf(it) } else null
-        slot2.imageTintList = if (needsTint) color?.let { ColorStateList.valueOf(it) } else null
+        if (needsTint && color != null) {
+            slot1.setColorFilter(color, PorterDuff.Mode.SRC_IN)
+            slot2.setColorFilter(color, PorterDuff.Mode.SRC_IN)
+        } else {
+            slot1.clearColorFilter()
+            slot2.clearColorFilter()
+        }
     }
 
     private val refreshRunnable = Runnable {

@@ -69,7 +69,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-// https://github.com/HowieHChen/XiaomiHelper/blob/72d6a928358f7de7a3b3e872f18acaa83f1cfe33/app/src/main/kotlin/dev/lackluster/mihelper/hook/rules/systemui/media/CustomBackground.kt
+// https://github.com/HowieHChen/XiaomiHelper/blob/26c33c83cc80b4c4df6237227975ad30765d4b16/app/src/main/kotlin/dev/lackluster/mihelper/hook/rules/systemui/media/CustomBackground.kt
 object CustomBackground : BaseHook() {
     // background:
     // 0 -> Default;
@@ -402,7 +402,9 @@ object CustomBackground : BaseHook() {
                     height
                 )
             if (mArtworkDrawable == null) {
-                mArtworkDrawable = processor.createBackground(processedArtwork, colorConfig)
+                mArtworkDrawable = processor.createBackground(processedArtwork, colorConfig).apply {
+                    setResizeAnim(true)
+                }
             }
             mArtworkDrawable?.setBounds(0, 0, width, height)
             mCurrentPkgName = pkgName
@@ -421,7 +423,11 @@ object CustomBackground : BaseHook() {
                 holder.mediaBg.setPadding(0, 0, 0, 0)
                 if (isArtWorkUpdate || (!mIsArtworkBound && isArtworkBound)) {
                     holder.mediaBg.setImageDrawable(mArtworkDrawable)
-                    mArtworkDrawable?.updateAlbumCover(processedArtwork, colorConfig)
+                    mArtworkDrawable?.updateAlbumCover(
+                        processedArtwork,
+                        colorConfig,
+                        !holder.mediaBg.isShown || !holder.mediaBg.isAttachedToWindow
+                    )
                     mIsArtworkBound = isArtworkBound
                 }
             })

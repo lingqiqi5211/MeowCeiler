@@ -325,22 +325,37 @@ object MobileTypeSingle2Hook : BaseHook() {
 
                         1 -> viewModel.setObjectField("mobileTypeVisible", newReadonlyStateFlow(true))
                         3 -> viewModel.setObjectField("mobileTypeVisible", newReadonlyStateFlow(false))
-                        else -> {
-                            viewModel.setObjectField(
-                                "mobileTypeVisible",
-                                if (isEnableDouble) {
-                                    // 双排模式：WiFi 可用时隐藏小 5G
-                                    val flow = newReadonlyStateFlow(true)
-                                    MiuiStub.javaAdapter.alwaysCollectFlow(
-                                        viewModel.getObjectFieldAs("wifiAvailable"),
-                                        Consumer<Boolean> { wifiOn -> setStateFlowValue(flow, !wifiOn) }
-                                    )
-                                    flow
-                                } else {
-                                    // 使用系统原始 isDataConnected Flow
-                                    interactor?.getObjectFieldAs("isDataConnected")
+                        else ->  {
+                            val wifiFlow = viewModel.getObjectFieldAs<Any>("wifiAvailable")
+                            val dataConnectedFlow = interactor?.getObjectFieldAs<Any>("isDataConnected")
+
+                            // 先读当前值
+                            val initWifiOn = runCatching { getStateFlowValue(wifiFlow) as Boolean }.getOrDefault(false)
+                            val initDataConnected = runCatching { getStateFlowValue(dataConnectedFlow) as Boolean }.getOrDefault(false)
+
+                            val flow = newReadonlyStateFlow(!initWifiOn && initDataConnected)
+                            viewModel.setObjectField("mobileTypeVisible", flow)
+
+                            var wifiOn = initWifiOn
+                            var dataConnected = initDataConnected
+
+                            MiuiStub.javaAdapter.alwaysCollectFlow(
+                                wifiFlow,
+                                Consumer<Boolean> { on ->
+                                    wifiOn = on
+                                    setStateFlowValue(flow, !wifiOn && dataConnected)
                                 }
                             )
+
+                            dataConnectedFlow?.let {
+                                MiuiStub.javaAdapter.alwaysCollectFlow(
+                                    it,
+                                    Consumer<Boolean> { connected ->
+                                        dataConnected = connected
+                                        setStateFlowValue(flow, !wifiOn && dataConnected)
+                                    }
+                                )
+                            }
                         }
                     }
                 }

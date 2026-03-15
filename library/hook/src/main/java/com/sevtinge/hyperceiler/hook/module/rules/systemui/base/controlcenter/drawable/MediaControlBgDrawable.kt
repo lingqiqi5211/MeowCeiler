@@ -24,7 +24,7 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import com.sevtinge.hyperceiler.hook.module.rules.systemui.base.controlcenter.mediabackground.MediaViewColorConfig
 
-// https://github.com/HowieHChen/XiaomiHelper/blob/b1ab58484326372575a72f6509580cc60c272300/app/src/main/kotlin/dev/lackluster/mihelper/hook/drawable/MediaControlBgDrawable.kt
+// https://github.com/HowieHChen/XiaomiHelper/blob/26c33c83cc80b4c4df6237227975ad30765d4b16/app/src/main/kotlin/dev/lackluster/mihelper/hook/drawable/MediaControlBgDrawable.kt
 abstract class MediaControlBgDrawable(
     protected var artwork: Drawable,
     protected var colorConfig: MediaViewColorConfig,
@@ -45,7 +45,17 @@ abstract class MediaControlBgDrawable(
     protected var currentSize: Int = 0
     protected var targetSize: Int = 0
 
-    abstract fun updateAlbumCover(artwork: Drawable, colorConfig: MediaViewColorConfig)
+    protected var useResizeAnim = false
+
+    fun setResizeAnim(enabled: Boolean) {
+        useResizeAnim = enabled
+    }
+
+    abstract fun updateAlbumCover(
+        artwork: Drawable,
+        colorConfig: MediaViewColorConfig,
+        skipAnim: Boolean = false
+    )
 
     override fun setAlpha(p0: Int) {
         artwork.alpha = p0
