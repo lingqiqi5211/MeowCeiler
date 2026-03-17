@@ -276,11 +276,11 @@
         app:inflatedXml="@xml/package_installer"/>
 
     <header
-        android:fragment="com.sevtinge.hyperceiler.hooker.PersonalAssistantFragment"
         android:icon="@drawable/ic_default"
         android:id="@+id/home_personal_assistant"
         android:summary="com.miui.personalassistant"
-        android:title="@string/personal_assistant" />
+        android:title="@string/personal_assistant"
+        app:inflatedXml="@xml/personal_assistant" />
 
     <header
         android:icon="@drawable/ic_default"
@@ -351,6 +351,13 @@
         android:summary="com.xiaomi.aiasst.vision"
         android:title="@string/aiasst"
         app:inflatedXml="@xml/aiasst"/>
+
+    <header
+        android:icon="@drawable/ic_default"
+        android:id="@+id/aicr"
+        android:summary="com.xiaomi.aicr"
+        android:title="@string/aicr"
+        app:inflatedXml="@xml/aicr"/>
 
     <header
         android:icon="@drawable/ic_default"
