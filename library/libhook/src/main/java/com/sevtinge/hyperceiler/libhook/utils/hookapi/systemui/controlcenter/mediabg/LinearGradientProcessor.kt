@@ -23,12 +23,12 @@ import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
+import com.sevtinge.hyperceiler.common.utils.PrefsBridge
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.MediaControlBgFactory.brightness
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.MediaControlBgFactory.toSquare
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.drawable.LinearGradientDrawable
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.drawable.MediaControlBgDrawable
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.media.MediaViewColorConfig
-import com.sevtinge.hyperceiler.common.utils.PrefsBridge
 
 // https://github.com/HowieHChen/XiaomiHelper/blob/6a0e424ad9276205fdf47f523cc6c8bb72e49e7f/app/src/main/kotlin/dev/lackluster/mihelper/hook/rules/systemui/media/bg/LinearGradientProcessor.kt
 class LinearGradientProcessor : BgProcessor {

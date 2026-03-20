@@ -21,12 +21,11 @@ package com.sevtinge.hyperceiler.libhook.rules.systemui.controlcenter
 import android.annotation.SuppressLint
 import android.view.ViewGroup
 import android.widget.TextView
-
+import com.sevtinge.hyperceiler.common.utils.PrefsBridge
 import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.WeatherView
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getIdByName
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.setObjectField
-import com.sevtinge.hyperceiler.common.utils.PrefsBridge
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createAfterHook

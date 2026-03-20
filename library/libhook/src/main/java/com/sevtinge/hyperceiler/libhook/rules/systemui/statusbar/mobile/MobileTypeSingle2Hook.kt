@@ -64,6 +64,7 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.afterHookMethod
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callMethod
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callMethodAs
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callMethodOrNull
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.findViewByIdName
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getAdditionalInstanceFieldAs
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getBooleanField
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getIntField
@@ -71,7 +72,6 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectField
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getObjectFieldAs
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.setAdditionalInstanceField
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.setObjectField
-import io.github.kyuubiran.ezxhelper.android.util.ViewUtil.findViewByIdName
 import io.github.kyuubiran.ezxhelper.core.finder.ConstructorFinder.`-Static`.constructorFinder
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass

@@ -20,11 +20,11 @@ package com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.me
 
 import android.content.Context
 import android.graphics.drawable.Drawable
+import com.sevtinge.hyperceiler.common.utils.PrefsBridge
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.MediaControlBgFactory.toSquare
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.drawable.MediaControlBgDrawable
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.drawable.RadialGradientDrawable
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.media.MediaViewColorConfig
-import com.sevtinge.hyperceiler.common.utils.PrefsBridge
 
 // https://github.com/HowieHChen/XiaomiHelper/blob/6a0e424ad9276205fdf47f523cc6c8bb72e49e7f/app/src/main/kotlin/dev/lackluster/mihelper/hook/rules/systemui/media/bg/RadialGradientProcessor.kt
 class RadialGradientProcessor : BgProcessor {

@@ -30,13 +30,13 @@ import android.graphics.drawable.Drawable
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.scale
+import com.sevtinge.hyperceiler.common.utils.PrefsBridge
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Hardware.isDarkMode
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.MediaControlBgFactory.brightness
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.MediaControlBgFactory.hardwareBlur
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.drawable.MediaControlBgDrawable
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.drawable.TransitionDrawable
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.systemui.controlcenter.media.MediaViewColorConfig
-import com.sevtinge.hyperceiler.common.utils.PrefsBridge
 import kotlin.random.Random
 
 // https://github.com/HowieHChen/XiaomiHelper/blob/6a0e424ad9276205fdf47f523cc6c8bb72e49e7f/app/src/main/kotlin/dev/lackluster/mihelper/hook/rules/systemui/media/bg/CoverArtProcessor.kt
