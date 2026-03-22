@@ -38,7 +38,9 @@ internal class HookChain(private val stages: List<ChainStage>) {
     fun invoke(chain: XposedInterface.Chain): Any? {
         val context = InvocationContext(chain)
         val beforeStages = stages.filterIsInstance<BeforeChainStage>()
-        val interceptStages = stages.filterIsInstance<InterceptChainStage>()
+        // Keep replace/intercept stages in declaration order so replacement hooks
+        // participate in the execution chain instead of falling through.
+        val coreStages = stages.filterNot { it is BeforeChainStage || it is AfterChainStage }
         val afterStages = stages.filterIsInstance<AfterChainStage>()
 
         for (stage in beforeStages) {
@@ -49,11 +51,11 @@ internal class HookChain(private val stages: List<ChainStage>) {
         }
 
         fun proceed(index: Int) {
-            if (index >= interceptStages.size) {
+            if (index >= coreStages.size) {
                 context.proceedOriginal()
                 return
             }
-            interceptStages[index].intercept(context) { proceed(index + 1) }
+            coreStages[index].intercept(context) { proceed(index + 1) }
         }
 
         if (!context.skipped) {
