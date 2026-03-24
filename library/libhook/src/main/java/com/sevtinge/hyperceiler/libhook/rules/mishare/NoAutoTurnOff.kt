@@ -21,7 +21,6 @@ package com.sevtinge.hyperceiler.libhook.rules.mishare
 import android.content.Context
 import com.sevtinge.hyperceiler.libhook.R
 import com.sevtinge.hyperceiler.libhook.base.BaseHook
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKit
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHooks
@@ -29,8 +28,15 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
 object NoAutoTurnOff : BaseHook() {
+    override fun useDexKit() = true
+
+    override fun initDexKit(): Boolean {
+        stopAdvertAllMethod
+        showToastMethod
+        return true
+    }
     private val stopAdvertAllMethod by lazy<Method> {
-        DexKit.findMember("NoAutoTurnOff9") {
+        requiredMember("NoAutoTurnOff9") {
             it.findMethod {
                 matcher {
                     usingStrings("stopAdvertAll timeout. try stop ")
@@ -40,7 +46,7 @@ object NoAutoTurnOff : BaseHook() {
     }
 
     private val toastMethod by lazy<List<Method>> {
-        DexKit.findMemberList("NoAutoTurnOff4") {
+        requiredMemberList("NoAutoTurnOff4") {
             it.findMethod {
                 matcher {
                     declaredClass {
@@ -54,7 +60,7 @@ object NoAutoTurnOff : BaseHook() {
     }
 
     private val toastMethodNew by lazy<List<Method>> {
-        DexKit.findMemberList("NoAutoTurnOff4N") {
+        requiredMemberList("NoAutoTurnOff4N") {
             it.findMethod {
                 matcher {
                     declaredClass {
@@ -67,7 +73,7 @@ object NoAutoTurnOff : BaseHook() {
     }
 
     private val showToastMethod by lazy<Method> {
-        DexKit.findMember("NoAutoTurnOff5") {
+        requiredMember("NoAutoTurnOff5") {
             it.findMethod {
                 matcher {
                     declaredClass {
@@ -142,3 +148,4 @@ object NoAutoTurnOff : BaseHook() {
         }
     }
 }
+
