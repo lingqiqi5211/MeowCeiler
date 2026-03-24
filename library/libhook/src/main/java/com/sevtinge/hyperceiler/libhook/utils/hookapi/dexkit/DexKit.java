@@ -122,19 +122,11 @@ public class DexKit {
 
             // 检查是否已准备
             if (sParam == null) {
-                throw new IllegalStateException(sTag + ": DexKit not initialized! Override needDexKit() in your BaseLoad subclass and return true.");
+                throw new IllegalStateException(sTag + ": DexKit not initialized! Resolve DexKit members in BaseHook.initDexKit() after declaring useDexKit().");
             }
 
             ApplicationInfo appInfo = sParam.getApplicationInfo();
-
-            // 初始化 Gson
-            sGson = new GsonBuilder()
-                .disableHtmlEscaping()
-                .setPrettyPrinting()
-                .create();
-
-            // 初始化缓存
-            initCache(appInfo);
+            ensureCacheInitialized(appInfo);
 
             // 加载 DexKit 原生库并创建实例
             System.loadLibrary("dexkit");
@@ -152,6 +144,18 @@ public class DexKit {
             return DexKitBridge.create(classLoader, false);
         }
         return DexKitBridge.create(appInfo.sourceDir);
+    }
+
+    private static void ensureCacheInitialized(@NonNull ApplicationInfo appInfo) {
+        if (sGson == null) {
+            sGson = new GsonBuilder()
+                .disableHtmlEscaping()
+                .setPrettyPrinting()
+                .create();
+        }
+        if (sCacheFile == null || sCacheData == null) {
+            initCache(appInfo);
+        }
     }
 
     /**
@@ -317,16 +321,26 @@ public class DexKit {
             if (sParam == null) {
                 throw new IllegalStateException("DexKit not ready");
             }
+            ensureCacheInitialized(sParam.getApplicationInfo());
             return findMember(key, sParam.getClassLoader(), iDexKit);
         }
     }
 
     @SuppressWarnings("unchecked")
     public static <T> T findMember(@NonNull String key, ClassLoader classLoader, IDexKit iDexKit) {
+        MemberData cachedData = getCachedMember(key);
+        if (cachedData != null) {
+            return (T) createMemberInstance(cachedData, classLoader);
+        }
+
         DexKitBridge dexKitBridge = initDexkitBridge();
 
         synchronized (sLock) {
-            MemberData cachedData = sCacheData.cache.get(key);
+            cachedData = getCachedMemberLocked(key);
+
+            if (cachedData != null) {
+                return (T) createMemberInstance(cachedData, classLoader);
+            }
 
             if (cachedData == null) {
                 try {
@@ -348,24 +362,6 @@ public class DexKit {
                 } catch (ReflectiveOperationException e) {
                     throw new RuntimeException(e);
                 }
-            } else {
-                try {
-                    String serialized = cachedData.data.isEmpty() ? null : cachedData.data.getFirst();
-                    if (serialized != null) {
-                        switch (cachedData.type) {
-                            case TYPE_METHOD:
-                                return (T) new DexMethod(serialized).getMethodInstance(classLoader);
-                            case TYPE_FIELD:
-                                return (T) new DexField(serialized).getFieldInstance(classLoader);
-                            case TYPE_CLASS:
-                                return (T) new DexClass(serialized).getInstance(classLoader);
-                            default:
-                                XposedLog.w(sTag, "Unknown member data type: " + cachedData.type);
-                        }
-                    }
-                } catch (NoSuchMethodException | NoSuchFieldException | ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
             }
         }
         return null;
@@ -376,16 +372,26 @@ public class DexKit {
             if (sParam == null) {
                 throw new IllegalStateException("DexKit not ready");
             }
+            ensureCacheInitialized(sParam.getApplicationInfo());
             return findMemberList(key, sParam.getClassLoader(), iDexKitList);
         }
     }
 
     @SuppressWarnings("unchecked")
     public static <T> List<T> findMemberList(@NonNull String key, ClassLoader classLoader, IDexKitList iDexKitList) {
+        MemberData cachedData = getCachedMember(key);
+        if (cachedData != null) {
+            return (List<T>) createMemberListInstance(cachedData, classLoader);
+        }
+
         DexKitBridge dexKitBridge = initDexkitBridge();
 
         synchronized (sLock) {
-            MemberData cachedData = sCacheData.cache.get(key);
+            cachedData = getCachedMemberLocked(key);
+
+            if (cachedData != null) {
+                return (List<T>) createMemberListInstance(cachedData, classLoader);
+            }
 
             if (cachedData == null) {
                 try {
@@ -419,31 +425,69 @@ public class DexKit {
                 } catch (ReflectiveOperationException e) {
                     throw new RuntimeException(e);
                 }
-            } else {
-                ArrayList<T> instanceList = new ArrayList<>();
-                try {
-                    switch (cachedData.type) {
-                        case TYPE_METHOD:
-                            for (String s : cachedData.data)
-                                instanceList.add((T) new DexMethod(s).getMethodInstance(classLoader));
-                            return instanceList;
-                        case TYPE_FIELD:
-                            for (String s : cachedData.data)
-                                instanceList.add((T) new DexField(s).getFieldInstance(classLoader));
-                            return instanceList;
-                        case TYPE_CLASS:
-                            for (String s : cachedData.data)
-                                instanceList.add((T) new DexClass(s).getInstance(classLoader));
-                            return instanceList;
-                        default:
-                            XposedLog.w(sTag, "Unknown member data type: " + cachedData.type);
-                    }
-                } catch (NoSuchMethodException | NoSuchFieldException | ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
             }
         }
         return new ArrayList<>();
+    }
+
+    @Nullable
+    private static MemberData getCachedMember(@NonNull String key) {
+        synchronized (sLock) {
+            return getCachedMemberLocked(key);
+        }
+    }
+
+    @Nullable
+    private static MemberData getCachedMemberLocked(@NonNull String key) {
+        if (sCacheData == null) return null;
+        return sCacheData.cache.get(key);
+    }
+
+    @Nullable
+    private static Object createMemberInstance(@NonNull MemberData cachedData, @NonNull ClassLoader classLoader) {
+        try {
+            String serialized = cachedData.data.isEmpty() ? null : cachedData.data.getFirst();
+            if (serialized == null) return null;
+            switch (cachedData.type) {
+                case TYPE_METHOD:
+                    return new DexMethod(serialized).getMethodInstance(classLoader);
+                case TYPE_FIELD:
+                    return new DexField(serialized).getFieldInstance(classLoader);
+                case TYPE_CLASS:
+                    return new DexClass(serialized).getInstance(classLoader);
+                default:
+                    XposedLog.w(sTag, "Unknown member data type: " + cachedData.type);
+                    return null;
+            }
+        } catch (NoSuchMethodException | NoSuchFieldException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @NonNull
+    private static List<?> createMemberListInstance(@NonNull MemberData cachedData, @NonNull ClassLoader classLoader) {
+        ArrayList<Object> instanceList = new ArrayList<>();
+        try {
+            switch (cachedData.type) {
+                case TYPE_METHOD:
+                    for (String s : cachedData.data)
+                        instanceList.add(new DexMethod(s).getMethodInstance(classLoader));
+                    return instanceList;
+                case TYPE_FIELD:
+                    for (String s : cachedData.data)
+                        instanceList.add(new DexField(s).getFieldInstance(classLoader));
+                    return instanceList;
+                case TYPE_CLASS:
+                    for (String s : cachedData.data)
+                        instanceList.add(new DexClass(s).getInstance(classLoader));
+                    return instanceList;
+                default:
+                    XposedLog.w(sTag, "Unknown member data type: " + cachedData.type);
+                    return new ArrayList<>();
+            }
+        } catch (NoSuchMethodException | NoSuchFieldException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static void safePutMember(@NonNull String key, @NonNull MemberData data) {
@@ -508,14 +552,8 @@ public class DexKit {
      */
     public static void close() {
         synchronized (sLock) {
-            if (!sIsInit) return;
-
             if (sDexKitBridge != null) {
                 try {
-                    sSessionCache.clear();
-                    sSessionCacheList.clear();
-                    sSessionCache = new HashMap<>();
-                    sSessionCacheList = new HashMap<>();
                     sDexKitBridge.close();
                 } catch (Throwable t) {
                     XposedLog.w(sTag, "Error closing DexKitBridge", t);
@@ -523,6 +561,10 @@ public class DexKit {
                 sDexKitBridge = null;
             }
 
+            sSessionCache.clear();
+            sSessionCacheList.clear();
+            sSessionCache = new HashMap<>();
+            sSessionCacheList = new HashMap<>();
             sParam = null;
             sGson = null;
             sCacheFile = null;
