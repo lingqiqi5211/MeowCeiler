@@ -20,7 +20,6 @@ package com.sevtinge.hyperceiler.libhook.rules.xmsf
 
 import com.sevtinge.hyperceiler.common.log.XposedLog
 import com.sevtinge.hyperceiler.libhook.base.BaseHook
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKit
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.callMethod
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createBeforeHook
 import java.lang.reflect.Field
@@ -28,9 +27,14 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
 object UnlockFoucsAuth : BaseHook() {
+    private lateinit var getAuthError: Method
+    private lateinit var getAuthSuccess: Method
+    private lateinit var getErrorField: Field
 
-    private val getAuthError by lazy {
-        DexKit.findMember("getAuthError") { dexKitBridge ->
+    override fun useDexKit() = true
+
+    override fun initDexKit(): Boolean {
+        getAuthError = requiredMember("getAuthError") { dexKitBridge ->
             dexKitBridge.findClass {
                 matcher {
                     className = "com.xiaomi.xms.auth.AuthSession"
@@ -42,11 +46,8 @@ object UnlockFoucsAuth : BaseHook() {
                     returnType = "android.os.Bundle"
                 }
             }.single()
-        } as? Method
-    }
-
-    private val getAuthSuccess by lazy {
-        DexKit.findMember("getAuthSuccess") { dexKitBridge ->
+        }
+        getAuthSuccess = requiredMember("getAuthSuccess") { dexKitBridge ->
             dexKitBridge.findClass {
                 matcher {
                     className = "com.xiaomi.xms.auth.AuthSession"
@@ -58,11 +59,8 @@ object UnlockFoucsAuth : BaseHook() {
                     returnType = "android.os.Bundle"
                 }
             }.single()
-        } as? Method
-    }
-
-    private val getErrorField by lazy {
-        DexKit.findMember("getErrorField") { dexKitBridge ->
+        }
+        getErrorField = requiredMember("getErrorField") { dexKitBridge ->
             dexKitBridge.findClass {
                 matcher {
                     className = "com.xiaomi.xms.auth.AuthError"
@@ -72,20 +70,17 @@ object UnlockFoucsAuth : BaseHook() {
                     type = "int"
                 }
             }.single()
-        } as? Field
+        }
+        return true
     }
 
     override fun init() {
-        val authErrorMethod = getAuthError ?: return
-        val authSuccessMethod = getAuthSuccess ?: return
-        val errorField = getErrorField ?: return
-
-        authErrorMethod.createBeforeHook {
+        getAuthError.createBeforeHook {
             val error = it.args[0] ?: return@createBeforeHook
-            val errorCode = errorField.get(error)
+            val errorCode = getErrorField.get(error)
             XposedLog.d(TAG, lpparam.packageName, "发现错误分发: $errorCode，正在拦截并强制返回成功")
-            errorField.set(error, 0)
-            it.result = it.thisObject.callMethod(authSuccessMethod.name)
+            getErrorField.set(error, 0)
+            it.result = it.thisObject.callMethod(getAuthSuccess.name)
         }
 
     }

@@ -77,9 +77,6 @@ import com.sevtinge.hyperceiler.libhook.rules.securitycenter.sidebar.video.Video
 @HookBase(targetPackage = "com.miui.securitycenter")
 public class SecurityCenter extends BaseLoad {
 
-    public SecurityCenter() {
-        super(true);
-    }
 
     @Override
     public void onPackageLoaded() {

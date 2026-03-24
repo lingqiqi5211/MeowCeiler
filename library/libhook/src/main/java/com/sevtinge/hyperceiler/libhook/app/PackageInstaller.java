@@ -36,9 +36,6 @@ import com.sevtinge.hyperceiler.libhook.rules.packageinstaller.InstallSource;
 @HookBase(targetPackage = "com.miui.packageinstaller")
 public class PackageInstaller extends BaseLoad {
 
-    public PackageInstaller() {
-        super(true);
-    }
 
     public void onPackageLoaded() {
 
