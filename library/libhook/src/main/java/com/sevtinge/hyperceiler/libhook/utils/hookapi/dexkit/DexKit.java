@@ -70,7 +70,7 @@ import io.github.libxposed.api.XposedModuleInterface.PackageReadyParam;
  */
 public class DexKit {
     private static final String TAG_DEFAULT = "DexKit";
-    private static final int CACHE_VERSION = 7;
+    private static final int CACHE_VERSION = 8;
     private static final String DEXKIT_CACHE_DIR = "hyperceiler";
     private static final String DEXKIT_CACHE_FILE = "dexkit_cache.json";
 
@@ -126,7 +126,6 @@ public class DexKit {
             }
 
             ApplicationInfo appInfo = sParam.getApplicationInfo();
-            String hostDir = appInfo.sourceDir;
 
             // 初始化 Gson
             sGson = new GsonBuilder()
@@ -139,12 +138,20 @@ public class DexKit {
 
             // 加载 DexKit 原生库并创建实例
             System.loadLibrary("dexkit");
-            sDexKitBridge = DexKitBridge.create(hostDir);
+            sDexKitBridge = createDexKitBridge(appInfo, sParam.getClassLoader());
             sIsInit = true;
 
             XposedLog.d(sTag, "DexKit initialized successfully");
             return sDexKitBridge;
         }
+    }
+
+    private static DexKitBridge createDexKitBridge(@NonNull ApplicationInfo appInfo, @Nullable ClassLoader classLoader) {
+        if (appInfo.splitSourceDirs != null && appInfo.splitSourceDirs.length > 0 && classLoader != null) {
+            XposedLog.d(sTag, "DexKit loading by classLoader for split APK, splitCount=" + appInfo.splitSourceDirs.length);
+            return DexKitBridge.create(classLoader, false);
+        }
+        return DexKitBridge.create(appInfo.sourceDir);
     }
 
     /**

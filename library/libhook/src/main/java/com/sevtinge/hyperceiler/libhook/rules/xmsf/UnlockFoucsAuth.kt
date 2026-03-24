@@ -76,18 +76,16 @@ object UnlockFoucsAuth : BaseHook() {
     }
 
     override fun init() {
-        getAuthError?.createBeforeHook {
-            val error = it.args[0]
-            if (error != null) {
-                val errorCode = getErrorField?.get(it.thisObject)
-                XposedLog.d(
-                    TAG,
-                    lpparam.packageName,
-                    "[XMS][Auth] 发现错误分发: $errorCode，正在拦截并强制返回成功"
-                )
-                getErrorField?.set(it.thisObject, 0)
-                it.result = it.thisObject.callMethod(getAuthSuccess!!.name)
-            }
+        val authErrorMethod = getAuthError ?: return
+        val authSuccessMethod = getAuthSuccess ?: return
+        val errorField = getErrorField ?: return
+
+        authErrorMethod.createBeforeHook {
+            val error = it.args[0] ?: return@createBeforeHook
+            val errorCode = errorField.get(error)
+            XposedLog.d(TAG, lpparam.packageName, "发现错误分发: $errorCode，正在拦截并强制返回成功")
+            errorField.set(error, 0)
+            it.result = it.thisObject.callMethod(authSuccessMethod.name)
         }
 
     }
