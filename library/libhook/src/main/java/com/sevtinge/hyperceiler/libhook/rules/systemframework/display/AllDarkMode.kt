@@ -38,10 +38,10 @@ class AllDarkMode : BaseHook() {
             filterByName("getDarkModeAppList").toList()
                 .forEach {
                     it.hook { chain ->
-                        runCatching {
-                            clazzMiuiBuild.setStaticBooleanField("IS_INTERNATIONAL_BUILD", true)
+                        clazzMiuiBuild.setStaticBooleanField("IS_INTERNATIONAL_BUILD", true)
+                        try {
                             chain.proceed()
-                        }.onSuccess {
+                        } finally {
                             clazzMiuiBuild.setStaticBooleanField("IS_INTERNATIONAL_BUILD", false)
                         }
                     }
