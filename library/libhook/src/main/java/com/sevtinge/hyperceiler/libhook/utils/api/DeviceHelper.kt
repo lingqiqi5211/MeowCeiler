@@ -32,6 +32,8 @@ import com.sevtinge.hyperceiler.common.utils.ShellUtils.rootExecCmd
 import com.sevtinge.hyperceiler.expansion.utils.TokenUtils.getDeviceToken
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Hardware.isPadDevice
 import com.sevtinge.hyperceiler.libhook.utils.api.PropUtils.getProp
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.LazyClass.clazzMiuiBuild
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getStaticBooleanField
 import io.github.kyuubiran.ezxhelper.xposed.EzXposed.appContext
 import java.io.File
 import java.nio.charset.Charset
@@ -144,14 +146,12 @@ object DeviceHelper {
      * 小米设备特有的判断工具
      */
     object Miui {
-        private const val CLASS_MIUI_BUILD: String = "miui.os.Build"
-
         private val isTablet: Boolean by lazy {
-            InvokeUtils.getStaticField(CLASS_MIUI_BUILD, "IS_TABLET") as Boolean
+            clazzMiuiBuild.getStaticBooleanField("IS_TABLET")
         }
 
         private val isInternationalBuild: Boolean by lazy {
-            InvokeUtils.getStaticField(CLASS_MIUI_BUILD, "IS_INTERNATIONAL_BUILD") as Boolean
+            clazzMiuiBuild.getStaticBooleanField("IS_INTERNATIONAL_BUILD")
         }
 
         /**

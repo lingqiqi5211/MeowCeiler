@@ -22,12 +22,10 @@ import android.content.pm.ApplicationInfo
 import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.Miui.isInternational
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.LazyClass.clazzMiuiBuild
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.getAdditionalInstanceField
-import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.setAdditionalInstanceField
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.setStaticBooleanField
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
-import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.setStaticObject
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHooks
+import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.hook
 
 // from SetoHook by SetoSkins
 class AllDarkMode : BaseHook() {
@@ -38,18 +36,14 @@ class AllDarkMode : BaseHook() {
 
         clazzForceDarkAppListManager.methodFinder().apply {
             filterByName("getDarkModeAppList").toList()
-                .createHooks {
-                    before {
-                        val originalValue = EzxHelpUtils.getStaticBooleanField(
-                            clazzMiuiBuild,
-                            "IS_INTERNATIONAL_BUILD"
-                        )
-                        setStaticObject(clazzMiuiBuild, "IS_INTERNATIONAL_BUILD", true)
-                        it.setAdditionalInstanceField("originalValue", originalValue)
-                    }
-                    after {
-                        val originalValue = it.getAdditionalInstanceField("originalValue")
-                        setStaticObject(clazzMiuiBuild, "IS_INTERNATIONAL_BUILD", originalValue)
+                .forEach {
+                    it.hook { chain ->
+                        runCatching {
+                            clazzMiuiBuild.setStaticBooleanField("IS_INTERNATIONAL_BUILD", true)
+                            chain.proceed()
+                        }.onSuccess {
+                            clazzMiuiBuild.setStaticBooleanField("IS_INTERNATIONAL_BUILD", false)
+                        }
                     }
                 }
 
