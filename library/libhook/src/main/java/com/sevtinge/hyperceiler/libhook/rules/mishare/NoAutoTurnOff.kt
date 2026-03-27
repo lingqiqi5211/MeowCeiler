@@ -33,6 +33,8 @@ object NoAutoTurnOff : BaseHook() {
     override fun initDexKit(): Boolean {
         stopAdvertAllMethod
         showToastMethod
+        toastMethod
+        toastMethodNew
         return true
     }
     private val stopAdvertAllMethod by lazy<Method> {

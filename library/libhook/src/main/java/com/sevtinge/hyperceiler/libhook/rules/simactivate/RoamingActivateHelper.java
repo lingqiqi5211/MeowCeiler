@@ -31,6 +31,7 @@ import com.sevtinge.hyperceiler.common.log.XposedLog;
 import com.sevtinge.hyperceiler.common.utils.PrefsBridge;
 import com.sevtinge.hyperceiler.libhook.base.BaseHook;
 import com.sevtinge.hyperceiler.libhook.callback.IMethodHook;
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKit;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.IDexKit;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.EzxHelpUtils;
 
@@ -67,6 +68,7 @@ public class RoamingActivateHelper extends BaseHook {
     private Method mStartActivateSimMethod;
     private Method mCustomGetterMethod;
     private Method mSlotIdGetterMethod;
+    private Method mStartActivateSimImsMethod;
     private Field mActivateSimSubIdField;
     private Field mActivateSimContextField;
 
@@ -108,16 +110,29 @@ public class RoamingActivateHelper extends BaseHook {
                 return methodData;
             }
         });
+        mStartActivateSimImsMethod = DexKit.findMember("StartActivateSimIms", new IDexKit() {
+            @Override
+            public BaseData dexkit(DexKitBridge bridge) throws ReflectiveOperationException {
+                MethodData methodData = bridge.findMethod(FindMethod.create()
+                    .matcher(MethodMatcher.create()
+                        .usingStrings("ImsActivateTask", "cloud control not allow this mccmnc activate with method ")
+                    )).singleOrNull();
+                return methodData;
+            }
+        });
         mActivateSimSubIdField = requiredMember("ActivateSimSubId", new IDexKit() {
             @Override
             public BaseData dexkit(DexKitBridge bridge) throws ReflectiveOperationException {
                 FieldData fieldData = bridge.findField(FindField.create()
                         .matcher(FieldMatcher.create()
                                 .declaredClass(ClassMatcher.create()
-                                        .usingStrings("IOException", "cloud control not allow this mccmnc activate with method ")
+                                        .usingStrings("subId:", "cloud control not allow this mccmnc activate with method ")
+                                )
+                                .addReadMethod(MethodMatcher.create()
+                                        .usingNumbers(30000L)
                                 )
                                 .type(int.class)
-                                .modifiers(Modifier.PUBLIC)
+                                .modifiers(Modifier.PUBLIC | Modifier.FINAL)
                         )).singleOrNull();
                 return fieldData;
             }
@@ -152,6 +167,24 @@ public class RoamingActivateHelper extends BaseHook {
                 Context context = (Context) getObjectField(param.getThisObject(), mActivateSimContextField.getName());
                 if (isRoaming(context, slotId, mChinaTeleZoneCodeList, mChinaIccidStartsWithList, isRadical)) {
                     XposedLog.d(TAG, getPackageName(), "Roaming SIM, skip activate.");
+                    param.setResult(null);
+                }
+            }
+        });
+
+        //findAndHookMethod("com.xiaomi.activate.simactivate.q", "C", new IMethodHook() {
+        hookMethod(mStartActivateSimImsMethod, new IMethodHook() {
+            @RequiresPermission(allOf = {Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.ACCESS_COARSE_LOCATION, "android.permission.READ_PRIVILEGED_PHONE_STATE"})
+            @Override
+            public void before(HookParam param) throws InvocationTargetException, IllegalAccessException {
+                int subId = (int) getObjectField(param.getThisObject(), mActivateSimSubIdField.getName());
+                //XposedLog.d(TAG, getPackageName(), "IMS SIM " + subId);
+                Object contextGetter = callStaticMethod(mCustomGetterMethod.getDeclaringClass(), mCustomGetterMethod.getName());
+                Object originSlotId = EzxHelpUtils.findMethodBestMatch(mSlotIdGetterMethod.getDeclaringClass(), mSlotIdGetterMethod.getName(), subId).invoke(contextGetter, subId);
+                int slotId = (int) originSlotId;
+                Context context = (Context) getObjectField(param.getThisObject(), mActivateSimContextField.getName());
+                if (isRoaming(context, slotId, mChinaTeleZoneCodeList, mChinaIccidStartsWithList, isRadical)) {
+                    XposedLog.d(TAG, getPackageName(), "IMS Roaming SIM, skip activate.");
                     param.setResult(null);
                 }
             }
