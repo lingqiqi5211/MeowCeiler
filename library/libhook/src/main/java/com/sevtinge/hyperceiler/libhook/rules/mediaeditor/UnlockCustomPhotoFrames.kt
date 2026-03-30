@@ -36,7 +36,9 @@ object UnlockCustomPhotoFrames : BaseHook() {
     override fun useDexKit() = true
 
     override fun initDexKit(): Boolean {
+        methodA
         methodB
+        methodC
         cloudA
         return true
     }
