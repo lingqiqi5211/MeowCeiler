@@ -148,6 +148,10 @@ object DisplayMoreApkInfoNew : BaseHook() {
 
     @SuppressLint("SetTextI18n")
     override fun init() {
+        if (viewHolderField == null) {
+            return
+        }
+
         // pick the first view method that is not excluded
         val reallyViewMethod: Method? = viewMethod.firstOrNull { it != viewExcludeMethod1 && it != viewExcludeMethod2 }
 
@@ -330,4 +334,3 @@ private fun format(appSize: Float): String {
 }
 
 private data class Quad<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
-

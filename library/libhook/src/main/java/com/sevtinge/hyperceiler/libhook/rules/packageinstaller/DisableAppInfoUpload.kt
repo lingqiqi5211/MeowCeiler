@@ -78,7 +78,7 @@ object DisableAppInfoUpload : BaseHook() {
         /**
          * methods invoke api '/info/layout'
          */
-        infoLayoutInvokerList = requiredMemberList("interceptCheckInvokerList") {
+        infoLayoutInvokerList = requiredMemberList("infoLayoutInvokerList") {
             it.findMethod {
                 matcher {
                     paramCount(7)

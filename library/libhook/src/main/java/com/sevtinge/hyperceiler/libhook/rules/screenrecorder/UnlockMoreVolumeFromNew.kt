@@ -56,7 +56,7 @@ object UnlockMoreVolumeFromNew : BaseHook() {
     }
 
     private val fieldData by lazy<List<Field>> {
-        requiredMemberList("UnlockMoreVolumeFromNewField") { dexkit ->
+        optionalMemberList("UnlockMoreVolumeFromNewField") { dexkit ->
             dexkit.findField {
                 matcher {
                     declaredClass(getClass)
