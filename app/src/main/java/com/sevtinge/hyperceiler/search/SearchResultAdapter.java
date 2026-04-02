@@ -4,7 +4,6 @@ import static androidx.core.content.ContextCompat.getDrawable;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.Spannable;
@@ -23,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.sevtinge.hyperceiler.R;
 import com.sevtinge.hyperceiler.dashboard.SubSettings;
 import com.sevtinge.hyperceiler.search.data.ModEntity;
+import com.sevtinge.hyperceiler.utils.AppIconCache;
 import com.sevtinge.hyperceiler.utils.SettingLauncherHelper;
 
 import java.util.ArrayList;
@@ -147,20 +147,44 @@ public class SearchResultAdapter extends CardGroupAdapter<SearchResultAdapter.Mo
             if (isFirstInGroup) {
                 String groupName = ad.groupName;
                 if (groupName != null && !groupName.isEmpty()) {
+                    mIcon.setTag(groupName);
                     Drawable icon = iconCache.get(groupName);
                     if (icon == null) {
                         // 有自定义图标的（非 ic_default）直接用定义的
                         icon = loadCustomIcon(groupName);
-                        // 没有自定义图标的走 PackageManager
                         if (icon == null) {
                             String pkg = SearchHelper.getGroupPackageMap().get(groupName);
                             if (pkg != null) {
-                                try {
-                                    icon = itemView.getContext().getPackageManager().getApplicationIcon(pkg);
-                                } catch (PackageManager.NameNotFoundException ignored) {}
+                                // 没有自定义图标时，优先复用按目标尺寸缓存过的应用图标
+                                icon = AppIconCache.getCached(itemView.getContext(), pkg, getTargetIconSize());
+                                if (icon == null) {
+                                    // 异步加载真正的应用图标，先给一个占位避免列表闪烁
+                                    mIcon.setImageResource(android.R.drawable.sym_def_app_icon);
+                                    mIcon.setVisibility(View.VISIBLE);
+                                    AppIconCache.loadIconAsync(itemView.getContext(), pkg, getTargetIconSize(), loadedIcon -> {
+                                        Object currentTag = mIcon.getTag();
+                                        if (!TextUtils.equals(groupName, currentTag instanceof CharSequence ? (CharSequence) currentTag : null)) {
+                                            return;
+                                        }
+                                        if (loadedIcon != null) {
+                                            iconCache.put(groupName, loadedIcon);
+                                            mIcon.setImageDrawable(loadedIcon);
+                                            mIcon.setVisibility(View.VISIBLE);
+                                        } else {
+                                            Drawable fallbackIcon = loadFallbackIcon(groupName);
+                                            if (fallbackIcon != null) {
+                                                iconCache.put(groupName, fallbackIcon);
+                                                mIcon.setImageDrawable(fallbackIcon);
+                                                mIcon.setVisibility(View.VISIBLE);
+                                            } else {
+                                                mIcon.setVisibility(View.INVISIBLE);
+                                            }
+                                        }
+                                    });
+                                }
                             }
                         }
-                        // 兜底用 ic_default
+                        // 兜底用分组默认图标
                         if (icon == null) {
                             icon = loadFallbackIcon(groupName);
                         }
@@ -173,9 +197,11 @@ public class SearchResultAdapter extends CardGroupAdapter<SearchResultAdapter.Mo
                         mIcon.setVisibility(View.INVISIBLE);
                     }
                 } else {
+                    mIcon.setTag(null);
                     mIcon.setVisibility(View.INVISIBLE);
                 }
             } else {
+                mIcon.setTag(null);
                 mIcon.setVisibility(View.INVISIBLE);
             }
 
@@ -200,6 +226,15 @@ public class SearchResultAdapter extends CardGroupAdapter<SearchResultAdapter.Mo
                 } catch (Exception ignored) {}
             }
             return null;
+        }
+
+        private int getTargetIconSize() {
+            ViewGroup.LayoutParams params = mIcon.getLayoutParams();
+            int size = params != null ? Math.max(params.width, params.height) : 0;
+            if (size > 0) {
+                return size;
+            }
+            return Math.round(itemView.getResources().getDisplayMetrics().density * 36);
         }
 
         private Spannable getHighlightedText(String text, String query, boolean isChina) {

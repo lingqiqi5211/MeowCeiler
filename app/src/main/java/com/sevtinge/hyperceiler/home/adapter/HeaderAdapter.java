@@ -278,8 +278,9 @@ public class HeaderAdapter extends RecyclerView.Adapter<HeaderAdapter.HeaderView
         if (id == R.id.system_framework) return;
         if (mIsScrolling) return;
         String packageName = header.summary.toString();
+        int headerIconSize = mContext.getResources().getDimensionPixelSize(R.dimen.header_icon_size);
         holder.icon.setTag(packageName);
-        IconTitleLoader.load(mContext, packageName, (info) -> {
+        IconTitleLoader.load(mContext, packageName, headerIconSize, (info) -> {
             Object currentTag = holder.icon.getTag();
             if (!TextUtils.equals(packageName, currentTag instanceof CharSequence ? (CharSequence) currentTag : null)) {
                 return;
