@@ -28,12 +28,12 @@ import java.util.List;
 
 public class HeaderAdapter extends RecyclerView.Adapter<HeaderAdapter.HeaderViewHolder> {
 
-    private Context mContext;
-    private BasePreferenceFragment mFragment;
+    private final Context mContext;
+    private final BasePreferenceFragment mFragment;
 
-    private List<Header> mHeaders;
+    private final List<Header> mHeaders;
 
-    private LayoutInflater mInflater;
+    private final LayoutInflater mInflater;
 
     // 滚动状态：快速滚动时跳过异步图标加载
     private boolean mIsScrolling = false;
@@ -284,8 +284,8 @@ public class HeaderAdapter extends RecyclerView.Adapter<HeaderAdapter.HeaderView
             if (!TextUtils.equals(packageName, currentTag instanceof CharSequence ? (CharSequence) currentTag : null)) {
                 return;
             }
-            holder.icon.setImageDrawable(info.icon);
-            holder.title.setText(info.label);
+            holder.icon.setImageDrawable(info.icon());
+            holder.title.setText(info.label());
         });
     }
 }
