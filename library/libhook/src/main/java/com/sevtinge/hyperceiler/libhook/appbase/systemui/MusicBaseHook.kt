@@ -42,9 +42,9 @@ import androidx.core.app.NotificationCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.IconCompat
 import androidx.core.graphics.drawable.toBitmap
-import com.hchen.superlyricapi.ISuperLyric
+import com.hchen.superlyricapi.ISuperLyricReceiver
 import com.hchen.superlyricapi.SuperLyricData
-import com.hchen.superlyricapi.SuperLyricTool
+import com.hchen.superlyricapi.SuperLyricHelper
 import com.hyperfocus.api.FocusApi
 import com.hyperfocus.api.IslandApi
 import com.sevtinge.hyperceiler.common.log.XposedLog
@@ -122,8 +122,8 @@ abstract class MusicBaseHook : BaseHook() {
         true
     }
 
-    private val receiver = object : ISuperLyric.Stub() {
-        override fun onSuperLyric(data: SuperLyricData) {
+    private val receiver = object : ISuperLyricReceiver.Stub() {
+        override fun onLyric(data: SuperLyricData) {
             runCatching { this@MusicBaseHook.onSuperLyric(data) }
                 .onFailure { XposedLog.e(TAG, lpparam.packageName, it) }
         }
@@ -137,9 +137,9 @@ abstract class MusicBaseHook : BaseHook() {
     }
 
     init {
-        EzxHelpUtils.runOnApplicationAttach { context ->
+        EzxHelpUtils.runOnApplicationAttach { _ ->
             runCatching {
-                SuperLyricTool.registerSuperLyric(context, receiver)
+                SuperLyricHelper.registerReceiver(receiver)
             }.onFailure {
                 XposedLog.e(TAG, lpparam.packageName, "registerLyricListener not found: ${it.message}")
             }
