@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace = "io.github.kyuubiran.ezxhelper.xposed"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 35

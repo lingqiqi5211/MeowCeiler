@@ -16,12 +16,29 @@ val apkId = "MeowCeiler"
 val gitHash: String by lazy { runGitCommand("rev-parse", "--short", "HEAD") ?: "unknown" }
 val gitHashLong: String by lazy { runGitCommand("rev-parse", "HEAD") ?: "unknown" }
 val gitCommitCount: Int by lazy { runGitCommand("rev-list", "--count", "HEAD")?.toIntOrNull() ?: 0 }
+val gitCommitCountSinceTag: Int by lazy {
+    runGitCommand("describe", "--tags", "--long", "--match", "[0-9]*", "--always")
+        ?.let { """^.+-(\d+)-g[0-9a-fA-F]+$""".toRegex().matchEntire(it)?.groupValues?.get(1)?.toIntOrNull() }
+        ?: 0
+}
 val gitBranch: String by lazy {
     val url = runGitCommand("remote", "get-url", "origin") ?: "unknown"
     val branch = runGitCommand("branch", "--show-current") ?: "unknown"
     """github\.com[:/](.+?)(\.git)?$""".toRegex().find(url)?.groupValues?.get(1).orEmpty() + "/" + branch
 }
 val gitVersionCode: Int by lazy { 5 + gitCommitCount }
+val canaryVersionNameSuffix: String by lazy {
+    buildString {
+        append('-')
+        if (gitCommitCountSinceTag > 0) {
+            append(gitCommitCountSinceTag)
+            append('-')
+        }
+        append(gitHash)
+        append("-r")
+        append(gitVersionCode)
+    }
+}
 
 fun runGitCommand(vararg args: String): String? = runCatching {
     ProcessBuilder(listOf("git") + args)
@@ -49,7 +66,7 @@ android {
         minSdk = 35
         targetSdk = 37
         versionCode = gitVersionCode
-        versionName = "3.7.171"
+        versionName = "3.3.172"
 
         val buildTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").apply {
             timeZone = TimeZone.getTimeZone("Asia/Shanghai")
@@ -155,7 +172,7 @@ android {
             applyBase()
             configSigning()
             buildConfigField("String", "GIT_HASH", "\"$gitHashLong\"")
-            versionNameSuffix = "-${gitHash}-r${gitVersionCode}"
+            versionNameSuffix = canaryVersionNameSuffix
         }
 
         debug {

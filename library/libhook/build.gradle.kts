@@ -14,7 +14,7 @@ lsparanoid {
 
 android {
     namespace = "com.sevtinge.hyperceiler.libhook"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 35
