@@ -57,19 +57,20 @@ public class VariousThirdApps extends BaseLoad {
         mPackageName = getPackageName();
         boolean isInputMethod = isEnabledInputMethodPackage(mPackageName);
 
-        initInputMethodHooks(isInputMethod);
-        initClipboardHooks();
+        if (isInputMethod) {
+            initInputMethodHooks();
+            initClipboardHooks();
+            return;
+        }
+
         initMusicHooks();
     }
 
-    private void initInputMethodHooks(boolean isInputMethod) {
-        boolean needPhraseClipboardUnlock = PrefsBridge.getBoolean("various_phrase_clipboardlist");
-        boolean needClearClipboard = PrefsBridge.getBoolean("add_clipboard_clear");
+    private void initInputMethodHooks() {
         boolean needMiuiImeUnlock = InputMethodConfig.shouldHookMiuiIme(mPackageName);
         boolean needAospIme = InputMethodConfig.shouldHookAospIme(mPackageName);
 
-        initHook(new InputMethodClassLoaderDispatcher(),
-            isInputMethod && (needPhraseClipboardUnlock || needClearClipboard || needMiuiImeUnlock || needAospIme));
+        initHook(new InputMethodClassLoaderDispatcher());
         initHook(new UnlockIme(), needMiuiImeUnlock);
         initHook(new MiAospIme(), needAospIme);
     }
@@ -84,7 +85,6 @@ public class VariousThirdApps extends BaseLoad {
     private void initMusicHooks() {
         initHook(MusicHooks.INSTANCE, PrefsBridge.getBoolean("system_ui_statusbar_music_switch") && PrefsBridge.getBoolean("system_ui_statusbar_music_show_app"));
     }
-
     private Set<String> getEnabledInputMethodPackages(Context context) {
         try {
             if (context == null) {
