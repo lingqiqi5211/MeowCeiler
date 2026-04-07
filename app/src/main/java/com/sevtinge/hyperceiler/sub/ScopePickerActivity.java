@@ -1,5 +1,6 @@
 package com.sevtinge.hyperceiler.sub;
 
+import android.content.Context;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
@@ -68,6 +69,11 @@ public class ScopePickerActivity extends AppCompatActivity
     private boolean mInitializationMode = false;
 
     private boolean mIsApplyingScope = false;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(com.sevtinge.hyperceiler.utils.LanguageHelper.wrapContext(newBase));
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
