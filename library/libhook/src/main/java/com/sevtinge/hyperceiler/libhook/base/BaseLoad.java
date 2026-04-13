@@ -202,11 +202,19 @@ public abstract class BaseLoad {
     }
 
     protected void initHook(BaseHook hook) {
-        initHookInternal(hook, true);
+        try {
+            initHookInternal(hook, true);
+        } catch (Throwable t) {
+            logHookFailure(hook, t);
+        }
     }
 
     protected void initHook(BaseHook hook, boolean isInit) {
-        initHookInternal(hook, isInit);
+        try {
+            initHookInternal(hook, isInit);
+        } catch (Throwable t) {
+            logHookFailure(hook, t);
+        }
     }
 
     protected void initHook(BaseHook hook, BooleanSupplier condition) {
