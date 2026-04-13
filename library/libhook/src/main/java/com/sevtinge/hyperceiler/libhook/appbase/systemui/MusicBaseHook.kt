@@ -32,7 +32,6 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Shader
 import android.graphics.drawable.Icon
-import android.media.session.PlaybackState
 import android.os.Bundle
 import android.util.Base64
 import android.util.TypedValue
@@ -131,14 +130,13 @@ abstract class MusicBaseHook : BaseHook() {
 
         override fun onStop(publisher: String, data: SuperLyricData) {
             runCatching {
-                if (data.playbackState?.state == PlaybackState.STATE_BUFFERING) return
                 this@MusicBaseHook.onStop()
             }.onFailure { XposedLog.e(TAG, lpparam.packageName, it) }
         }
     }
 
     init {
-        EzxHelpUtils.runOnApplicationAttach { _ ->
+        EzxHelpUtils.runOnApplicationAttach {
             runCatching {
                 SuperLyricHelper.registerReceiver(receiver)
             }.onFailure {
