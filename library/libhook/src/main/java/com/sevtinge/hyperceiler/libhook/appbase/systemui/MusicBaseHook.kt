@@ -76,6 +76,7 @@ abstract class MusicBaseHook : BaseHook() {
         private const val SALT_MUSIC_PACKAGE = "com.salt.music"}
 
     val context: Context by lazy { EzXposed.appContext }
+    var songPackageName: String = "unknown"
 
     private val nSize: Float by lazy {
         PrefsBridge.getInt("system_ui_statusbar_music_size_n", DEFAULT_FONT_SIZE).toFloat()
@@ -124,12 +125,15 @@ abstract class MusicBaseHook : BaseHook() {
 
     private val receiver = object : ISuperLyricReceiver.Stub() {
         override fun onLyric(publisher: String, data: SuperLyricData) {
-            runCatching { this@MusicBaseHook.onSuperLyric(publisher, data) }
-                .onFailure { XposedLog.e(TAG, lpparam.packageName, it) }
+            runCatching {
+                songPackageName = publisher
+                this@MusicBaseHook.onSuperLyric(publisher, data)
+            }.onFailure { XposedLog.e(TAG, lpparam.packageName, it) }
         }
 
         override fun onStop(publisher: String, data: SuperLyricData) {
             runCatching {
+                songPackageName = "unknown"
                 this@MusicBaseHook.onStop()
             }.onFailure { XposedLog.e(TAG, lpparam.packageName, it) }
         }
@@ -206,13 +210,13 @@ abstract class MusicBaseHook : BaseHook() {
     private fun resolveAppNameAndLaunchIntent(): Pair<String, Intent?> {
         return runCatching {
             val pm = context.packageManager
-            val appInfo = pm.getApplicationInfo(context.packageName, 0)
+            val appInfo = pm.getApplicationInfo(songPackageName, 0)
             val label = pm.getApplicationLabel(appInfo).toString()
-            val launchIntent = pm.getLaunchIntentForPackage(context.packageName)
+            val launchIntent = pm.getLaunchIntentForPackage(songPackageName)
             label to launchIntent
         }.getOrElse { e ->
             XposedLog.e(TAG, e)
-            packageName to context.packageManager.getLaunchIntentForPackage(packageName)
+            lpparam.packageName to context.packageManager.getLaunchIntentForPackage(lpparam.packageName)
         }
     }
 
@@ -225,7 +229,7 @@ abstract class MusicBaseHook : BaseHook() {
             runCatching { context.packageManager.getActivityIcon(it).toBitmap() }.getOrNull()
         }
 
-        val isSaltMusic = context.packageName == SALT_MUSIC_PACKAGE
+        val isSaltMusic = songPackageName == SALT_MUSIC_PACKAGE
         val primaryBitmap = when {
             isSaltMusic -> activityIconBitmap
             else -> baseBitmap ?: activityIconBitmap
@@ -258,7 +262,8 @@ abstract class MusicBaseHook : BaseHook() {
      */
     private fun createIconsBundle(iconBundle: IconBundle): Bundle = Bundle().apply {
         putParcelable("miui.focus.icon", iconBundle.circularIcon)
-        putParcelable("miui.focus.share_icon", Icon.createWithBitmap(iconBundle.activityIcon))
+        val shareIconBitmap = iconBundle.activityIcon ?: iconBundle.primaryBitmap
+        putParcelable("miui.focus.share_icon", Icon.createWithBitmap(shareIconBitmap))
         if (!isShowApp) putParcelable("miui.appIcon", iconBundle.primaryBitmap)
     }
 
