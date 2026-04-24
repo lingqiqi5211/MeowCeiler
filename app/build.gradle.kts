@@ -1,5 +1,6 @@
 // file:noinspection DependencyNotationArgument
 import com.android.build.api.dsl.ApplicationBuildType
+import com.android.build.api.variant.impl.VariantOutputImpl
 import com.android.build.gradle.tasks.PackageAndroidArtifact
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
@@ -185,18 +186,19 @@ android {
             }
         }
     }
-
 }
 
-afterEvaluate {
-    base {
-        val buildTypeName = gradle.startParameter.taskNames
-            .firstOrNull { it.contains("assemble", ignoreCase = true) }
-            ?.substringAfterLast(":")
-            ?.replace("assemble", "", ignoreCase = true)
-            ?.lowercase() ?: "debug"
-        val suffix = android.buildTypes.findByName(buildTypeName)?.versionNameSuffix ?: ""
-        archivesName.set("$apkId-${android.defaultConfig.versionName}$suffix")
+androidComponents {
+    onVariants { variant ->
+        variant.outputs.forEach {
+            val suffix = variant.buildType?.let { type ->
+                android.buildTypes.findByName(type)
+            }?.versionNameSuffix ?: ""
+            val apkName =
+                "$apkId-${android.defaultConfig.versionName}$suffix-${variant.buildType}.apk"
+
+            (it as VariantOutputImpl).outputFileName = apkName
+        }
     }
 }
 
