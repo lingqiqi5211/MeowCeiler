@@ -1,6 +1,6 @@
 [versions]
 # Build tools
-agp = "9.1.0"
+agp = "9.2.0"
 lsparanoid = "0.6.0"
 autoService = "1.1.1"
 
@@ -26,7 +26,7 @@ hiddenapibypass = "6.1"
 
 # Third-party
 expansions = "1.0.0"
-gson = "2.13.2"
+gson = "2.14.0"
 hyperfocusapi = "2.0"
 appiconloader = "1.5.0"
 lunarcalendar = "latest.release"
