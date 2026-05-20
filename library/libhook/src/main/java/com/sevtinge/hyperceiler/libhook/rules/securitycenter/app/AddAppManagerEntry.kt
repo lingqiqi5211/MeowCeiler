@@ -22,11 +22,9 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.view.Menu
-import android.view.MenuItem
 import com.sevtinge.hyperceiler.libhook.R
 import com.sevtinge.hyperceiler.libhook.base.BaseHook
 import io.github.lingqiqi5211.ezhooktool.core.findMethod
-import io.github.lingqiqi5211.ezhooktool.core.loadClass
 import io.github.lingqiqi5211.ezhooktool.xposed.EzXposed
 import io.github.lingqiqi5211.ezhooktool.xposed.EzXposed.appContext
 import io.github.lingqiqi5211.ezhooktool.xposed.EzXposed.initAppContext
@@ -35,29 +33,42 @@ import io.github.lingqiqi5211.ezhooktool.xposed.dsl.createHook
 @SuppressLint("DiscouragedApi")
 object AddAppManagerEntry : BaseHook() {
     //override val key = "add_aosp_app_manager_entry"
+    private const val ITEM_ID_AOSP_APP_MANAGER = 0x484302
+
     private val idIdMiuixActionEndMenuGroup by lazy {
         appContext.resources.getIdentifier("miuix_action_end_menu_group", "id", EzXposed.packageName)
     }
-    private val idDrawableIconSettings by lazy {
-        appContext.resources.getIdentifier("icon_settings", "drawable", EzXposed.packageName)
-    }
 
     override fun init() {
-        val clazzAppManagerMainActivity = loadClass("com.miui.appmanager.AppManagerMainActivity")
-        clazzAppManagerMainActivity.findMethod { name("onCreateOptionsMenu") }
-            .createHook {
+        findClassIfExists("com.miui.appmanager.AppManagerMainActivity")
+            ?.findMethod {
+                name("onCreateOptionsMenu")
+                parameterTypes(Menu::class.java)
+            }
+            ?.createHook {
                 after {
-                    initAppContext(it.thisObject as Activity, true)
-                    val menuItem = (it.args[0] as Menu).add(
-                        idIdMiuixActionEndMenuGroup, 0, 0, R.string.security_center_aosp_app_manager
+                    val activity = it.thisObject as Activity
+                    val menu = it.args[0] as Menu
+                    if (menu.findItem(ITEM_ID_AOSP_APP_MANAGER) != null) return@after
+
+                    initAppContext(activity, true)
+                    val menuItem = menu.add(
+                        idIdMiuixActionEndMenuGroup,
+                        ITEM_ID_AOSP_APP_MANAGER,
+                        Menu.NONE,
+                        R.string.security_center_aosp_app_manager
                     )
-                    menuItem.intent = Intent(Intent.ACTION_MAIN).setClassName(
-                        "com.android.settings",
-                        "com.android.settings.applications.ManageApplications"
-                    )
-                    menuItem.setIcon(idDrawableIconSettings)
-                    menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+                    menuItem.setOnMenuItemClickListener {
+                        activity.startActivity(createAppManagerIntent())
+                        true
+                    }
                 }
             }
     }
+
+    private fun createAppManagerIntent(): Intent =
+        Intent(Intent.ACTION_MAIN).setClassName(
+            "com.android.settings",
+            "com.android.settings.applications.ManageApplications"
+        )
 }

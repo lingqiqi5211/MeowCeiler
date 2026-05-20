@@ -32,9 +32,11 @@
     <string name="system_ui_statusbar_music_notification">焦点通知歌词</string>
     <string name="open_by_default">默认打开</string>
     <string name="security_center_aosp_app_info_label">原生应用信息</string>
-    <string name="security_center_aosp_app_info">添加 \"原生应用信息\" 入口</string>
+    <string name="security_center_aosp_app_info">原生应用信息</string>
+    <string name="security_center_aosp_app_info_desc">在应用详情页添加 \"原生应用信息\" 入口</string>
     <string name="security_center_aosp_app_manager_label">原生应用管理</string>
-    <string name="security_center_aosp_app_manager">添加 \"原生应用管理\" 入口</string>
+    <string name="security_center_aosp_app_manager">原生应用管理</string>
+    <string name="security_center_aosp_app_manager_desc">在应用设置右上角菜单添加 \"原生应用管理\" 入口</string>
     <string name="security_center_battery_design_capacity">电池设计容量</string>
     <string name="security_center_battery_full_capacity">电池充满容量</string>
     <string name="security_center_battery_capacity_format">%1$d mAh</string>

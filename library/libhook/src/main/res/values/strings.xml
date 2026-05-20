@@ -38,9 +38,11 @@
     <string name="system_ui_statusbar_network_speed_speedunits" translatable="false">KMG</string>
     <string name="open_by_default">Open by default</string>
     <string name="security_center_aosp_app_info_label">AOSP app info</string>
-    <string name="security_center_aosp_app_info">Add AOSP app info entry</string>
+    <string name="security_center_aosp_app_info">AOSP app info</string>
+    <string name="security_center_aosp_app_info_desc">Add \"AOSP app info\" entry to the application details page</string>
     <string name="security_center_aosp_app_manager_label">AOSP app manager</string>
-    <string name="security_center_aosp_app_manager">Add AOSP app manager entry</string>
+    <string name="security_center_aosp_app_manager">AOSP app manager</string>
+    <string name="security_center_aosp_app_manager_desc">Add \"AOSP app manager\" entry to the menu in the upper right corner of the application settings</string>
     <string name="security_center_battery_design_capacity">Battery design capacity</string>
     <string name="security_center_battery_full_capacity">Battery full capacity</string>
     <string name="security_center_battery_capacity_format">%1$d mAh</string>
