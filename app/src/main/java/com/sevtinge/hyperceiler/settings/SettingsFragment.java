@@ -46,21 +46,25 @@ import com.sevtinge.hyperceiler.common.utils.api.ProjectApi;
 import com.sevtinge.hyperceiler.home.utils.HeaderManager;
 import com.sevtinge.hyperceiler.libhook.utils.api.BackupUtils;
 import com.sevtinge.hyperceiler.search.SearchHelper;
+import com.sevtinge.hyperceiler.settings.development.HotReloadPickBottomSheet;
 import com.sevtinge.hyperceiler.sub.ScopePickerActivity;
 import com.sevtinge.hyperceiler.ui.LauncherActivity;
 import com.sevtinge.hyperceiler.ui.SplashActivity;
 import com.sevtinge.hyperceiler.utils.DialogHelper;
+import com.sevtinge.hyperceiler.utils.HotReloadManager;
 import com.sevtinge.hyperceiler.utils.LanguageHelper;
 import com.sevtinge.hyperceiler.utils.ScopeManager;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import fan.appcompat.app.AlertDialog;
 import fan.internal.utils.ViewUtils;
 import fan.preference.DropDownPreference;
 import fan.provision.OobeUtils;
+import io.github.libxposed.service.HookedTarget;
 
 public class SettingsFragment extends BasePreferenceFragment
     implements Preference.OnPreferenceClickListener, Preference.OnPreferenceChangeListener {
@@ -74,6 +78,7 @@ public class SettingsFragment extends BasePreferenceFragment
     DropDownPreference mLanguage;
     SwitchPreference mScopeSyncPreference;
     Preference mScopePreference;
+    Preference mHotReloadPreference;
 
     // 记录当前操作类型：0-备份，1-恢复
     private final int currentAction = -1;
@@ -123,6 +128,7 @@ public class SettingsFragment extends BasePreferenceFragment
         mLogLevel = findPreference("prefs_key_log_level_v2");
         mScopeSyncPreference = findPreference("prefs_key_settings_scope_sync");
         mScopePreference = findPreference("prefs_key_settings_scope");
+        mHotReloadPreference = findPreference("prefs_key_settings_hot_reload");
 
         if (mHideAppIcon != null) {
             mHideAppIcon.setPersistent(false);
@@ -236,6 +242,13 @@ public class SettingsFragment extends BasePreferenceFragment
             });
         }
 
+        if (mHotReloadPreference != null) {
+            mHotReloadPreference.setOnPreferenceClickListener(preference -> {
+                showHotReloadEntry();
+                return true;
+            });
+        }
+
         Preference backPreference = findPreference("prefs_key_back");
         Preference restPreference = findPreference("prefs_key_rest");
         Preference resetPreference = findPreference("prefs_key_reset");
@@ -267,6 +280,56 @@ public class SettingsFragment extends BasePreferenceFragment
             }
         }
         return true;
+    }
+
+    private void showHotReloadEntry() {
+        if (!HotReloadManager.isHotReloadAvailable()) {
+            new AlertDialog.Builder(requireActivity())
+                .setTitle(com.sevtinge.hyperceiler.core.R.string.settings_hot_reload)
+                .setMessage(com.sevtinge.hyperceiler.core.R.string.settings_hot_reload_unsupported)
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
+            return;
+        }
+
+        List<HookedTarget> targets = HotReloadManager.getRunningTargets();
+        if (targets.isEmpty()) {
+            new AlertDialog.Builder(requireActivity())
+                .setTitle(com.sevtinge.hyperceiler.core.R.string.settings_hot_reload)
+                .setMessage(com.sevtinge.hyperceiler.core.R.string.settings_hot_reload_no_targets)
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
+            return;
+        }
+
+        new HotReloadPickBottomSheet(requireActivity())
+            .setOnTargetPickedListener(this::triggerHotReload)
+            .showTargets(targets);
+    }
+
+    private void triggerHotReload(@NonNull HookedTarget target) {
+        AlertDialog progress = new AlertDialog.Builder(requireActivity())
+            .setCancelable(false)
+            .setTitle(com.sevtinge.hyperceiler.core.R.string.settings_hot_reload)
+            .setMessage(getString(com.sevtinge.hyperceiler.core.R.string.settings_hot_reload_in_progress, target.getProcessName()))
+            .create();
+        progress.show();
+
+        HotReloadManager.hotReloadTarget(target, null, (resTarget, code, message) -> {
+            progress.dismiss();
+            String name = resTarget != null ? resTarget.getProcessName() : "?";
+            String body = getString(
+                com.sevtinge.hyperceiler.core.R.string.settings_hot_reload_result,
+                name,
+                code.name(),
+                message
+            );
+            new AlertDialog.Builder(requireActivity())
+                .setTitle(com.sevtinge.hyperceiler.core.R.string.settings_hot_reload)
+                .setMessage(body)
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
+        });
     }
 
     @Override

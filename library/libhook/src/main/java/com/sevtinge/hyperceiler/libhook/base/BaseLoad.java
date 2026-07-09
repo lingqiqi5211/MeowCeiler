@@ -72,6 +72,22 @@ public abstract class BaseLoad {
         XposedLog.init(xposedModule);
     }
 
+    public static void prepareHotReload() {
+        try {
+            ResourcesTool.releaseInstance();
+        } catch (Throwable t) {
+            XposedLog.w(sCurrentHookTag, sPackageName, "Failed to release resource hooks before hot reload", t);
+        }
+        synchronized (sLock) {
+            sClassLoader = null;
+            sPackageName = null;
+            sLpparam = null;
+            sSystemServerParam = null;
+            sCurrentHookTag = "BaseLoad";
+            mResHook = null;
+        }
+    }
+
     public static XposedInterface getXposed() {
         return sXposed;
     }

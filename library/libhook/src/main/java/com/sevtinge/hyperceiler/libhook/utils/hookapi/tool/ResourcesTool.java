@@ -123,6 +123,19 @@ public class ResourcesTool {
         return sInstance;
     }
 
+    public static synchronized void releaseInstance() {
+        if (sInstance == null) {
+            return;
+        }
+        try {
+            sInstance.unHookRes();
+        } catch (Throwable t) {
+            XposedLog.w(TAG, "Failed to release ResourcesTool", t);
+        } finally {
+            sInstance = null;
+        }
+    }
+
     /**
      * 检查是否已初始化
      */
@@ -387,7 +400,11 @@ public class ResourcesTool {
             unhook.unhook();
         }
         unhooks.clear();
+        resourcesArrayList.clear();
+        replacements.clear();
         resIdCache.clear();
+        resourcesLoader = null;
+        mHandler = null;
         inReplacement.remove();
         appliedMask = 0;
         isInit = false;

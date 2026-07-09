@@ -59,10 +59,7 @@ public class RestartAlertDialog extends AlertDialog {
             }
             for (int i = 0; i < size; i++) {
                 if (sparseBooleanArray.get(i)) {
-                    // ShellUtils.execCommand("pkill -l 9 -f " + mAppPackageNameList.get(i), true, false);
-                    // String test = "XX";
-                    String packageGet = mAppPackageNameList.get(i);
-                    AppsTool.killApps(packageGet);
+                    AppsTool.killApps(mAppPackageNameList.get(i));
                 }
             }
         });
