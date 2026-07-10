@@ -19,6 +19,7 @@
 package com.sevtinge.hyperceiler.libhook.base;
 
 import android.app.AppComponentFactory;
+import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.text.TextUtils;
 
@@ -38,9 +39,9 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-import io.github.lingqiqi5211.ezhooktool.xposed.EzXposed;
 import io.github.libxposed.api.XposedInterface;
 import io.github.libxposed.api.XposedModule;
+import io.github.lingqiqi5211.ezhooktool.xposed.EzXposed;
 
 /**
  * Xposed 模块入口（libxposed API 102）。
@@ -57,13 +58,18 @@ public class XposedInitEntry extends XposedModule {
     private static final String PREF_FRAMEWORK_VERSION = "framework_check_version";
     private static final String PREF_FRAMEWORK_VERSION_CODE = "framework_check_version_code";
 
-    private static final int IDX_KIND = 0;
-    private static final int IDX_PKG = 1;
-    private static final int IDX_PROC = 2;
-    private static final int IDX_CLASSLOADER = 3;
-    private static final int IDX_APP_INFO = 4;
-    private static final int IDX_IS_FIRST_PKG = 5;
-    private static final int STATE_LEN = 6;
+    private static final String HOT_RELOAD_STATE_MAGIC = "HyperCeiler.HotReloadState";
+    private static final int HOT_RELOAD_STATE_VERSION = 1;
+    private static final int IDX_MAGIC = 0;
+    private static final int IDX_VERSION = 1;
+    private static final int IDX_KIND = 2;
+    private static final int IDX_PKG = 3;
+    private static final int IDX_PROC = 4;
+    private static final int IDX_CLASSLOADER = 5;
+    private static final int IDX_APP_INFO = 6;
+    private static final int IDX_IS_FIRST_PKG = 7;
+    private static final int IDX_APP_CONTEXT = 8;
+    private static final int STATE_LEN = 9;
 
     protected String processName;
     private final Object prefsInitLock = new Object();
@@ -122,27 +128,38 @@ public class XposedInitEntry extends XposedModule {
 
     @Override
     public boolean onHotReloading(@NonNull HotReloadingParam param) {
-        Object[] state = buildHotReloadState();
+        Object[] state;
+        try {
+            state = buildHotReloadState();
+        } catch (Throwable t) {
+            XposedLog.e(TAG, processName, "Hot reload rejected: failed to capture process state", t);
+            return false;
+        }
         if (state == null) {
             XposedLog.w(TAG, processName, "Hot reload rejected: process state is incomplete.");
             return false;
         }
         try {
             param.setSavedInstanceState(state);
-            BaseLoad.prepareHotReload();
-            LogStatusManager.detachHookLogLevelObserver();
-            ThreadPoolManager.shutdownAndAwait(500, TimeUnit.MILLISECONDS);
-            XposedLog.i(TAG, processName, "Hot reload accepted.");
-            return true;
         } catch (Throwable t) {
             XposedLog.e(TAG, processName, "Hot reload rejected: failed to save state", t);
             return false;
         }
+
+        prepareForHotReload();
+        XposedLog.i(TAG, processName, "Hot reload accepted.");
+        return true;
     }
 
     @Override
     public void onHotReloaded(@NonNull HotReloadedParam param) {
         initModule(param);
+        HotReloadState state = restoreHotReloadState(param.getSavedInstanceState());
+        if (state == null) {
+            XposedLog.e(TAG, processName, "Hot reload ignored: saved state is missing or incompatible.");
+            return;
+        }
+
         try {
             for (Object handle : param.getOldHookHandles()) {
                 if (!(handle instanceof XposedInterface.HookHandle h)) {
@@ -159,24 +176,15 @@ public class XposedInitEntry extends XposedModule {
         }
 
         try {
-            Object savedRaw = param.getSavedInstanceState();
-            if (!(savedRaw instanceof Object[] state) || state.length < STATE_LEN) {
-                XposedLog.e(TAG, processName, "Hot reload: invalid saved state: " + savedRaw);
-                return;
+            if (!TextUtils.isEmpty(state.processName())) {
+                processName = state.processName();
             }
-            String kind = String.valueOf(state[IDX_KIND]);
-            String pkg = (String) state[IDX_PKG];
-            String proc = (String) state[IDX_PROC];
-            ClassLoader cl = (ClassLoader) state[IDX_CLASSLOADER];
-            ApplicationInfo appInfo = (ApplicationInfo) state[IDX_APP_INFO];
-            boolean isFirstPkg = Boolean.TRUE.equals(state[IDX_IS_FIRST_PKG]);
-
-            if (!TextUtils.isEmpty(proc)) {
-                this.processName = proc;
+            if (state.appContext() != null) {
+                EzXposed.initAppContext(state.appContext(), false, true);
             }
 
-            if ("system".equals(kind)) {
-                SystemServerStartingParam adapter = new RestoredSystemServerParam(cl);
+            if ("system".equals(state.kind())) {
+                SystemServerStartingParam adapter = new RestoredSystemServerParam(state.classLoader());
                 mLastLpparam = adapter;
                 if (prepareHookLoad("system")) {
                     return;
@@ -186,22 +194,23 @@ public class XposedInitEntry extends XposedModule {
                 loadSystemEntryHooks(adapter);
                 XposedLog.i(TAG, "system", "Hot reload: reinstalling hooks for system_server");
                 invokeInit(adapter);
-            } else if ("pkg".equals(kind)) {
-                if (TextUtils.isEmpty(pkg) || cl == null) {
-                    XposedLog.e(TAG, processName, "Hot reload: pkg snapshot incomplete");
-                    return;
-                }
-                PackageReadyParam adapter = new RestoredPackageReadyParam(pkg, cl, appInfo, isFirstPkg);
+            } else if ("pkg".equals(state.kind())) {
+                PackageReadyParam adapter = new RestoredPackageReadyParam(
+                    state.packageName(),
+                    state.classLoader(),
+                    state.applicationInfo(),
+                    state.firstPackage()
+                );
                 mLastLpparam = adapter;
-                if (prepareHookLoad(pkg)) {
+                if (prepareHookLoad(state.packageName())) {
                     return;
                 }
                 attachHookLogLevelObserver(false);
                 EzXposed.initOnPackageReady(adapter);
-                XposedLog.i(TAG, pkg, "Hot reload: reinstalling hooks for package");
+                XposedLog.i(TAG, state.packageName(), "Hot reload: reinstalling hooks for package");
                 invokeInit(adapter);
             } else {
-                XposedLog.e(TAG, processName, "Hot reload: unknown state kind=" + kind);
+                XposedLog.e(TAG, processName, "Hot reload: unknown state kind=" + state.kind());
             }
         } catch (Throwable t) {
             XposedLog.e(TAG, processName, "Hot reload re-init failed", t);
@@ -211,18 +220,104 @@ public class XposedInitEntry extends XposedModule {
     @Nullable
     private Object[] buildHotReloadState() {
         Object lpparam = mLastLpparam;
+        Context appContext = null;
+        try {
+            appContext = EzXposed.getAppContextOrNull();
+        } catch (Throwable t) {
+            XposedLog.d(TAG, processName, "Application context is unavailable during hot reload snapshot.");
+        }
         if (lpparam instanceof SystemServerStartingParam systemParam) {
             ClassLoader cl = systemParam.getClassLoader();
             if (cl == null) return null;
-            return new Object[]{"system", BaseLoad.SYSTEM_SERVER, processName, cl, null, false};
+            return new Object[]{
+                HOT_RELOAD_STATE_MAGIC,
+                HOT_RELOAD_STATE_VERSION,
+                "system",
+                BaseLoad.SYSTEM_SERVER,
+                processName,
+                cl,
+                null,
+                false,
+                appContext
+            };
         }
         if (lpparam instanceof PackageReadyParam packageParam) {
             ClassLoader cl = packageParam.getClassLoader();
             String pkg = packageParam.getPackageName();
-            if (TextUtils.isEmpty(pkg) || cl == null) return null;
-            return new Object[]{"pkg", pkg, processName, cl, packageParam.getApplicationInfo(), packageParam.isFirstPackage()};
+            ApplicationInfo appInfo = packageParam.getApplicationInfo();
+            if (TextUtils.isEmpty(pkg) || cl == null || appInfo == null) return null;
+            return new Object[]{
+                HOT_RELOAD_STATE_MAGIC,
+                HOT_RELOAD_STATE_VERSION,
+                "pkg",
+                pkg,
+                processName,
+                cl,
+                appInfo,
+                packageParam.isFirstPackage(),
+                appContext
+            };
         }
         return null;
+    }
+
+    private void prepareForHotReload() {
+        try {
+            BaseLoad.prepareHotReload();
+        } catch (Throwable t) {
+            XposedLog.w(TAG, processName, "Failed to reset hook runtime before hot reload", t);
+        }
+        try {
+            LogStatusManager.detachHookLogLevelObserver();
+        } catch (Throwable t) {
+            XposedLog.w(TAG, processName, "Failed to detach log observer before hot reload", t);
+        }
+        try {
+            ThreadPoolManager.shutdownAndAwait(500, TimeUnit.MILLISECONDS);
+        } catch (Throwable t) {
+            XposedLog.w(TAG, processName, "Failed to stop background tasks before hot reload", t);
+        }
+    }
+
+    @Nullable
+    private HotReloadState restoreHotReloadState(@Nullable Object savedRaw) {
+        if (!(savedRaw instanceof Object[] state) || state.length < STATE_LEN) {
+            return null;
+        }
+        if (!HOT_RELOAD_STATE_MAGIC.equals(state[IDX_MAGIC])
+            || !Integer.valueOf(HOT_RELOAD_STATE_VERSION).equals(state[IDX_VERSION])) {
+            return null;
+        }
+        if (!(state[IDX_KIND] instanceof String kind)
+            || !(state[IDX_PKG] instanceof String pkg)
+            || !(state[IDX_CLASSLOADER] instanceof ClassLoader classLoader)) {
+            return null;
+        }
+        String savedProcessName = state[IDX_PROC] instanceof String proc ? proc : null;
+        ApplicationInfo appInfo = state[IDX_APP_INFO] instanceof ApplicationInfo info ? info : null;
+        Context appContext = state[IDX_APP_CONTEXT] instanceof Context context ? context : null;
+        boolean firstPackage = Boolean.TRUE.equals(state[IDX_IS_FIRST_PKG]);
+
+        if ("system".equals(kind)) {
+            return new HotReloadState(kind, BaseLoad.SYSTEM_SERVER, savedProcessName,
+                classLoader, null, false, appContext);
+        }
+        if (!"pkg".equals(kind) || TextUtils.isEmpty(pkg) || appInfo == null) {
+            return null;
+        }
+        return new HotReloadState(kind, pkg, savedProcessName, classLoader,
+            appInfo, firstPackage, appContext);
+    }
+
+    private record HotReloadState(
+        @NonNull String kind,
+        @NonNull String packageName,
+        @Nullable String processName,
+        @NonNull ClassLoader classLoader,
+        @Nullable ApplicationInfo applicationInfo,
+        boolean firstPackage,
+        @Nullable Context appContext
+    ) {
     }
 
     private static final class RestoredPackageReadyParam implements PackageReadyParam {

@@ -78,6 +78,7 @@ public abstract class BaseLoad {
         } catch (Throwable t) {
             XposedLog.w(sCurrentHookTag, sPackageName, "Failed to release resource hooks before hot reload", t);
         }
+        BaseHook.prepareHotReload();
         synchronized (sLock) {
             sClassLoader = null;
             sPackageName = null;

@@ -57,12 +57,20 @@ public class ThreadPoolManager {
     }
 
     public static synchronized void shutdownAndAwait(long timeout, TimeUnit unit) {
-        if (executor != null && !executor.isShutdown()) {
-            executor.shutdown();
-            try {
-                executor.awaitTermination(timeout, unit);
-            } catch (InterruptedException ignored) {
+        ExecutorService current = executor;
+        if (current == null || current.isShutdown()) {
+            return;
+        }
+        current.shutdown();
+        try {
+            if (!current.awaitTermination(timeout, unit)) {
+                current.shutdownNow();
+                current.awaitTermination(timeout, unit);
             }
+        } catch (InterruptedException e) {
+            current.shutdownNow();
+            Thread.currentThread().interrupt();
+        } finally {
             executor = null;
         }
     }

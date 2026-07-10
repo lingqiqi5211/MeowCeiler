@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import io.github.libxposed.api.XposedInterface;
@@ -91,7 +92,26 @@ public abstract class BaseHook {
     }
 
     private static final CopyOnWriteArrayList<ApplicationHook> APPLICATION_HOOKS = new CopyOnWriteArrayList<>();
+    private static final ConcurrentLinkedDeque<Runnable> HOT_RELOAD_CLEANUPS = new ConcurrentLinkedDeque<>();
     private static volatile boolean sApplicationHookInstalled = false;
+
+    public static void registerHotReloadCleanup(@NonNull Runnable cleanup) {
+        HOT_RELOAD_CLEANUPS.addLast(cleanup);
+    }
+
+    static void prepareHotReload() {
+        Runnable cleanup;
+        while ((cleanup = HOT_RELOAD_CLEANUPS.pollLast()) != null) {
+            try {
+                cleanup.run();
+            } catch (Throwable t) {
+                XposedLog.w(BaseLoad.getTag(), BaseLoad.getPackageName(),
+                    "Failed to release a host callback before hot reload", t);
+            }
+        }
+        APPLICATION_HOOKS.clear();
+        sApplicationHookInstalled = false;
+    }
 
     private static void ensureApplicationHookInstalled() {
         if (sApplicationHookInstalled) return;

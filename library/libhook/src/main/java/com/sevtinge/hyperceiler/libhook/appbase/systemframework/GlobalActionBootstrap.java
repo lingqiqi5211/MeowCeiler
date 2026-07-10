@@ -18,7 +18,6 @@
  */
 package com.sevtinge.hyperceiler.libhook.appbase.systemframework;
 
-import static com.sevtinge.hyperceiler.libhook.base.BaseHook.newInstance;
 import static io.github.lingqiqi5211.ezhooktool.core.ClassUtils.loadClass;
 
 import android.annotation.SuppressLint;
@@ -37,7 +36,6 @@ import android.provider.Settings;
 
 import com.sevtinge.hyperceiler.common.log.AndroidLog;
 import com.sevtinge.hyperceiler.libhook.base.BaseHook;
-import io.github.lingqiqi5211.ezhooktool.xposed.java.IMethodHook;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -45,6 +43,7 @@ import java.util.List;
 
 import io.github.libxposed.api.XposedInterface;
 import io.github.libxposed.api.XposedInterface.HookHandle;
+import io.github.lingqiqi5211.ezhooktool.xposed.java.IMethodHook;
 
 @SuppressLint("UnspecifiedRegisterReceiverFlag")
 public class GlobalActionBootstrap extends BaseHook {
@@ -172,6 +171,18 @@ public class GlobalActionBootstrap extends BaseHook {
             filter.addAction(BaseHook.ACTION_PREFIX + "StartGoogleCircleToSearch");
             context.registerReceiver(mGlobalReceiver, filter, Context.RECEIVER_EXPORTED);
             sGlobalReceiverRegistered = true;
+            registerHotReloadCleanup(() -> {
+                synchronized (GlobalActionBootstrap.class) {
+                    if (!sGlobalReceiverRegistered) {
+                        return;
+                    }
+                    try {
+                        context.unregisterReceiver(mGlobalReceiver);
+                    } finally {
+                        sGlobalReceiverRegistered = false;
+                    }
+                }
+            });
         }
     }
 
@@ -187,6 +198,18 @@ public class GlobalActionBootstrap extends BaseHook {
             filter.addAction(GlobalActionBridge.ACTION_RESTART_APPS);
             context.registerReceiver(mRestartReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
             sRestartReceiverRegistered = true;
+            registerHotReloadCleanup(() -> {
+                synchronized (GlobalActionBootstrap.class) {
+                    if (!sRestartReceiverRegistered) {
+                        return;
+                    }
+                    try {
+                        context.unregisterReceiver(mRestartReceiver);
+                    } finally {
+                        sRestartReceiverRegistered = false;
+                    }
+                }
+            });
         }
     }
 
