@@ -34,13 +34,14 @@ import com.sevtinge.hyperceiler.libhook.rules.systemframework.others.FlagSecure;
 import com.sevtinge.hyperceiler.libhook.safecrash.CrashMonitor;
 import com.sevtinge.hyperceiler.libhook.utils.api.ContextUtils;
 import com.sevtinge.hyperceiler.libhook.utils.api.ThreadPoolManager;
+import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.ResourcesTool;
 
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-import io.github.libxposed.api.XposedInterface;
 import io.github.libxposed.api.XposedModule;
+import io.github.lingqiqi5211.ezhooktool.xposed.AutomaticHotReloadResult;
 import io.github.lingqiqi5211.ezhooktool.xposed.EzXposed;
 
 /**
@@ -58,22 +59,17 @@ public class XposedInitEntry extends XposedModule {
     private static final String PREF_FRAMEWORK_VERSION = "framework_check_version";
     private static final String PREF_FRAMEWORK_VERSION_CODE = "framework_check_version_code";
 
-    private static final String HOT_RELOAD_STATE_MAGIC = "HyperCeiler.HotReloadState";
-    private static final int HOT_RELOAD_STATE_VERSION = 1;
-    private static final int IDX_MAGIC = 0;
-    private static final int IDX_VERSION = 1;
-    private static final int IDX_KIND = 2;
-    private static final int IDX_PKG = 3;
-    private static final int IDX_PROC = 4;
-    private static final int IDX_CLASSLOADER = 5;
-    private static final int IDX_APP_INFO = 6;
-    private static final int IDX_IS_FIRST_PKG = 7;
-    private static final int IDX_APP_CONTEXT = 8;
-    private static final int STATE_LEN = 9;
+    /** EzHookTool snapshot 之外、本项目需要跨代恢复的宿主状态。 */
+    private static final int EXTRA_APP_INFO = 0;
+    private static final int EXTRA_FIRST_PACKAGE = 1;
+    private static final int EXTRA_APP_CONTEXT = 2;
+    private static final int EXTRA_RUNTIME_STATE = 3;
+    private static final int EXTRA_LENGTH = 4;
 
     protected String processName;
     private final Object prefsInitLock = new Object();
     private volatile boolean prefsInited = false;
+    private volatile boolean runtimeInitialized = false;
 
     @Nullable
     private volatile Object mLastLpparam;
@@ -84,141 +80,188 @@ public class XposedInitEntry extends XposedModule {
     }
 
     private void initModule(@NonNull ModuleLoadedParam param) {
+        initializeRuntime(param, true);
+    }
+
+    /**
+     * 初始化当前 generation 的项目运行时。
+     *
+     * <p>状态 snapshot、默认自动 hook ID 分配与旧 handle 收尾交给 EzHookTool 的 API 102 热重载入口。
+     * 所有同步规则初始化统一注册为 {@code onTargetReady} 回调，因此初次加载与热重载使用同一条路径；
+     * 个别需要稳定语义 ID 的规则仍可自行声明 {@code reloadKey}。</p>
+     */
+    private void initializeRuntime(@NonNull ModuleLoadedParam param, boolean initializeEzXposed) {
         processName = param.getProcessName();
         try {
             initPrefs();
         } catch (Throwable t) {
             XposedLog.w(TAG, processName, "Failed to initialize prefs during module bootstrap, will retry later.", t);
         }
-        EzXposed.initOnModuleLoaded(this, param);
+        if (initializeEzXposed) {
+            EzXposed.initOnModuleLoaded(this, param);
+        }
         BaseLoad.init(this);
+        if (!runtimeInitialized) {
+            EzXposed.onTargetReady(this::installCurrentTargetHooks);
+            runtimeInitialized = true;
+        }
     }
 
     @Override
     public void onSystemServerStarting(@NonNull SystemServerStartingParam lpparam) {
-        if (prepareHookLoad("system")) {
-            return;
-        }
-        attachHookLogLevelObserver(true);
-
-        EzXposed.initOnSystemServerStarting(lpparam);
-        loadSystemEntryHooks(lpparam);
-
         mLastLpparam = lpparam;
-
-        invokeInit(lpparam);
+        EzXposed.initOnSystemServerStarting(lpparam);
     }
 
     @Override
     public void onPackageReady(@NonNull PackageReadyParam lpparam) {
         super.onPackageReady(lpparam);
         if (!lpparam.isFirstPackage()) return;
-        String packageName = lpparam.getPackageName();
-        if (prepareHookLoad(packageName)) {
-            return;
-        }
-
-        EzXposed.initOnPackageReady(lpparam);
-        attachHookLogLevelObserver(false);
-
         mLastLpparam = lpparam;
-
-        invokeInit(lpparam);
+        EzXposed.initOnPackageReady(lpparam);
     }
 
     @Override
     public boolean onHotReloading(@NonNull HotReloadingParam param) {
-        Object[] state;
+        String initializationBlockReason = BaseLoad.getHotReloadBlockReason();
+        if (initializationBlockReason != null) {
+            XposedLog.w(TAG, processName, "Hot reload rejected: " + initializationBlockReason);
+            return false;
+        }
+        if (ResourcesTool.requiresProcessRestartForHotReload()) {
+            XposedLog.w(TAG, processName,
+                "Hot reload rejected: active resource replacements require a full process restart.");
+            return false;
+        }
+
+        Object[] extras;
         try {
-            state = buildHotReloadState();
+            extras = buildHotReloadExtras();
         } catch (Throwable t) {
             XposedLog.e(TAG, processName, "Hot reload rejected: failed to capture process state", t);
             return false;
         }
-        if (state == null) {
+        if (extras == null) {
             XposedLog.w(TAG, processName, "Hot reload rejected: process state is incomplete.");
             return false;
         }
         try {
-            param.setSavedInstanceState(state);
+            // 复用 EzHookTool 的 target snapshot；extras 只承载项目自己的宿主状态。
+            if (!EzXposed.handleHotReloading(param, extras)) {
+                XposedLog.w(TAG, processName, "Hot reload rejected: EzXposed target snapshot is unavailable.");
+                return false;
+            }
         } catch (Throwable t) {
             XposedLog.e(TAG, processName, "Hot reload rejected: failed to save state", t);
             return false;
         }
 
-        prepareForHotReload();
+        if (!prepareForHotReload()) {
+            XposedLog.w(TAG, processName,
+                "Hot reload rejected: old generation cleanup did not complete safely.");
+            return false;
+        }
         XposedLog.i(TAG, processName, "Hot reload accepted.");
         return true;
     }
 
     @Override
     public void onHotReloaded(@NonNull HotReloadedParam param) {
-        initModule(param);
-        HotReloadState state = restoreHotReloadState(param.getSavedInstanceState());
-        if (state == null) {
-            XposedLog.e(TAG, processName, "Hot reload ignored: saved state is missing or incompatible.");
-            return;
-        }
-
+        // API 102 不会为热重载自动重放 onModuleLoaded；这里重建新 generation 的运行时并注册
+        // onTargetReady。重复调用保持幂等，避免重复注册回调。
+        initializeRuntime(param, true);
+        BaseLoad.beginHotReloadVerification();
         try {
-            for (Object handle : param.getOldHookHandles()) {
-                if (!(handle instanceof XposedInterface.HookHandle h)) {
-                    continue;
+            AutomaticHotReloadResult result = EzXposed.restoreHotReloadedAutomatically(
+                this,
+                param,
+                extras -> {
+                    HotReloadExtras restored = restoreHotReloadExtras(extras);
+                    if (restored == null) {
+                        throw new IllegalStateException("Hot reload state is missing or incompatible");
+                    }
+                    restoreEzXposedRuntime(restored);
                 }
-                try {
-                    h.unhook();
-                } catch (Throwable t) {
-                    XposedLog.w(TAG, processName, "Failed to unhook old handle", t);
-                }
-            }
-        } catch (Throwable t) {
-            XposedLog.w(TAG, processName, "Failed to iterate old hook handles", t);
-        }
-
-        try {
-            if (!TextUtils.isEmpty(state.processName())) {
-                processName = state.processName();
-            }
-            if (state.appContext() != null) {
-                EzXposed.initAppContext(state.appContext(), false, true);
-            }
-
-            if ("system".equals(state.kind())) {
-                SystemServerStartingParam adapter = new RestoredSystemServerParam(state.classLoader());
-                mLastLpparam = adapter;
-                if (prepareHookLoad("system")) {
-                    return;
-                }
-                attachHookLogLevelObserver(true);
-                EzXposed.initOnSystemServerStarting(adapter);
-                loadSystemEntryHooks(adapter);
-                XposedLog.i(TAG, "system", "Hot reload: reinstalling hooks for system_server");
-                invokeInit(adapter);
-            } else if ("pkg".equals(state.kind())) {
-                PackageReadyParam adapter = new RestoredPackageReadyParam(
-                    state.packageName(),
-                    state.classLoader(),
-                    state.applicationInfo(),
-                    state.firstPackage()
-                );
-                mLastLpparam = adapter;
-                if (prepareHookLoad(state.packageName())) {
-                    return;
-                }
-                attachHookLogLevelObserver(false);
-                EzXposed.initOnPackageReady(adapter);
-                XposedLog.i(TAG, state.packageName(), "Hot reload: reinstalling hooks for package");
-                invokeInit(adapter);
-            } else {
-                XposedLog.e(TAG, processName, "Hot reload: unknown state kind=" + state.kind());
-            }
+            );
+            BaseLoad.verifyHotReloadInitialization();
+            XposedLog.i(TAG, processName,
+                "Hot reload hook transition completed: " + result.getInstalledHookCount()
+                    + " logical hook(s), " + result.getAtomicallyReplacedHookCount()
+                    + " old physical hook(s) atomically replaced, " + result.getRemovedOldHookCount()
+                    + " obsolete physical hook(s) removed.");
         } catch (Throwable t) {
             XposedLog.e(TAG, processName, "Hot reload re-init failed", t);
+            if (t instanceof RuntimeException runtimeException) {
+                throw runtimeException;
+            }
+            if (t instanceof Error error) {
+                throw error;
+            }
+            throw new IllegalStateException("Hot reload re-init failed", t);
+        } finally {
+            BaseLoad.endHotReloadVerification();
         }
     }
 
+    private void restoreEzXposedRuntime(@NonNull HotReloadExtras extras) {
+        processName = EzXposed.getProcessName();
+        if (extras.appContext() != null) {
+            EzXposed.initAppContext(extras.appContext(), false, true);
+        }
+        BaseHook.restoreHotReloadRuntimeState(extras.runtimeState());
+
+        if (EzXposed.isSystemServer()) {
+            mLastLpparam = new RestoredSystemServerParam(EzXposed.getClassLoader());
+            return;
+        }
+
+        String packageName = EzXposed.getPackageName();
+        if (TextUtils.isEmpty(packageName) || extras.applicationInfo() == null) {
+            throw new IllegalStateException("Restored package state is incomplete");
+        }
+        mLastLpparam = new RestoredPackageReadyParam(
+            packageName,
+            EzXposed.getClassLoader(),
+            extras.applicationInfo(),
+            extras.firstPackage()
+        );
+    }
+
+    /** 初次加载与自动热重载共同使用的同步规则初始化入口。 */
+    private void installCurrentTargetHooks() {
+        Object lpparam = mLastLpparam;
+        BaseLoad.beginHookInitialization();
+        if (lpparam instanceof SystemServerStartingParam systemParam) {
+            installSystemHooks(systemParam);
+        } else if (lpparam instanceof PackageReadyParam packageParam) {
+            installPackageHooks(packageParam);
+        } else {
+            throw new IllegalStateException("Target state is unavailable before hook initialization");
+        }
+        // 热重载时个别规则会自行捕获初始化异常并写入 BaseLoad；必须在 EzHookTool 批次
+        // 发布任何新物理 hook 前把它们转回失败，不能等旧 hook 已收尾后才发现。
+        BaseLoad.verifyHotReloadInitialization();
+    }
+
+    private void installSystemHooks(@NonNull SystemServerStartingParam lpparam) {
+        if (prepareHookLoad(BaseLoad.SYSTEM_SERVER)) {
+            return;
+        }
+        attachHookLogLevelObserver(true);
+        loadSystemEntryHooks(lpparam);
+        invokeInit(lpparam);
+    }
+
+    private void installPackageHooks(@NonNull PackageReadyParam lpparam) {
+        if (prepareHookLoad(lpparam.getPackageName())) {
+            return;
+        }
+        attachHookLogLevelObserver(false);
+        invokeInit(lpparam);
+    }
+
     @Nullable
-    private Object[] buildHotReloadState() {
+    private Object[] buildHotReloadExtras() {
         Object lpparam = mLastLpparam;
         Context appContext = null;
         try {
@@ -226,97 +269,70 @@ public class XposedInitEntry extends XposedModule {
         } catch (Throwable t) {
             XposedLog.d(TAG, processName, "Application context is unavailable during hot reload snapshot.");
         }
-        if (lpparam instanceof SystemServerStartingParam systemParam) {
-            ClassLoader cl = systemParam.getClassLoader();
-            if (cl == null) return null;
+        if (lpparam instanceof SystemServerStartingParam) {
             return new Object[]{
-                HOT_RELOAD_STATE_MAGIC,
-                HOT_RELOAD_STATE_VERSION,
-                "system",
-                BaseLoad.SYSTEM_SERVER,
-                processName,
-                cl,
                 null,
                 false,
-                appContext
+                appContext,
+                BaseHook.snapshotHotReloadRuntimeState()
             };
         }
         if (lpparam instanceof PackageReadyParam packageParam) {
-            ClassLoader cl = packageParam.getClassLoader();
-            String pkg = packageParam.getPackageName();
             ApplicationInfo appInfo = packageParam.getApplicationInfo();
-            if (TextUtils.isEmpty(pkg) || cl == null || appInfo == null) return null;
+            if (appInfo == null) return null;
             return new Object[]{
-                HOT_RELOAD_STATE_MAGIC,
-                HOT_RELOAD_STATE_VERSION,
-                "pkg",
-                pkg,
-                processName,
-                cl,
                 appInfo,
                 packageParam.isFirstPackage(),
-                appContext
+                appContext,
+                BaseHook.snapshotHotReloadRuntimeState()
             };
         }
         return null;
     }
 
-    private void prepareForHotReload() {
+    private boolean prepareForHotReload() {
         try {
-            BaseLoad.prepareHotReload();
-        } catch (Throwable t) {
-            XposedLog.w(TAG, processName, "Failed to reset hook runtime before hot reload", t);
-        }
-        try {
-            LogStatusManager.detachHookLogLevelObserver();
-        } catch (Throwable t) {
-            XposedLog.w(TAG, processName, "Failed to detach log observer before hot reload", t);
-        }
-        try {
-            ThreadPoolManager.shutdownAndAwait(500, TimeUnit.MILLISECONDS);
+            // 先确认模块线程已经结束，避免随后清理引用时旧代码仍在并发执行。
+            if (!ThreadPoolManager.shutdownAndAwait(500, TimeUnit.MILLISECONDS)) {
+                XposedLog.w(TAG, processName,
+                    "Failed to stop all module background tasks before hot reload.");
+                return false;
+            }
         } catch (Throwable t) {
             XposedLog.w(TAG, processName, "Failed to stop background tasks before hot reload", t);
+            return false;
+        }
+        try {
+            BaseLoad.prepareHotReload();
+            LogStatusManager.detachHookLogLevelObserver();
+            return true;
+        } catch (Throwable t) {
+            XposedLog.w(TAG, processName,
+                "Failed to release module runtime state before hot reload", t);
+            return false;
         }
     }
 
     @Nullable
-    private HotReloadState restoreHotReloadState(@Nullable Object savedRaw) {
-        if (!(savedRaw instanceof Object[] state) || state.length < STATE_LEN) {
+    private HotReloadExtras restoreHotReloadExtras(@Nullable Object[] extras) {
+        if (extras == null || extras.length < EXTRA_LENGTH) {
             return null;
         }
-        if (!HOT_RELOAD_STATE_MAGIC.equals(state[IDX_MAGIC])
-            || !Integer.valueOf(HOT_RELOAD_STATE_VERSION).equals(state[IDX_VERSION])) {
-            return null;
-        }
-        if (!(state[IDX_KIND] instanceof String kind)
-            || !(state[IDX_PKG] instanceof String pkg)
-            || !(state[IDX_CLASSLOADER] instanceof ClassLoader classLoader)) {
-            return null;
-        }
-        String savedProcessName = state[IDX_PROC] instanceof String proc ? proc : null;
-        ApplicationInfo appInfo = state[IDX_APP_INFO] instanceof ApplicationInfo info ? info : null;
-        Context appContext = state[IDX_APP_CONTEXT] instanceof Context context ? context : null;
-        boolean firstPackage = Boolean.TRUE.equals(state[IDX_IS_FIRST_PKG]);
-
-        if ("system".equals(kind)) {
-            return new HotReloadState(kind, BaseLoad.SYSTEM_SERVER, savedProcessName,
-                classLoader, null, false, appContext);
-        }
-        if (!"pkg".equals(kind) || TextUtils.isEmpty(pkg) || appInfo == null) {
-            return null;
-        }
-        return new HotReloadState(kind, pkg, savedProcessName, classLoader,
-            appInfo, firstPackage, appContext);
+        ApplicationInfo appInfo = extras[EXTRA_APP_INFO] instanceof ApplicationInfo info ? info : null;
+        Context appContext = extras[EXTRA_APP_CONTEXT] instanceof Context context ? context : null;
+        return new HotReloadExtras(
+            appInfo,
+            Boolean.TRUE.equals(extras[EXTRA_FIRST_PACKAGE]),
+            appContext,
+            extras[EXTRA_RUNTIME_STATE]
+        );
     }
 
-    private record HotReloadState(
-        @NonNull String kind,
-        @NonNull String packageName,
-        @Nullable String processName,
-        @NonNull ClassLoader classLoader,
+    private record HotReloadExtras(
         @Nullable ApplicationInfo applicationInfo,
         boolean firstPackage,
-        @Nullable Context appContext
+        @Nullable Context appContext,
+        @Nullable Object runtimeState
     ) {
     }
 
@@ -403,6 +419,8 @@ public class XposedInitEntry extends XposedModule {
             new CrashMonitor(lpparam);
         } catch (Exception e) {
             XposedLog.e(TAG, "system", "Crash Hook load failed, " + e);
+            BaseLoad.recordHookInitializationFailure("CrashMonitor", e);
+            BaseLoad.recordHotReloadInitializationFailure("CrashMonitor", e);
         }
 
         if (PrefsBridge.getBoolean("system_framework_core_patch_enable")) {
@@ -435,6 +453,8 @@ public class XposedInitEntry extends XposedModule {
                 loader.load(module);
             } catch (ReflectiveOperationException e) {
                 XposedLog.e(TAG, "Failed to load module: " + className, e);
+                BaseLoad.recordHookInitializationFailure(className, e);
+                BaseLoad.recordHotReloadInitializationFailure(className, e);
             }
         });
     }

@@ -18,9 +18,11 @@
  */
 package com.sevtinge.hyperceiler.utils;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
@@ -32,8 +34,15 @@ import io.github.libxposed.service.HookedTarget;
 import io.github.libxposed.service.HotReloadResult;
 import io.github.libxposed.service.XposedService;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * 热重载管理器（libxposed API 102 能力封装）。
@@ -50,6 +59,8 @@ import java.util.List;
 public final class HotReloadManager {
 
     private static final String TAG = "HotReloadManager";
+    /** Framework 回调异常丢失时，不能让页面永远停留在“正在重载”。 */
+    private static final long HOT_RELOAD_TIMEOUT_MS = 15_000L;
 
     private static final Handler sMain = new Handler(Looper.getMainLooper());
 
@@ -149,6 +160,99 @@ public final class HotReloadManager {
     }
 
     /**
+     * 返回当前 framework scope 内、仍可在设备上管理的应用。
+     *
+     * <p>这与 {@link #getRunningTargets()} 刻意分开：选择器必须展示 framework 已勾选的应用，
+     * 即使其中某个应用暂时没有运行中的已注入进程；实际提交时会在结果中明确报告该情况。</p>
+     *
+     * @param preferredPackage 当前功能页对应的应用；若它仍在 scope 中，会排在列表最前面
+     */
+    @NonNull
+    public static List<ScopeApp> getScopedApps(@NonNull Context context,
+                                                @Nullable String preferredPackage) {
+        List<String> scope = ScopeManager.getScopeSync();
+        if (scope == null || scope.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        String normalizedPreferred = ScopeManager.normalizeScopePackageName(preferredPackage);
+        LinkedHashSet<String> packages = ScopeManager.normalizeScopePackages(scope);
+        List<ScopeApp> apps = new ArrayList<>(packages.size());
+        for (String packageName : packages) {
+            if (!ScopeManager.isScopePackageInstalled(context, packageName)) {
+                continue;
+            }
+            boolean isSystem = ScopeManager.isSystemScopePackage(packageName);
+            String label = isSystem
+                ? context.getString(com.sevtinge.hyperceiler.core.R.string.settings_hot_reload_system_scope)
+                : PackagesUtils.getAppLabel(context, packageName);
+            if (TextUtils.isEmpty(label)) {
+                label = packageName;
+            }
+            apps.add(new ScopeApp(
+                packageName,
+                label,
+                packageName.equals(normalizedPreferred)
+            ));
+        }
+        apps.sort(Comparator
+            .comparing(ScopeApp::isPreferred).reversed()
+            .thenComparing(app -> app.getDisplayName().toLowerCase(Locale.ROOT))
+            .thenComparing(ScopeApp::getPackageName));
+        return Collections.unmodifiableList(apps);
+    }
+
+    /**
+     * 对多个 scope 应用发起一次批量热重载。每个应用的所有当前已注入进程都会被提交，
+     * 最终只回调一次汇总结果。
+     */
+    public static void hotReloadPackages(@NonNull Collection<String> packageNames,
+                                         @NonNull HotReloadBatchCallback callback) {
+        LinkedHashSet<String> selectedPackages = ScopeManager.normalizeScopePackages(packageNames);
+        if (selectedPackages.isEmpty()) {
+            postBatchResult(callback, new BatchResult(
+                0, Collections.emptyList(), Collections.emptyList(), false
+            ));
+            return;
+        }
+
+        List<HookedTarget> allTargets = getRunningTargets();
+        Map<String, HookedTarget> targets = new LinkedHashMap<>();
+        List<String> noRunningTargets = new ArrayList<>();
+        for (String packageName : selectedPackages) {
+            boolean matched = false;
+            for (HookedTarget target : allTargets) {
+                if (!matchesPackage(target, packageName)) {
+                    continue;
+                }
+                matched = true;
+                targets.putIfAbsent(targetKey(target), target);
+            }
+            if (!matched) {
+                noRunningTargets.add(packageName);
+            }
+        }
+
+        if (targets.isEmpty()) {
+            postBatchResult(callback, new BatchResult(
+                selectedPackages.size(), Collections.emptyList(), noRunningTargets, false
+            ));
+            return;
+        }
+
+        BatchTracker tracker = new BatchTracker(
+            selectedPackages.size(),
+            new ArrayList<>(targets.values()),
+            noRunningTargets,
+            callback
+        );
+        for (HookedTarget target : targets.values()) {
+            hotReloadTarget(target, null, tracker::onTargetResult);
+        }
+        sMain.postDelayed(tracker::onTimeout, HOT_RELOAD_TIMEOUT_MS);
+    }
+
+    /**
      * 直接对指定目标触发热重载。
      *
      * @param target   目标（来自 {@link #getRunningTargets()}）
@@ -173,6 +277,16 @@ public final class HotReloadManager {
         } catch (Throwable t) {
             postResult(callback, target, ResultCode.SERVICE_ERROR, t.getClass().getSimpleName() + ": " + t.getMessage());
         }
+    }
+
+    private static void postBatchResult(@NonNull HotReloadBatchCallback callback,
+                                        @NonNull BatchResult result) {
+        sMain.post(() -> callback.onCompleted(result));
+    }
+
+    @NonNull
+    private static String targetKey(@NonNull HookedTarget target) {
+        return target.getUid() + ":" + target.getPid() + ":" + target.getProcessName();
     }
 
     private static boolean matchesPackage(@NonNull HookedTarget target, @NonNull String packageName) {
@@ -230,7 +344,7 @@ public final class HotReloadManager {
         return switch (code) {
             case SUCCEEDED -> "Hot reload completed.";
             case FAILED -> "Framework reported FAILED without details. "
-                + "The module rejected this target before switching generation, usually because reload state was incomplete."
+                + "The module rejected the transition or a hook failed while the new generation was initializing."
                 + targetState;
             case UNSUPPORTED -> "Hot reload is not supported by the current framework.";
             case IN_PROGRESS -> "The target process is already reloading." + targetState;
@@ -239,7 +353,213 @@ public final class HotReloadManager {
             case SERVICE_UNAVAILABLE -> "Xposed service is unavailable.";
             case SERVICE_ERROR -> "Xposed service call failed without details.";
             case NO_MATCHING_TARGET -> "No matching hooked target is running.";
+            case TIMED_OUT -> "Timed out waiting for the framework hot reload callback.";
         };
+    }
+
+    /** scope 应用在选择器中显示的数据。 */
+    public static final class ScopeApp {
+        @NonNull
+        private final String mPackageName;
+        @NonNull
+        private final String mDisplayName;
+        private final boolean mPreferred;
+
+        ScopeApp(@NonNull String packageName, @NonNull String displayName, boolean preferred) {
+            mPackageName = packageName;
+            mDisplayName = displayName;
+            mPreferred = preferred;
+        }
+
+        @NonNull
+        public String getPackageName() {
+            return mPackageName;
+        }
+
+        @NonNull
+        public String getDisplayName() {
+            return mDisplayName;
+        }
+
+        public boolean isPreferred() {
+            return mPreferred;
+        }
+    }
+
+    /** 单个目标进程的最终回执。 */
+    public static final class TargetResult {
+        @NonNull
+        private final HookedTarget mTarget;
+        @NonNull
+        private final ResultCode mCode;
+        @NonNull
+        private final String mMessage;
+
+        TargetResult(@NonNull HookedTarget target, @NonNull ResultCode code,
+                     @Nullable String message) {
+            mTarget = target;
+            mCode = code;
+            mMessage = normalizeMessage(target, code, message);
+        }
+
+        @NonNull
+        public HookedTarget getTarget() {
+            return mTarget;
+        }
+
+        @NonNull
+        public ResultCode getCode() {
+            return mCode;
+        }
+
+        @NonNull
+        public String getMessage() {
+            return mMessage;
+        }
+    }
+
+    /** 一次多应用重载的汇总回执。 */
+    public static final class BatchResult {
+        private final int mSelectedAppCount;
+        @NonNull
+        private final List<TargetResult> mTargetResults;
+        @NonNull
+        private final List<String> mNoRunningTargetPackages;
+        private final boolean mTimedOut;
+
+        BatchResult(int selectedAppCount, @NonNull List<TargetResult> targetResults,
+                    @NonNull List<String> noRunningTargetPackages, boolean timedOut) {
+            mSelectedAppCount = selectedAppCount;
+            mTargetResults = Collections.unmodifiableList(new ArrayList<>(targetResults));
+            mNoRunningTargetPackages = Collections.unmodifiableList(
+                new ArrayList<>(noRunningTargetPackages));
+            mTimedOut = timedOut;
+        }
+
+        public int getSelectedAppCount() {
+            return mSelectedAppCount;
+        }
+
+        public int getRequestedTargetCount() {
+            return mTargetResults.size();
+        }
+
+        public int getSucceededTargetCount() {
+            int succeeded = 0;
+            for (TargetResult result : mTargetResults) {
+                if (result.getCode() == ResultCode.SUCCEEDED) {
+                    succeeded++;
+                }
+            }
+            return succeeded;
+        }
+
+        public int getFailedTargetCount() {
+            return getRequestedTargetCount() - getSucceededTargetCount();
+        }
+
+        @Nullable
+        public TargetResult getFirstFailedTargetResult() {
+            for (TargetResult result : mTargetResults) {
+                if (result.getCode() != ResultCode.SUCCEEDED) {
+                    return result;
+                }
+            }
+            return null;
+        }
+
+        @NonNull
+        public List<TargetResult> getTargetResults() {
+            return mTargetResults;
+        }
+
+        @NonNull
+        public List<String> getNoRunningTargetPackages() {
+            return mNoRunningTargetPackages;
+        }
+
+        public boolean isTimedOut() {
+            return mTimedOut;
+        }
+    }
+
+    private static final class BatchTracker {
+        private final int mSelectedAppCount;
+        @NonNull
+        private final List<HookedTarget> mTargets;
+        @NonNull
+        private final List<String> mNoRunningTargetPackages;
+        @NonNull
+        private final HotReloadBatchCallback mCallback;
+        @NonNull
+        private final Map<String, TargetResult> mResults = new LinkedHashMap<>();
+        private boolean mFinished;
+
+        BatchTracker(int selectedAppCount, @NonNull List<HookedTarget> targets,
+                     @NonNull List<String> noRunningTargetPackages,
+                     @NonNull HotReloadBatchCallback callback) {
+            mSelectedAppCount = selectedAppCount;
+            mTargets = targets;
+            mNoRunningTargetPackages = noRunningTargetPackages;
+            mCallback = callback;
+        }
+
+        @MainThread
+        void onTargetResult(@Nullable HookedTarget target, @NonNull ResultCode code,
+                            @Nullable String message) {
+            if (mFinished || target == null) {
+                return;
+            }
+            String key = targetKey(target);
+            if (!containsTarget(key) || mResults.containsKey(key)) {
+                return;
+            }
+            mResults.put(key, new TargetResult(target, code, message));
+            if (mResults.size() == mTargets.size()) {
+                complete(false);
+            }
+        }
+
+        @MainThread
+        void onTimeout() {
+            if (mFinished) {
+                return;
+            }
+            for (HookedTarget target : mTargets) {
+                String key = targetKey(target);
+                if (!mResults.containsKey(key)) {
+                    mResults.put(key, new TargetResult(target, ResultCode.TIMED_OUT, null));
+                }
+            }
+            complete(true);
+        }
+
+        private boolean containsTarget(@NonNull String key) {
+            for (HookedTarget target : mTargets) {
+                if (targetKey(target).equals(key)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @MainThread
+        private void complete(boolean timedOut) {
+            if (mFinished) {
+                return;
+            }
+            mFinished = true;
+            List<TargetResult> orderedResults = new ArrayList<>(mTargets.size());
+            for (HookedTarget target : mTargets) {
+                TargetResult result = mResults.get(targetKey(target));
+                if (result != null) {
+                    orderedResults.add(result);
+                }
+            }
+            mCallback.onCompleted(new BatchResult(
+                mSelectedAppCount, orderedResults, mNoRunningTargetPackages, timedOut
+            ));
+        }
     }
 
     public enum ResultCode {
@@ -251,7 +571,8 @@ public final class HotReloadManager {
         INVALID_TARGET,
         SERVICE_UNAVAILABLE,
         SERVICE_ERROR,
-        NO_MATCHING_TARGET;
+        NO_MATCHING_TARGET,
+        TIMED_OUT;
 
         static ResultCode fromStatus(HotReloadResult.Status status) {
             return switch (status) {
@@ -273,5 +594,12 @@ public final class HotReloadManager {
          */
         @MainThread
         void onResult(@Nullable HookedTarget target, @NonNull ResultCode code, @Nullable String message);
+    }
+
+    @FunctionalInterface
+    public interface HotReloadBatchCallback {
+        /** 在所有目标进程返回结果，或回调超时后调用；始终运行在主线程。 */
+        @MainThread
+        void onCompleted(@NonNull BatchResult result);
     }
 }

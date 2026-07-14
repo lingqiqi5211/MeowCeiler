@@ -46,12 +46,11 @@ import com.sevtinge.hyperceiler.common.utils.api.ProjectApi;
 import com.sevtinge.hyperceiler.home.utils.HeaderManager;
 import com.sevtinge.hyperceiler.libhook.utils.api.BackupUtils;
 import com.sevtinge.hyperceiler.search.SearchHelper;
-import com.sevtinge.hyperceiler.settings.development.HotReloadPickBottomSheet;
 import com.sevtinge.hyperceiler.sub.ScopePickerActivity;
 import com.sevtinge.hyperceiler.ui.LauncherActivity;
 import com.sevtinge.hyperceiler.ui.SplashActivity;
 import com.sevtinge.hyperceiler.utils.DialogHelper;
-import com.sevtinge.hyperceiler.utils.HotReloadManager;
+import com.sevtinge.hyperceiler.utils.HotReloadDialogHelper;
 import com.sevtinge.hyperceiler.utils.LanguageHelper;
 import com.sevtinge.hyperceiler.utils.ScopeManager;
 
@@ -64,7 +63,6 @@ import fan.appcompat.app.AlertDialog;
 import fan.internal.utils.ViewUtils;
 import fan.preference.DropDownPreference;
 import fan.provision.OobeUtils;
-import io.github.libxposed.service.HookedTarget;
 
 public class SettingsFragment extends BasePreferenceFragment
     implements Preference.OnPreferenceClickListener, Preference.OnPreferenceChangeListener {
@@ -283,53 +281,8 @@ public class SettingsFragment extends BasePreferenceFragment
     }
 
     private void showHotReloadEntry() {
-        if (!HotReloadManager.isHotReloadAvailable()) {
-            new AlertDialog.Builder(requireActivity())
-                .setTitle(com.sevtinge.hyperceiler.core.R.string.settings_hot_reload)
-                .setMessage(com.sevtinge.hyperceiler.core.R.string.settings_hot_reload_unsupported)
-                .setPositiveButton(android.R.string.ok, null)
-                .show();
-            return;
-        }
-
-        List<HookedTarget> targets = HotReloadManager.getRunningTargets();
-        if (targets.isEmpty()) {
-            new AlertDialog.Builder(requireActivity())
-                .setTitle(com.sevtinge.hyperceiler.core.R.string.settings_hot_reload)
-                .setMessage(com.sevtinge.hyperceiler.core.R.string.settings_hot_reload_no_targets)
-                .setPositiveButton(android.R.string.ok, null)
-                .show();
-            return;
-        }
-
-        new HotReloadPickBottomSheet(requireActivity())
-            .setOnTargetPickedListener(this::triggerHotReload)
-            .showTargets(targets);
-    }
-
-    private void triggerHotReload(@NonNull HookedTarget target) {
-        AlertDialog progress = new AlertDialog.Builder(requireActivity())
-            .setCancelable(false)
-            .setTitle(com.sevtinge.hyperceiler.core.R.string.settings_hot_reload)
-            .setMessage(getString(com.sevtinge.hyperceiler.core.R.string.settings_hot_reload_in_progress, target.getProcessName()))
-            .create();
-        progress.show();
-
-        HotReloadManager.hotReloadTarget(target, null, (resTarget, code, message) -> {
-            progress.dismiss();
-            String name = resTarget != null ? resTarget.getProcessName() : "?";
-            String body = getString(
-                com.sevtinge.hyperceiler.core.R.string.settings_hot_reload_result,
-                name,
-                code.name(),
-                message
-            );
-            new AlertDialog.Builder(requireActivity())
-                .setTitle(com.sevtinge.hyperceiler.core.R.string.settings_hot_reload)
-                .setMessage(body)
-                .setPositiveButton(android.R.string.ok, null)
-                .show();
-        });
+        // 开发入口与功能页使用同一套 scope 应用多选逻辑，避免再按单个 PID 重载。
+        HotReloadDialogHelper.showScopedAppPicker(requireActivity(), null);
     }
 
     @Override

@@ -47,6 +47,8 @@ import io.github.lingqiqi5211.ezhooktool.xposed.java.IMethodHook;
 
 @SuppressLint("UnspecifiedRegisterReceiverFlag")
 public class GlobalActionBootstrap extends BaseHook {
+    private static final String HOT_RELOAD_CONTEXT_KEY =
+        "GlobalActionBootstrap.systemContext";
     private static volatile boolean sGlobalReceiverRegistered;
     private static volatile boolean sRestartReceiverRegistered;
     private static volatile int sContextualSearchPackageNameResId;
@@ -108,6 +110,13 @@ public class GlobalActionBootstrap extends BaseHook {
 
     @Override
     public void init() {
+        // onSystemReady 不会在热重载后重放；用旧 generation 保存的 system Context
+        // 立即重建 receiver，避免清理旧 receiver 后功能永久失效。
+        Context restoredContext = getHotReloadRuntimeState(HOT_RELOAD_CONTEXT_KEY, Context.class);
+        if (restoredContext != null) {
+            registerGlobalReceiver(restoredContext);
+            registerRestartReceiver(restoredContext);
+        }
         try {
             Class<?> rString = findClass("com.android.internal.R$string", null);
             sContextualSearchPackageNameResId = rString.getField("config_defaultContextualSearchPackageName").getInt(null);
@@ -171,6 +180,7 @@ public class GlobalActionBootstrap extends BaseHook {
             filter.addAction(BaseHook.ACTION_PREFIX + "StartGoogleCircleToSearch");
             context.registerReceiver(mGlobalReceiver, filter, Context.RECEIVER_EXPORTED);
             sGlobalReceiverRegistered = true;
+            putHotReloadRuntimeState(HOT_RELOAD_CONTEXT_KEY, context);
             registerHotReloadCleanup(() -> {
                 synchronized (GlobalActionBootstrap.class) {
                     if (!sGlobalReceiverRegistered) {
@@ -198,6 +208,7 @@ public class GlobalActionBootstrap extends BaseHook {
             filter.addAction(GlobalActionBridge.ACTION_RESTART_APPS);
             context.registerReceiver(mRestartReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
             sRestartReceiverRegistered = true;
+            putHotReloadRuntimeState(HOT_RELOAD_CONTEXT_KEY, context);
             registerHotReloadCleanup(() -> {
                 synchronized (GlobalActionBootstrap.class) {
                     if (!sRestartReceiverRegistered) {
