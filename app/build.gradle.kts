@@ -18,9 +18,15 @@ val gitHash: String by lazy { runGitCommand("rev-parse", "--short", "HEAD") ?: "
 val gitHashLong: String by lazy { runGitCommand("rev-parse", "HEAD") ?: "unknown" }
 val gitCommitCount: Int by lazy { runGitCommand("rev-list", "--count", "HEAD")?.toIntOrNull() ?: 0 }
 val gitCommitCountSinceTag: Int by lazy {
-    runGitCommand("describe", "--tags", "--long", "--match", "[0-9]*", "--always")
-        ?.let { """^.+-(\d+)-g[0-9a-fA-F]+$""".toRegex().matchEntire(it)?.groupValues?.get(1)?.toIntOrNull() }
-        ?: 0
+    val isVersionTagCommit = runGitCommand("log", "-1", "--pretty=%s")
+        ?.startsWith("app: update version ") == true
+    if (isVersionTagCommit) {
+        0
+    } else {
+        runGitCommand("describe", "--tags", "--long", "--match", "[0-9]*", "--always")
+            ?.let { """^.+-(\d+)-g[0-9a-fA-F]+$""".toRegex().matchEntire(it)?.groupValues?.get(1)?.toIntOrNull() }
+            ?: 0
+    }
 }
 val gitBranch: String by lazy {
     val url = runGitCommand("remote", "get-url", "origin") ?: "unknown"
