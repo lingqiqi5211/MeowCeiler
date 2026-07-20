@@ -70,6 +70,7 @@ import com.sevtinge.hyperceiler.libhook.rules.systemframework.others.DisablePinV
 import com.sevtinge.hyperceiler.libhook.rules.systemframework.others.DisableThermal;
 import com.sevtinge.hyperceiler.libhook.rules.systemframework.others.DisableVerifyCanBeDisabled;
 import com.sevtinge.hyperceiler.libhook.rules.systemframework.others.EffectBinderProxy;
+import com.sevtinge.hyperceiler.libhook.rules.systemframework.others.GMSDozeFixFramework;
 import com.sevtinge.hyperceiler.libhook.rules.systemframework.others.HookEntry;
 import com.sevtinge.hyperceiler.libhook.rules.systemframework.others.LinkTurboToast;
 import com.sevtinge.hyperceiler.libhook.rules.systemframework.others.NativeFilePicker;
@@ -167,6 +168,7 @@ public class SystemFrameworkV extends BaseLoad {
         initHook(new UseAndroidPackageInstaller(), PrefsBridge.getBoolean("system_framework_use_android_package_installer"));
         initHook(new QuickScreenshot(), PrefsBridge.getBoolean("system_framework_quick_screenshot"));
         initHook(new LinkTurboToast(), PrefsBridge.getBoolean("system_framework_disable_link_turbo_toast"));
+        initHook(GMSDozeFixFramework.INSTANCE, PrefsBridge.getBoolean("powerkeeper_gms_doze_fix"));
         initHook(new NativeFilePicker(), PrefsBridge.getBoolean("system_framework_native_file_picker"));
 
         if (PrefsBridge.getBoolean("misound_bluetooth")) {

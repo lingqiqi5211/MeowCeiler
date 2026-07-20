@@ -26,6 +26,9 @@ import android.os.Bundle
 import android.os.PowerExemptionManager
 import com.sevtinge.hyperceiler.common.log.XposedLog
 import com.sevtinge.hyperceiler.libhook.base.BaseHook
+import io.github.lingqiqi5211.ezhooktool.core.findField
+import io.github.lingqiqi5211.ezhooktool.core.findMethod
+import io.github.lingqiqi5211.ezhooktool.xposed.dsl.createInterceptHook
 import io.github.lingqiqi5211.ezhooktool.xposed.dsl.interceptHookMethod
 import io.github.lingqiqi5211.ezhooktool.xposed.java.Deoptimizers
 
@@ -158,20 +161,20 @@ object GMSDozeFixFramework : BaseHook() {
         }
 
         try {
-            clazz.interceptHookMethod(
-                "triggerGMSLimitAction",
-                Boolean::class.java
-            ) { chain ->
+            val triggerGmsLimitActionMethod = clazz.findMethod {
+                name("triggerGMSLimitAction")
+            }
+            triggerGmsLimitActionMethod.createInterceptHook { chain ->
                 val methodArgs = chain.args.toMutableList()
                 if (methodArgs.isNotEmpty()) {
                     methodArgs[0] = false
+                    chain.proceed(methodArgs.toTypedArray())
+                } else {
+                    setBooleanField(chain.thisObject, "mGmsLimitEnabled", false)
+                    chain.proceed()
                 }
-                chain.proceed(methodArgs.toTypedArray())
             }
-            clazz.getDeclaredMethod(
-                "triggerGMSLimitAction",
-                Boolean::class.java
-            ).let(Deoptimizers::deoptimize)
+            Deoptimizers.deoptimize(triggerGmsLimitActionMethod)
         } catch (e: Exception) {
             XposedLog.e(TAG, packageName, "Hook Failed in triggerGMSLimitAction: ", e)
         }
@@ -216,6 +219,31 @@ object GMSDozeFixFramework : BaseHook() {
             }
         } catch (e: Exception) {
             XposedLog.e(TAG, packageName, "Hook Failed in ListAppsManager constructor", e)
+        }
+
+        try {
+            val useDataWhiteListField = clazz.findField {
+                name("mUseDataWhiteList")
+            }.apply {
+                isAccessible = true
+            }
+            val isInWhiteListMethod = clazz.findMethod {
+                name("isInWhiteList")
+            }
+            isInWhiteListMethod.createInterceptHook { chain ->
+                try {
+                    @Suppress("UNCHECKED_CAST")
+                    val whiteList = useDataWhiteListField.get(chain.thisObject)
+                        as? MutableSet<String>
+                    whiteList?.add(GMS_PACKAGE_NAME)
+                } catch (e: Exception) {
+                    XposedLog.e(TAG, packageName, "Failed to modify mUseDataWhiteList", e)
+                }
+                chain.proceed()
+            }
+            Deoptimizers.deoptimize(isInWhiteListMethod)
+        } catch (e: Exception) {
+            XposedLog.e(TAG, packageName, "Hook Failed in isInWhiteList", e)
         }
     }
 
