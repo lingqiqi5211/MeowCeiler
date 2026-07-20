@@ -164,7 +164,7 @@ object FocusNotifLyric : MusicBaseHook() {
     }
 
     override fun onSuperLyric(packageName: String?, data: SuperLyricData) {
-        if (PrefsBridge.getBoolean("system_ui_statusbar_music_switch") || isShowApp) return
+        if (!PrefsBridge.getBoolean("system_ui_statusbar_music_switch")) return
         val lyric = data.lyric
         focusTextViewList.forEach { textView ->
             textView.post {
