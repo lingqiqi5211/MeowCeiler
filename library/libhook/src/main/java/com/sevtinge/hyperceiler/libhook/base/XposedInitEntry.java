@@ -114,11 +114,16 @@ public class XposedInitEntry extends XposedModule {
     }
 
     @Override
-    public void onPackageReady(@NonNull PackageReadyParam lpparam) {
-        super.onPackageReady(lpparam);
+    public void onPackageLoaded(@NonNull PackageLoadedParam lpparam) {
+        super.onPackageLoaded(lpparam);
         if (!lpparam.isFirstPackage()) return;
-        mLastLpparam = lpparam;
-        EzXposed.initOnPackageReady(lpparam);
+        // API 102 的 onPackageReady 在 AppComponentFactory 实例化之后才触发，对需要在宿主
+        // 早期初始化前生效的规则来说太晚（#1660）。统一提前到 onPackageLoaded 安装，与
+        // API 100 的注入时机一致；此阶段没有 AppComponentFactory，用默认 ClassLoader 适配。
+        PackageReadyParam earlyParam = new EarlyPackageReadyParam(lpparam);
+        mLastLpparam = earlyParam;
+        EzXposed.initOnPackageLoaded(lpparam);
+        EzXposed.initOnPackageReady(earlyParam);
     }
 
     @Override
@@ -334,6 +339,51 @@ public class XposedInitEntry extends XposedModule {
         @Nullable Context appContext,
         @Nullable Object runtimeState
     ) {
+    }
+
+    /** 把 onPackageLoaded 阶段的参数适配成 {@link PackageReadyParam}，复用统一的装载与热重载链路。 */
+    private static final class EarlyPackageReadyParam implements PackageReadyParam {
+        private final PackageLoadedParam delegate;
+
+        EarlyPackageReadyParam(@NonNull PackageLoadedParam delegate) {
+            this.delegate = delegate;
+        }
+
+        @NonNull
+        @Override
+        public ClassLoader getClassLoader() {
+            return delegate.getDefaultClassLoader();
+        }
+
+        @NonNull
+        @Override
+        public AppComponentFactory getAppComponentFactory() {
+            throw new UnsupportedOperationException(
+                "AppComponentFactory is not instantiated yet at onPackageLoaded stage");
+        }
+
+        @NonNull
+        @Override
+        public String getPackageName() {
+            return delegate.getPackageName();
+        }
+
+        @NonNull
+        @Override
+        public ApplicationInfo getApplicationInfo() {
+            return delegate.getApplicationInfo();
+        }
+
+        @Override
+        public boolean isFirstPackage() {
+            return delegate.isFirstPackage();
+        }
+
+        @NonNull
+        @Override
+        public ClassLoader getDefaultClassLoader() {
+            return delegate.getDefaultClassLoader();
+        }
     }
 
     private static final class RestoredPackageReadyParam implements PackageReadyParam {
