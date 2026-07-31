@@ -91,7 +91,7 @@ app
 - 默认 `values/` 为基础英文，`values-zh-rCN/` 为简体中文；不要批量覆盖其他翻译。语言目录变化时同步核对 `app/src/main/res/xml/locales_config.xml`。
 - 偏好键使用 `prefs_key_` 前缀和 snake_case。XML 通常写完整键；Hook 侧可通过 `PrefsBridge` 使用去掉前缀的名称。两侧必须映射到同一键。
 - 已发布偏好键不得随意重命名；确需修改时同步处理界面、Hook 读取、默认值、观察者和旧数据迁移。
-- 设置页的 `app:myLocation`、`app:quick_restart`、`app:hot_reload_preferred` 会被 Dashboard 使用，复制或移动页面时必须核对。
+- 设置页的 `app:myLocation`、`app:quick_restart` 会被 Dashboard 使用，复制或移动页面时必须核对。
 - 应用固定资源包 ID 为 `0x36`。除非任务专门处理资源 ID，不得修改相关 `aapt` 参数或打包规则。
 - 注入目标应用的资源放在 `library/libhook/`，并使用现有 `ResourcesTool` 与资源 Hook 生命周期。
 
