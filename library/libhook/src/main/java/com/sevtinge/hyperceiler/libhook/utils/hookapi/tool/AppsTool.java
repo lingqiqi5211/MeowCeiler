@@ -50,14 +50,13 @@ import com.sevtinge.hyperceiler.common.utils.PrefsBridge;
 import com.sevtinge.hyperceiler.common.utils.api.ProjectApi;
 import com.sevtinge.hyperceiler.common.utils.shell.ShellInit;
 import com.sevtinge.hyperceiler.libhook.R;
+import com.sevtinge.hyperceiler.libhook.base.PackageTarget;
 import com.sevtinge.hyperceiler.libhook.utils.api.ContextUtils;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.blur.MiBlurUtils;
 
 import java.util.ArrayList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-
-import io.github.libxposed.api.XposedModuleInterface;
 
 public class AppsTool {
 
@@ -240,24 +239,24 @@ public class AppsTool {
         return stackTrace[4].getMethodName();
     }
 
-    public static String getPackageVersionName(XposedModuleInterface.PackageReadyParam param) {
+    public static String getPackageVersionName(PackageTarget target) {
         try {
             PackageManager pm = findContext(FlAG_ONLY_ANDROID).getPackageManager();
-            PackageInfo pi = pm.getPackageInfo(param.getPackageName(), 0);
+            PackageInfo pi = pm.getPackageInfo(target.getPackageName(), 0);
             return pi != null ? pi.versionName : "";
         } catch (Throwable e) {
-            AndroidLog.e("getPackageVersionName", param.getPackageName(), e.toString());
+            AndroidLog.e("getPackageVersionName", target.getPackageName(), e.toString());
             return "";
         }
     }
 
-    public static int getPackageVersionCode(XposedModuleInterface.PackageReadyParam param) {
+    public static int getPackageVersionCode(PackageTarget target) {
         try {
             PackageManager pm = findContext(FlAG_ONLY_ANDROID).getPackageManager();
-            PackageInfo pi = pm.getPackageInfo(param.getPackageName(), 0);
+            PackageInfo pi = pm.getPackageInfo(target.getPackageName(), 0);
             return Math.toIntExact(pi != null ? pi.getLongVersionCode() : -1);
         } catch (Throwable e) {
-            AndroidLog.e("getPackageVersionCode", param.getPackageName(), e.toString());
+            AndroidLog.e("getPackageVersionCode", target.getPackageName(), e.toString());
             return -1;
         }
     }

@@ -38,8 +38,6 @@ import java.util.concurrent.Future;
 import java.util.function.BooleanSupplier;
 
 import io.github.libxposed.api.XposedInterface;
-import io.github.libxposed.api.XposedModuleInterface.PackageReadyParam;
-import io.github.libxposed.api.XposedModuleInterface.SystemServerStartingParam;
 import io.github.lingqiqi5211.ezhooktool.xposed.EzXposed;
 
 /**
@@ -53,10 +51,7 @@ import io.github.lingqiqi5211.ezhooktool.xposed.EzXposed;
 public abstract class BaseLoad {
     public static final String SYSTEM_SERVER = "system";
     private static final Object sLock = new Object();
-    private static volatile ClassLoader sClassLoader;
-    private static volatile String sPackageName;
-    private static volatile PackageReadyParam sLpparam;
-    private static volatile SystemServerStartingParam sSystemServerParam;
+    private static volatile PackageTarget sTarget;
     private static volatile XposedInterface sXposed;
     private static volatile String sCurrentHookTag = "BaseLoad";
     private static final List<String> sGenerationInitializationFailures =
@@ -147,10 +142,7 @@ public abstract class BaseLoad {
         ResourcesTool.prepareHotReload();
         BaseHook.prepareHotReload();
         synchronized (sLock) {
-            sClassLoader = null;
-            sPackageName = null;
-            sLpparam = null;
-            sSystemServerParam = null;
+            sTarget = null;
             sCurrentHookTag = "BaseLoad";
             mResHook = null;
         }
@@ -160,34 +152,26 @@ public abstract class BaseLoad {
         return sXposed;
     }
 
-    public static ClassLoader getClassLoader() {
+    /** 当前目标进程信息；规则初始化之外的阶段可能为 {@code null}。 */
+    public static PackageTarget getTarget() {
         synchronized (sLock) {
-            return sClassLoader;
+            return sTarget;
         }
+    }
+
+    public static ClassLoader getClassLoader() {
+        PackageTarget target = getTarget();
+        return target != null ? target.getClassLoader() : null;
     }
 
     public static String getPackageName() {
-        synchronized (sLock) {
-            return sPackageName;
-        }
-    }
-
-    public static PackageReadyParam getLpparam() {
-        synchronized (sLock) {
-            return sLpparam;
-        }
-    }
-
-    public static SystemServerStartingParam getSystemServerParam() {
-        synchronized (sLock) {
-            return sSystemServerParam;
-        }
+        PackageTarget target = getTarget();
+        return target != null ? target.getPackageName() : null;
     }
 
     public static boolean isSystemServer() {
-        synchronized (sLock) {
-            return SYSTEM_SERVER.equals(sPackageName) && sSystemServerParam != null;
-        }
+        PackageTarget target = getTarget();
+        return target != null && target.isSystemServer();
     }
 
     public static String getTag() {
@@ -199,37 +183,13 @@ public abstract class BaseLoad {
     public abstract void onPackageLoaded();
 
     /**
-     * 加载普通应用 Hook
+     * 加载目标进程 Hook；普通应用与 system_server 共用同一条路径。
      */
-    public void onLoad(PackageReadyParam lpparam) {
-        if (lpparam == null) return;
+    public void onLoad(PackageTarget target) {
+        if (target == null) return;
 
         synchronized (sLock) {
-            sClassLoader = lpparam.getClassLoader();
-            sPackageName = lpparam.getPackageName();
-            sLpparam = lpparam;
-            sSystemServerParam = null;
-            sCurrentHookTag = this.getClass().getSimpleName();
-            mResHook = ResourcesTool.getInstance(getXposed().getModuleApplicationInfo().sourceDir);
-            mDexKitSessionPrepared = false;
-            mPendingDexKitHooks.clear();
-        }
-
-        loadModuleResources();
-        executeHook();
-    }
-
-    /**
-     * 加载 SystemServer Hook
-     */
-    public void onLoad(SystemServerStartingParam lpparam) {
-        if (lpparam == null) return;
-
-        synchronized (sLock) {
-            sClassLoader = lpparam.getClassLoader();
-            sPackageName = SYSTEM_SERVER;
-            sLpparam = null;
-            sSystemServerParam = lpparam;
+            sTarget = target;
             sCurrentHookTag = this.getClass().getSimpleName();
             mResHook = ResourcesTool.getInstance(getXposed().getModuleApplicationInfo().sourceDir);
             mDexKitSessionPrepared = false;
@@ -277,9 +237,9 @@ public abstract class BaseLoad {
 
     private void prepareDexKitSession(String tag) {
         if (mDexKitSessionPrepared || isSystemServer()) return;
-        PackageReadyParam param = getLpparam();
-        if (param != null) {
-            DexKit.ready(param, tag);
+        PackageTarget target = getTarget();
+        if (target != null) {
+            DexKit.ready(target, tag);
             mDexKitSessionPrepared = true;
         }
     }

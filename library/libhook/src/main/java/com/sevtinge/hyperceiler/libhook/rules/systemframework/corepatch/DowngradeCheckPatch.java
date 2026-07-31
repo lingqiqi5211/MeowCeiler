@@ -6,13 +6,12 @@ import static com.sevtinge.hyperceiler.libhook.base.BaseHook.findMethodExactIfEx
 import static com.sevtinge.hyperceiler.libhook.base.BaseHook.hookMethod;
 
 import com.sevtinge.hyperceiler.common.log.XposedLog;
-
-import io.github.libxposed.api.XposedModuleInterface;
+import com.sevtinge.hyperceiler.libhook.base.PackageTarget;
 
 public class DowngradeCheckPatch extends CorePatchHelper {
     private final String TAG = "DowngradeCheckPatch";
 
-    public void init(XposedModuleInterface.SystemServerStartingParam lpparam) {
+    public void init(PackageTarget lpparam) {
         // Android 15+
         try {
             Class<?> PackageManagerServiceUtils =

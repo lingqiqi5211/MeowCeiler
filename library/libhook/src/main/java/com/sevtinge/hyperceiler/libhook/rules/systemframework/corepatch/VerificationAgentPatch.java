@@ -4,14 +4,13 @@ import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isA
 import static com.sevtinge.hyperceiler.libhook.utils.api.DeviceHelper.System.isMoreAndroidVersion;
 
 import com.sevtinge.hyperceiler.common.log.XposedLog;
-
-import io.github.libxposed.api.XposedModuleInterface;
+import com.sevtinge.hyperceiler.libhook.base.PackageTarget;
 
 public class VerificationAgentPatch extends CorePatchHelper {
 
     private static final String TAG = "VerificationAgentPatch";
 
-    public void init(XposedModuleInterface.SystemServerStartingParam lpparam) {
+    public void init(PackageTarget lpparam) {
         // Android 11+
         try {
             hookAllMethods(getIsVerificationEnabledClass(lpparam.getClassLoader()), "isVerificationEnabled", new ReturnConstant("prefs_key_system_framework_disable_verification_agent", false));

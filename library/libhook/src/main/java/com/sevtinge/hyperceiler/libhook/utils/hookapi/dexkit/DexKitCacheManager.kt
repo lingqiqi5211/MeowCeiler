@@ -22,13 +22,13 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.os.Build
 import com.sevtinge.hyperceiler.common.log.XposedLog
+import com.sevtinge.hyperceiler.libhook.base.PackageTarget
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKitCacheManager.clearAllCache
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKitCacheManager.findMember
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKitCacheManager.findMemberList
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKitCacheManager.init
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKitCacheManager.releaseBridge
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.tool.AppsTool
-import io.github.libxposed.api.XposedModuleInterface.PackageReadyParam
 import org.luckypray.dexkit.DexKitCacheBridge
 import org.luckypray.dexkit.DexKitCacheBridge.RecyclableBridge
 import org.luckypray.dexkit.annotations.DexKitExperimentalApi
@@ -71,7 +71,7 @@ internal object DexKitCacheManager {
     private var tag: String = TAG_DEFAULT
 
     @Volatile
-    private var param: PackageReadyParam? = null
+    private var target: PackageTarget? = null
 
     @Volatile
     private var bridge: RecyclableBridge? = null
@@ -91,18 +91,23 @@ internal object DexKitCacheManager {
      * 每个进程首次初始化时注册 [JsonFileCache] 到 [DexKitCacheBridge]，
      * 然后为当前目标应用创建一个 [RecyclableBridge]。
      */
-    fun init(param: PackageReadyParam, tag: String) {
+    fun init(target: PackageTarget, tag: String) {
         synchronized(lock) {
-            this.param = param
+            this.target = target
             this.tag = tag.ifEmpty { TAG_DEFAULT }
 
-            val appInfo = param.applicationInfo
+            // DexKit 只服务普通应用进程；system_server 没有 ApplicationInfo，
+            // 调用方（BaseLoad.prepareDexKitSession）已提前短路，这里只做防御性校验。
+            val appInfo = target.applicationInfo
+                ?: throw IllegalStateException(
+                    "DexKit requires ApplicationInfo, unavailable for ${target.packageName}"
+                )
 
             // 初始化 CacheBridge 缓存（每个进程只做一次）
             if (!cacheInitialized) {
                 System.loadLibrary("dexkit")
 
-                val jsonCache = createJsonFileCache(appInfo, param)
+                val jsonCache = createJsonFileCache(appInfo, target)
                 try {
                     DexKitCacheBridge.init(jsonCache)
                 } catch (_: IllegalStateException) {
@@ -113,9 +118,9 @@ internal object DexKitCacheManager {
             }
 
             // 创建或复用 RecyclableBridge
-            bridge = createRecyclableBridge(appInfo, param.classLoader)
+            bridge = createRecyclableBridge(appInfo, target.classLoader)
 
-            XposedLog.d(this.tag, "DexKitCacheManager initialized for ${param.packageName}")
+            XposedLog.d(this.tag, "DexKitCacheManager initialized for ${target.packageName}")
         }
     }
 
@@ -127,8 +132,8 @@ internal object DexKitCacheManager {
      */
     @Suppress("UNCHECKED_CAST")
     fun <T> findMember(key: String, iDexKit: IDexKit): T {
-        val currentParam = param ?: throw IllegalStateException("DexKit not ready")
-        val classLoader = currentParam.classLoader
+        val currentTarget = target ?: throw IllegalStateException("DexKit not ready")
+        val classLoader = currentTarget.classLoader
 
         // 缓存 key 不带前缀，由 strings / lists 分组隐式区分
         // 先尝试命中内存缓存，命中时不创建原生桥
@@ -157,8 +162,8 @@ internal object DexKitCacheManager {
      */
     @Suppress("UNCHECKED_CAST")
     fun <T> findMemberList(key: String, iDexKitList: IDexKitList): List<T> {
-        val currentParam = param ?: throw IllegalStateException("DexKit not ready")
-        val classLoader = currentParam.classLoader
+        val currentTarget = target ?: throw IllegalStateException("DexKit not ready")
+        val classLoader = currentTarget.classLoader
 
         // 缓存 key 不带前缀，由 strings / lists 分组隐式区分
         // 先尝试命中缓存
@@ -207,7 +212,7 @@ internal object DexKitCacheManager {
             cache?.flush()
             bridge?.close()
             bridge = null
-            param = null
+            target = null
 
             XposedLog.d(tag, "DexKitCacheManager: bridge closed")
         }
@@ -255,18 +260,18 @@ internal object DexKitCacheManager {
 
     private fun createJsonFileCache(
         appInfo: ApplicationInfo,
-        param: PackageReadyParam
+        target: PackageTarget
     ): JsonFileCache {
         val cacheDir = File(File(appInfo.dataDir, "cache"), DEXKIT_CACHE_DIR)
         if (!cacheDir.exists()) cacheDir.mkdirs()
         val cacheFile = File(cacheDir, DEXKIT_CACHE_FILE)
 
-        val pkgVersionName = AppsTool.getPackageVersionName(param)
-        val pkgVersionCode = AppsTool.getPackageVersionCode(param)
+        val pkgVersionName = AppsTool.getPackageVersionName(target)
+        val pkgVersionCode = AppsTool.getPackageVersionCode(target)
         val hasPkgVersion = pkgVersionName.isNotEmpty() && pkgVersionCode != -1
         val pkgVersion = if (hasPkgVersion) "$pkgVersionName($pkgVersionCode)" else null
 
-        val isSystemUI = "com.android.systemui" == param.packageName
+        val isSystemUI = "com.android.systemui" == target.packageName
         val osVersion = if (isSystemUI) Build.VERSION.INCREMENTAL else null
 
         return JsonFileCache(cacheFile, pkgVersion, osVersion, tag)

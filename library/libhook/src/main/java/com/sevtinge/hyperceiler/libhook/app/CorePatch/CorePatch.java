@@ -22,6 +22,7 @@ import android.os.Build;
 
 import com.sevtinge.hyperceiler.common.log.XposedLog;
 import com.sevtinge.hyperceiler.common.utils.api.ProjectApi;
+import com.sevtinge.hyperceiler.libhook.base.PackageTarget;
 import com.sevtinge.hyperceiler.libhook.rules.systemframework.corepatch.AuthCreakPatch;
 import com.sevtinge.hyperceiler.libhook.rules.systemframework.corepatch.CorePatchHelper;
 import com.sevtinge.hyperceiler.libhook.rules.systemframework.corepatch.DigestCreakPatch;
@@ -30,12 +31,10 @@ import com.sevtinge.hyperceiler.libhook.rules.systemframework.corepatch.ExactSig
 import com.sevtinge.hyperceiler.libhook.rules.systemframework.corepatch.SharedUserPatch;
 import com.sevtinge.hyperceiler.libhook.rules.systemframework.corepatch.VerificationAgentPatch;
 
-import io.github.libxposed.api.XposedModuleInterface;
-
 public class CorePatch {
 
     private static final String TAG = "CorePatch";
-    public void onLoad(XposedModuleInterface.SystemServerStartingParam lpparam) {
+    public void onLoad(PackageTarget lpparam) {
         XposedLog.i(TAG, "CorePatchLoad: Current sdk version is " + Build.VERSION.SDK_INT);
 
         if (!ProjectApi.isRelease()) {

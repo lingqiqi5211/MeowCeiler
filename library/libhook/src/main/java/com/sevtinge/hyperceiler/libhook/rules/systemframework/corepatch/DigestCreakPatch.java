@@ -9,13 +9,13 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.Signature;
 
 import com.sevtinge.hyperceiler.common.log.XposedLog;
+import com.sevtinge.hyperceiler.libhook.base.PackageTarget;
 
 import java.lang.reflect.Constructor;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
 
-import io.github.libxposed.api.XposedModuleInterface;
 import io.github.lingqiqi5211.ezhooktool.xposed.common.HookParam;
 import io.github.lingqiqi5211.ezhooktool.xposed.java.IMethodHook;
 
@@ -23,7 +23,7 @@ public class DigestCreakPatch extends CorePatchHelper {
 
     private final String TAG = "DigestCreak/UsePreSignPatch";
 
-    public void init(XposedModuleInterface.SystemServerStartingParam lpparam) {
+    public void init(PackageTarget lpparam) {
         // Android 14+
         try {
             findAndHookMethod("com.android.server.pm.InstallPackageHelper", lpparam.getClassLoader(),

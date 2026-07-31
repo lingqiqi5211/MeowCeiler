@@ -11,6 +11,7 @@ import android.content.pm.ApplicationInfo;
 import android.util.Log;
 
 import com.sevtinge.hyperceiler.common.log.XposedLog;
+import com.sevtinge.hyperceiler.libhook.base.PackageTarget;
 import io.github.lingqiqi5211.ezhooktool.xposed.java.IMethodHook;
 
 import java.lang.reflect.Method;
@@ -18,13 +19,12 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
 import io.github.lingqiqi5211.ezhooktool.xposed.common.HookParam;
-import io.github.libxposed.api.XposedModuleInterface;
 
 public class SharedUserPatch extends CorePatchHelper {
 
     private static final String TAG = "SharedUserPatch";
 
-    public void init(XposedModuleInterface.SystemServerStartingParam lpparam) {
+    public void init(PackageTarget lpparam) {
         // Android 14+
         try {
             var utilClass = findClass("com.android.server.pm.ReconcilePackageUtils", lpparam.getClassLoader());

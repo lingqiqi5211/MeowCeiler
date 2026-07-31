@@ -22,10 +22,10 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 
+import com.sevtinge.hyperceiler.libhook.base.PackageTarget;
+
 import java.util.Collection;
 import java.util.List;
-
-import io.github.libxposed.api.XposedModuleInterface.PackageReadyParam;
 
 /**
  * DexKit 工具类 — 薄 Java 静态门面
@@ -44,8 +44,8 @@ public class DexKit {
     /**
      * 准备 DexKit 会话
      */
-    public static void ready(PackageReadyParam param, String tag) {
-        DexKitCacheManager.INSTANCE.init(param, tag);
+    public static void ready(PackageTarget target, String tag) {
+        DexKitCacheManager.INSTANCE.init(target, tag);
     }
 
     /**

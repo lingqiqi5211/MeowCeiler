@@ -26,9 +26,9 @@ import android.os.SystemProperties
 import android.provider.Settings
 import com.sevtinge.hyperceiler.common.log.XposedLog
 import com.sevtinge.hyperceiler.common.utils.api.ProjectApi
+import com.sevtinge.hyperceiler.libhook.base.PackageTarget
 import com.sevtinge.hyperceiler.libhook.callback.ICrashHandler
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.PackageWatchdog
-import io.github.libxposed.api.XposedModuleInterface
 import io.github.lingqiqi5211.ezhooktool.core.callMethod
 import io.github.lingqiqi5211.ezhooktool.core.findAllMethods
 import io.github.lingqiqi5211.ezhooktool.core.findMethod
@@ -42,7 +42,7 @@ import io.github.lingqiqi5211.ezhooktool.xposed.dsl.removeAdditionalInstanceFiel
 import io.github.lingqiqi5211.ezhooktool.xposed.dsl.setAdditionalInstanceField
 import java.lang.reflect.Constructor
 
-class CrashMonitor(lpparam: XposedModuleInterface.SystemServerStartingParam) {
+class CrashMonitor(lpparam: PackageTarget) {
     private val crashHandler: ICrashHandler = SafeModeHandler
 
     companion object {

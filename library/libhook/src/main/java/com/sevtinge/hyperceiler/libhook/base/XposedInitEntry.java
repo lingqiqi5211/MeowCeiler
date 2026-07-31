@@ -18,7 +18,6 @@
  */
 package com.sevtinge.hyperceiler.libhook.base;
 
-import android.app.AppComponentFactory;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.text.TextUtils;
@@ -59,12 +58,21 @@ public class XposedInitEntry extends XposedModule {
     private static final String PREF_FRAMEWORK_VERSION = "framework_check_version";
     private static final String PREF_FRAMEWORK_VERSION_CODE = "framework_check_version_code";
 
-    /** EzHookTool snapshot 之外、本项目需要跨代恢复的宿主状态。 */
-    private static final int EXTRA_APP_INFO = 0;
-    private static final int EXTRA_FIRST_PACKAGE = 1;
-    private static final int EXTRA_APP_CONTEXT = 2;
-    private static final int EXTRA_RUNTIME_STATE = 3;
-    private static final int EXTRA_LENGTH = 4;
+    /**
+     * EzHookTool snapshot 之外、本项目需要跨代恢复的宿主状态。
+     *
+     * <p>热重载语义是「旧代码写、新代码读」，槽位布局一旦变化就会被跨版本误读，
+     * 因此和 EzHookTool 的 snapshot 一样带 MAGIC + VERSION 头：布局变更时必须递增
+     * {@link #EXTRA_VERSION}，恢复端校验不通过就整体拒绝，不做部分降级。</p>
+     */
+    private static final String EXTRA_MAGIC = "HyperCeiler.HotReloadExtras";
+    private static final int EXTRA_VERSION = 1;
+    private static final int EXTRA_INDEX_MAGIC = 0;
+    private static final int EXTRA_INDEX_VERSION = 1;
+    private static final int EXTRA_INDEX_APP_INFO = 2;
+    private static final int EXTRA_INDEX_APP_CONTEXT = 3;
+    private static final int EXTRA_INDEX_RUNTIME_STATE = 4;
+    private static final int EXTRA_LENGTH = 5;
 
     protected String processName;
     private final Object prefsInitLock = new Object();
@@ -72,7 +80,7 @@ public class XposedInitEntry extends XposedModule {
     private volatile boolean runtimeInitialized = false;
 
     @Nullable
-    private volatile Object mLastLpparam;
+    private volatile PackageTarget mTarget;
 
     @Override
     public void onModuleLoaded(@NonNull ModuleLoadedParam param) {
@@ -109,7 +117,7 @@ public class XposedInitEntry extends XposedModule {
 
     @Override
     public void onSystemServerStarting(@NonNull SystemServerStartingParam lpparam) {
-        mLastLpparam = lpparam;
+        mTarget = PackageTarget.ofSystemServer(lpparam);
         EzXposed.initOnSystemServerStarting(lpparam);
     }
 
@@ -117,13 +125,15 @@ public class XposedInitEntry extends XposedModule {
     public void onPackageLoaded(@NonNull PackageLoadedParam lpparam) {
         super.onPackageLoaded(lpparam);
         if (!lpparam.isFirstPackage()) return;
-        // API 102 的 onPackageReady 在 AppComponentFactory 实例化之后才触发，对需要在宿主
-        // 早期初始化前生效的规则来说太晚（#1660）。统一提前到 onPackageLoaded 安装，与
-        // API 100 的注入时机一致；此阶段没有 AppComponentFactory，用默认 ClassLoader 适配。
-        PackageReadyParam earlyParam = new EarlyPackageReadyParam(lpparam);
-        mLastLpparam = earlyParam;
         EzXposed.initOnPackageLoaded(lpparam);
-        EzXposed.initOnPackageReady(earlyParam);
+    }
+
+    @Override
+    public void onPackageReady(@NonNull PackageReadyParam lpparam) {
+        super.onPackageReady(lpparam);
+        if (!lpparam.isFirstPackage()) return;
+        mTarget = PackageTarget.ofPackageReady(lpparam);
+        EzXposed.initOnPackageReady(lpparam);
     }
 
     @Override
@@ -153,7 +163,8 @@ public class XposedInitEntry extends XposedModule {
         try {
             // 复用 EzHookTool 的 target snapshot；extras 只承载项目自己的宿主状态。
             if (!EzXposed.handleHotReloading(param, extras)) {
-                XposedLog.w(TAG, processName, "Hot reload rejected: EzXposed target snapshot is unavailable.");
+                XposedLog.w(TAG, processName,
+                    "Hot reload rejected by EzXposed; see the preceding EzXposed log for details.");
                 return false;
             }
         } catch (Throwable t) {
@@ -215,8 +226,11 @@ public class XposedInitEntry extends XposedModule {
         }
         BaseHook.restoreHotReloadRuntimeState(extras.runtimeState());
 
+        // 包名与 ClassLoader 由 EzHookTool 的 snapshot 恢复；ApplicationInfo 不在其公开
+        // API 内，因此仍由本项目的 extras 承载（DexKit 需要 dataDir / sourceDir）。
         if (EzXposed.isSystemServer()) {
-            mLastLpparam = new RestoredSystemServerParam(EzXposed.getClassLoader());
+            mTarget = PackageTarget.restored(BaseLoad.SYSTEM_SERVER, null,
+                EzXposed.getClassLoader(), true);
             return;
         }
 
@@ -224,75 +238,49 @@ public class XposedInitEntry extends XposedModule {
         if (TextUtils.isEmpty(packageName) || extras.applicationInfo() == null) {
             throw new IllegalStateException("Restored package state is incomplete");
         }
-        mLastLpparam = new RestoredPackageReadyParam(
-            packageName,
-            EzXposed.getClassLoader(),
-            extras.applicationInfo(),
-            extras.firstPackage()
-        );
+        mTarget = PackageTarget.restored(packageName, extras.applicationInfo(),
+            EzXposed.getClassLoader(), false);
     }
 
     /** 初次加载与自动热重载共同使用的同步规则初始化入口。 */
     private void installCurrentTargetHooks() {
-        Object lpparam = mLastLpparam;
-        BaseLoad.beginHookInitialization();
-        if (lpparam instanceof SystemServerStartingParam systemParam) {
-            installSystemHooks(systemParam);
-        } else if (lpparam instanceof PackageReadyParam packageParam) {
-            installPackageHooks(packageParam);
-        } else {
+        PackageTarget target = mTarget;
+        if (target == null) {
             throw new IllegalStateException("Target state is unavailable before hook initialization");
+        }
+        BaseLoad.beginHookInitialization();
+        if (!prepareHookLoad(target.getPackageName())) {
+            attachHookLogLevelObserver(target.isSystemServer());
+            if (target.isSystemServer()) {
+                loadSystemEntryHooks(target);
+            }
+            invokeInit(target);
         }
         // 热重载时个别规则会自行捕获初始化异常并写入 BaseLoad；必须在 EzHookTool 批次
         // 发布任何新物理 hook 前把它们转回失败，不能等旧 hook 已收尾后才发现。
         BaseLoad.verifyHotReloadInitialization();
     }
 
-    private void installSystemHooks(@NonNull SystemServerStartingParam lpparam) {
-        if (prepareHookLoad(BaseLoad.SYSTEM_SERVER)) {
-            return;
-        }
-        attachHookLogLevelObserver(true);
-        loadSystemEntryHooks(lpparam);
-        invokeInit(lpparam);
-    }
-
-    private void installPackageHooks(@NonNull PackageReadyParam lpparam) {
-        if (prepareHookLoad(lpparam.getPackageName())) {
-            return;
-        }
-        attachHookLogLevelObserver(false);
-        invokeInit(lpparam);
-    }
-
     @Nullable
     private Object[] buildHotReloadExtras() {
-        Object lpparam = mLastLpparam;
+        PackageTarget target = mTarget;
+        if (target == null) return null;
         Context appContext = null;
         try {
             appContext = EzXposed.getAppContextOrNull();
         } catch (Throwable t) {
             XposedLog.d(TAG, processName, "Application context is unavailable during hot reload snapshot.");
         }
-        if (lpparam instanceof SystemServerStartingParam) {
-            return new Object[]{
-                null,
-                false,
-                appContext,
-                BaseHook.snapshotHotReloadRuntimeState()
-            };
-        }
-        if (lpparam instanceof PackageReadyParam packageParam) {
-            ApplicationInfo appInfo = packageParam.getApplicationInfo();
-            if (appInfo == null) return null;
-            return new Object[]{
-                appInfo,
-                packageParam.isFirstPackage(),
-                appContext,
-                BaseHook.snapshotHotReloadRuntimeState()
-            };
-        }
-        return null;
+        ApplicationInfo appInfo = target.getApplicationInfo();
+        // 普通应用进程必须带上 ApplicationInfo，否则热重载后 DexKit 无法重建缓存路径。
+        if (!target.isSystemServer() && appInfo == null) return null;
+        Object[] extras = new Object[EXTRA_LENGTH];
+        extras[EXTRA_INDEX_MAGIC] = EXTRA_MAGIC;
+        extras[EXTRA_INDEX_VERSION] = EXTRA_VERSION;
+        extras[EXTRA_INDEX_APP_INFO] = appInfo;
+        extras[EXTRA_INDEX_APP_CONTEXT] = appContext;
+        extras[EXTRA_INDEX_RUNTIME_STATE] = BaseHook.snapshotHotReloadRuntimeState();
+        return extras;
     }
 
     private boolean prepareForHotReload() {
@@ -318,155 +306,40 @@ public class XposedInitEntry extends XposedModule {
         }
     }
 
+    /**
+     * 校验并还原本项目的跨代状态。
+     *
+     * <p>布局不符时返回 {@code null}，调用方会把本次热重载判为失败并要求重启目标进程，
+     * 而不是带着部分错位的状态继续运行。</p>
+     */
     @Nullable
     private HotReloadExtras restoreHotReloadExtras(@Nullable Object[] extras) {
-        if (extras == null || extras.length < EXTRA_LENGTH) {
+        if (extras == null || extras.length != EXTRA_LENGTH) {
             return null;
         }
-        ApplicationInfo appInfo = extras[EXTRA_APP_INFO] instanceof ApplicationInfo info ? info : null;
-        Context appContext = extras[EXTRA_APP_CONTEXT] instanceof Context context ? context : null;
-        return new HotReloadExtras(
-            appInfo,
-            Boolean.TRUE.equals(extras[EXTRA_FIRST_PACKAGE]),
-            appContext,
-            extras[EXTRA_RUNTIME_STATE]
-        );
+        if (!EXTRA_MAGIC.equals(extras[EXTRA_INDEX_MAGIC])
+            || !Integer.valueOf(EXTRA_VERSION).equals(extras[EXTRA_INDEX_VERSION])) {
+            return null;
+        }
+        ApplicationInfo appInfo = extras[EXTRA_INDEX_APP_INFO] instanceof ApplicationInfo info ? info : null;
+        Context appContext = extras[EXTRA_INDEX_APP_CONTEXT] instanceof Context context ? context : null;
+        return new HotReloadExtras(appInfo, appContext, extras[EXTRA_INDEX_RUNTIME_STATE]);
     }
 
     private record HotReloadExtras(
         @Nullable ApplicationInfo applicationInfo,
-        boolean firstPackage,
         @Nullable Context appContext,
         @Nullable Object runtimeState
     ) {
     }
 
-    /** 把 onPackageLoaded 阶段的参数适配成 {@link PackageReadyParam}，复用统一的装载与热重载链路。 */
-    private static final class EarlyPackageReadyParam implements PackageReadyParam {
-        private final PackageLoadedParam delegate;
-
-        EarlyPackageReadyParam(@NonNull PackageLoadedParam delegate) {
-            this.delegate = delegate;
-        }
-
-        @NonNull
-        @Override
-        public ClassLoader getClassLoader() {
-            return delegate.getDefaultClassLoader();
-        }
-
-        @NonNull
-        @Override
-        public AppComponentFactory getAppComponentFactory() {
-            throw new UnsupportedOperationException(
-                "AppComponentFactory is not instantiated yet at onPackageLoaded stage");
-        }
-
-        @NonNull
-        @Override
-        public String getPackageName() {
-            return delegate.getPackageName();
-        }
-
-        @NonNull
-        @Override
-        public ApplicationInfo getApplicationInfo() {
-            return delegate.getApplicationInfo();
-        }
-
-        @Override
-        public boolean isFirstPackage() {
-            return delegate.isFirstPackage();
-        }
-
-        @NonNull
-        @Override
-        public ClassLoader getDefaultClassLoader() {
-            return delegate.getDefaultClassLoader();
-        }
+    protected void invokeInit(PackageTarget target) {
+        invokeInitInternal(target.getPackageName(), module -> module.onLoad(target));
     }
 
-    private static final class RestoredPackageReadyParam implements PackageReadyParam {
-        private final String packageName;
-        private final ClassLoader classLoader;
-        @Nullable
-        private final ApplicationInfo applicationInfo;
-        private final boolean isFirstPackage;
-
-        RestoredPackageReadyParam(@NonNull String packageName, @NonNull ClassLoader classLoader,
-                                  @Nullable ApplicationInfo applicationInfo, boolean isFirstPackage) {
-            this.packageName = packageName;
-            this.classLoader = classLoader;
-            this.applicationInfo = applicationInfo;
-            this.isFirstPackage = isFirstPackage;
-        }
-
-        @NonNull
-        @Override
-        public ClassLoader getClassLoader() {
-            return classLoader;
-        }
-
-        @NonNull
-        @Override
-        public AppComponentFactory getAppComponentFactory() {
-            throw new UnsupportedOperationException(
-                "AppComponentFactory is unavailable in hot reload context");
-        }
-
-        @NonNull
-        @Override
-        public String getPackageName() {
-            return packageName;
-        }
-
-        @NonNull
-        @Override
-        public ApplicationInfo getApplicationInfo() {
-            if (applicationInfo == null) {
-                throw new UnsupportedOperationException(
-                    "ApplicationInfo unavailable in hot reload context (system_server or missing snapshot)");
-            }
-            return applicationInfo;
-        }
-
-        @Override
-        public boolean isFirstPackage() {
-            return isFirstPackage;
-        }
-
-        @NonNull
-        @Override
-        public ClassLoader getDefaultClassLoader() {
-            return classLoader;
-        }
-    }
-
-    private static final class RestoredSystemServerParam implements SystemServerStartingParam {
-        private final ClassLoader classLoader;
-
-        RestoredSystemServerParam(@NonNull ClassLoader classLoader) {
-            this.classLoader = classLoader;
-        }
-
-        @NonNull
-        @Override
-        public ClassLoader getClassLoader() {
-            return classLoader;
-        }
-    }
-
-    protected void invokeInit(PackageReadyParam lpparam) {
-        invokeInitInternal(lpparam.getPackageName(), module -> module.onLoad(lpparam));
-    }
-
-    protected void invokeInit(SystemServerStartingParam lpparam) {
-        invokeInitInternal(BaseLoad.SYSTEM_SERVER, module -> module.onLoad(lpparam));
-    }
-
-    private void loadSystemEntryHooks(SystemServerStartingParam lpparam) {
+    private void loadSystemEntryHooks(PackageTarget target) {
         try {
-            new CrashMonitor(lpparam);
+            new CrashMonitor(target);
         } catch (Exception e) {
             XposedLog.e(TAG, "system", "Crash Hook load failed, " + e);
             BaseLoad.recordHookInitializationFailure("CrashMonitor", e);
@@ -474,11 +347,11 @@ public class XposedInitEntry extends XposedModule {
         }
 
         if (PrefsBridge.getBoolean("system_framework_core_patch_enable")) {
-            new CorePatch().onLoad(lpparam);
+            new CorePatch().onLoad(target);
             XposedLog.d(TAG, "system", "CorePatch loaded");
         }
         if (PrefsBridge.getBoolean("system_other_flag_secure")) {
-            new FlagSecure().onLoad(lpparam);
+            new FlagSecure().onLoad(target);
             XposedLog.d(TAG, "system", "FlagSecure loaded");
         }
     }

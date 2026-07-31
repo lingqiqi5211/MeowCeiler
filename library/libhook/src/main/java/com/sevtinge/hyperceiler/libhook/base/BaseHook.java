@@ -52,8 +52,6 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import io.github.libxposed.api.XposedInterface;
-import io.github.libxposed.api.XposedModuleInterface.PackageReadyParam;
-import io.github.libxposed.api.XposedModuleInterface.SystemServerStartingParam;
 import io.github.lingqiqi5211.ezhooktool.core.BestMatchUtils;
 import io.github.lingqiqi5211.ezhooktool.core.ClassUtils;
 import io.github.lingqiqi5211.ezhooktool.core.java.Constructors;
@@ -402,17 +400,19 @@ public abstract class BaseHook {
     }
 
     /**
-     * 获取包加载参数 (应用)
+     * 获取目标进程信息 (应用)
      */
-    public PackageReadyParam getLpparam() {
-        return BaseLoad.getLpparam();
+    public PackageTarget getLpparam() {
+        return BaseLoad.getTarget();
     }
 
     /**
-     * 获取包加载参数 (系统框架)
+     * 获取目标进程信息 (系统框架)
+     *
+     * <p>与 {@link #getLpparam()} 等价，保留独立命名以免改动现有 system_server 规则。</p>
      */
-    public SystemServerStartingParam getSystemParam() {
-        return BaseLoad.getSystemServerParam();
+    public PackageTarget getSystemParam() {
+        return BaseLoad.getTarget();
     }
 
     /**

@@ -19,6 +19,7 @@ import android.content.pm.Signature;
 
 import com.sevtinge.hyperceiler.common.log.XposedLog;
 import com.sevtinge.hyperceiler.common.utils.api.ProjectApi;
+import com.sevtinge.hyperceiler.libhook.base.PackageTarget;
 
 import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
@@ -30,14 +31,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
 
-import io.github.libxposed.api.XposedModuleInterface;
 import io.github.lingqiqi5211.ezhooktool.xposed.common.HookParam;
 import io.github.lingqiqi5211.ezhooktool.xposed.java.IMethodHook;
 
 public class AuthCreakPatch extends CorePatchHelper {
     private final String TAG = "AuthCreakPatch";
 
-    public void init(XposedModuleInterface.SystemServerStartingParam lpparam) {
+    public void init(PackageTarget lpparam) {
         // Android 14+
         try {
             findAndHookMethod("com.android.server.pm.ScanPackageUtils", lpparam.getClassLoader(),
