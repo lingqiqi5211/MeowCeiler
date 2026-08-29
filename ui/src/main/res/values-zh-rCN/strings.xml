@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_home">首页</string>
+    <string name="tab_settings">设置</string>
+    <string name="tab_about">关于</string>
+
+    <string name="module_enabled">启用模块</string>
+    <string name="module_debug">调试日志</string>
+    <string name="about_source">查看源代码</string>
+    <string name="about_licenses">开源许可</string>
+
+    <string name="settings_display">显示</string>
+    <string name="settings_module">模块</string>
+    <string name="settings_data">数据</string>
+    <string name="settings_hide_launcher_icon">隐藏桌面图标</string>
+    <string name="settings_hide_launcher_icon_summary">改从 Xposed 管理器进入模块</string>
+    <string name="settings_entry_position">显示位置</string>
+    <string name="settings_entry_position_summary">在系统设置里插一条 MeowCeiler 入口</string>
+    <string name="settings_entry_off">不显示</string>
+    <string name="settings_entry_device">「我的设备」之后</string>
+    <string name="settings_entry_launcher">「桌面与最近任务」之后</string>
+    <string name="settings_entry_more">「更多设置」之后</string>
+    <string name="settings_language">应用语言</string>
+    <string name="settings_language_system">跟随系统</string>
+    <string name="settings_language_zh">简体中文</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_scope">作用域</string>
+    <string name="settings_scope_summary">模块被允许注入哪些应用</string>
+    <string name="settings_scope_extra">在作用域里但模块不支持的</string>
+    <string name="settings_scope_supported">模块可注入的应用</string>
+    <string name="settings_scope_drives_home">同时决定首页是否显示它</string>
+    <string name="settings_scope_sync">作用域同步</string>
+    <string name="settings_scope_sync_summary">首页只显示你在 Xposed 作用域里勾选的应用</string>
+    <string name="settings_hot_reload">热重载</string>
+    <string name="settings_hot_reload_summary">把更新后的模块载入正在运行的进程</string>
+    <string name="settings_hot_reload_done">已重载 %1$d 个进程。</string>
+    <string name="settings_hot_reload_none">没有需要重载的进程，已注入的都是最新的。</string>
+    <string name="settings_framework_failed">Xposed 框架：%1$s</string>
+
+    <string name="safe_mode">安全模式</string>
+    <string name="safe_mode_summary">模块在某个应用里反复出错就停止注入它</string>
+    <string name="safe_mode_enabled">启用安全模式</string>
+    <string name="safe_mode_enabled_summary">同一应用里累计出错 3 次后停止注入，直到你手动重试或模块更新</string>
+    <string name="safe_mode_blocked">已停止注入</string>
+    <string name="safe_mode_blocked_empty">没有被停掉的应用，作用域内的都在正常注入。</string>
+    <string name="safe_mode_warned">出过错，仍在运行</string>
+    <string name="safe_mode_retry">重试</string>
+    <string name="safe_mode_retry_note">重试在该应用下次重启时生效。</string>
+
+    <string name="settings_backup">备份配置</string>
+    <string name="settings_backup_summary">把所有开关存成一个文件</string>
+    <string name="settings_backup_done">配置已保存。</string>
+    <string name="settings_restore">恢复配置</string>
+    <string name="settings_restore_summary">从文件读回所有开关</string>
+    <string name="settings_restore_done">已恢复 %1$d 项配置。</string>
+    <string name="settings_restore_failed">这个文件不是 MeowCeiler 的备份。</string>
+    <string name="settings_file_failed">文件读写失败。</string>
+    <string name="settings_reset">重置配置</string>
+    <string name="settings_reset_summary">所有开关恢复默认值</string>
+    <string name="settings_reset_confirm">所有开关都会恢复默认值，外观也包括在内。已开启的功能会被关掉。</string>
+
+    <string name="appearance_navigation">导航</string>
+    <string name="settings_floating_nav">悬浮导航栏</string>
+    <string name="settings_floating_nav_summary">底栏显示为悬浮胶囊</string>
+
+    <string name="appearance_title">外观</string>
+    <string name="appearance_theme_color">主题色</string>
+    <string name="appearance_theme_mode">主题模式</string>
+    <string name="appearance_mode_system">跟随系统</string>
+    <string name="appearance_mode_light">浅色</string>
+    <string name="appearance_mode_dark">深色</string>
+    <string name="appearance_colors">配色</string>
+    <string name="appearance_palette">配色风格</string>
+    <string name="appearance_interface">界面</string>
+    <string name="appearance_style">界面风格</string>
+    <string name="appearance_amoled">AMOLED 深色</string>
+    <string name="appearance_amoled_summary">深色主题下使用纯黑背景</string>
+    <string name="appearance_color_spec">色彩标准</string>
+    <string name="appearance_monet">Monet 取色</string>
+    <string name="appearance_monet_summary">从壁纸或自定义种子色生成配色</string>
+    <string name="appearance_predictive_back">预测式返回</string>
+    <string name="appearance_predictive_back_summary">侧滑返回时预览目标页面</string>
+    <string name="appearance_scale">界面缩放</string>
+    <string name="appearance_scale_summary">调整整个界面的大小</string>
+    <string name="appearance_custom_color">自定义颜色</string>
+    <string name="dialog_confirm">完成</string>
+    <string name="dialog_cancel">取消</string>
+
+    <string name="restart_host">重启</string>
+
+    <string name="feature_health">运行状况</string>
+    <string name="feature_health_ok">已生效</string>
+    <string name="feature_health_failed">出错 %1$d 次</string>
+    <string name="feature_health_unknown">无记录</string>
+    <string name="log_clear">清除</string>
+    <string name="hook_log">Hook 日志</string>
+    <string name="hook_log_summary">哪些功能装上了，出过什么问题</string>
+    <string name="log_refresh">刷新</string>
+    <string name="log_generation_toggle">切换代次</string>
+    <string name="log_empty">还没有记录</string>
+    <string name="log_problems">问题</string>
+    <string name="log_trace">流水</string>
+    <string name="log_trace_entry">日志</string>
+    <string name="log_generation_current">本次运行</string>
+    <string name="log_generation_previous">上次重启前</string>
+    <string name="log_kind_installed">已装载</string>
+    <string name="log_kind_init_failed">初始化失败</string>
+    <string name="log_kind_hook_failed">装载失败</string>
+    <string name="log_kind_callback_failed">回调出错</string>
+    <string name="log_kind_safe_mode">被安全模式停用</string>
+    <string name="log_kind_log">日志</string>
+    <string name="restart_failed">重启失败 —— 需要 root 权限</string>
+
+    <string name="about_device">设备</string>
+    <string name="about_hyperos">HyperOS</string>
+    <string name="about_android">Android</string>
+    <string name="about_model">机型</string>
+
+    <string name="scope_systemui">系统界面</string>
+    <string name="systemui_section_lockscreen">锁屏</string>
+    <string name="systemui_double_tap_to_sleep">双击息屏</string>
+    <string name="systemui_double_tap_to_sleep_summary">双击锁屏空白处熄灭屏幕</string>
+</resources>

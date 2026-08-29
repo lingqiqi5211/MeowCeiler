@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:localeConfig="@xml/locales_config"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MeowCeiler"
+        android:enableOnBackInvokedCallback="true"
+        tools:targetApi="36">
+
+        <!--
+          hook 日志的回传通道。必须 exported —— 投递方是宿主进程，它们持不了模块的签名级权限；
+          作为补偿 HookLogProvider 按调用方 uid 校验，只放行作用域里的宿主和模块自己。
+          directBootAware：SystemUI 在解锁前就起来了，不标的话那段时间 provider 拉不起来。
+        -->
+        <provider
+            android:name=".logs.HookLogProvider"
+            android:authorities="${applicationId}.logs"
+            android:exported="true"
+            android:directBootAware="true" />
+
+        <!-- 不带 LAUNCHER：桌面入口走下面的别名，这样禁用图标不会连设置界面一起禁掉。 -->
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.MeowCeiler" />
+
+        <!-- 「隐藏桌面图标」开关禁用/启用的就是这个别名，见 shared 的 LauncherAliasName。 -->
+        <activity-alias
+            android:name=".LauncherAlias"
+            android:exported="true"
+            android:enabled="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_round"
+            android:targetActivity=".SettingsActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+    </application>
+
+</manifest>

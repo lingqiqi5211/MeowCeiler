@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  喵露 —— 一杯插着弯头吸管的西米露。
+
+  两条路径：杯身（含挖空的西米）+ 吸管。
+
+  - 西米三颗，一大两小，是逆时针椭圆（sweep-flag = 0）：和顺时针的杯身绕行相反，
+    在 nonZero 下才被挖成洞，背景紫透上来。同向会填成实心，西米直接消失。
+    有真洞，单色主题图标那一层才能直接复用本 drawable 而不糊成一整块。
+  - 吸管是描边不是填充，等宽 + 圆头圆角接头。起点压在杯口以下 8 所以看不出接缝。
+    折角要够大才读得出是弯头吸管 —— 下段近竖直、上段朝外上扬约 20°，
+    弯得太轻会读成一根直吸管带个折痕。
+  - 全部图形落在以画布中心为圆心、半径 33 的 66dp 安全圆内（吸管顶端离圆心 31.8）。
+    自适应图标的图层是 108dp，但遮罩只保留中心 72dp。改动吸管长度或折角后，
+    务必按 viewBox="18 18 72 72" 复看 —— 直接把 108 缩进圆里预览会漏掉裁切。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FDFBF7"
+        android:pathData="M40.6,48 L67.4,48 A9,9 0 0 1 76.26,58.45 L74,72 A10,10 0 0 1 64,82 L44,82 A10,10 0 0 1 34,72 L31.74,58.45 A9,9 0 0 1 40.6,48 Z
+                          M39,71 a7,7 0 1 0 14,0 a7,7 0 1 0 -14,0 Z
+                          M56.7,66 a4.3,4.3 0 1 0 8.6,0 a4.3,4.3 0 1 0 -8.6,0 Z
+                          M59.3,77 a3.7,3.7 0 1 0 7.4,0 a3.7,3.7 0 1 0 -7.4,0 Z" />
+    <path
+        android:pathData="M59,56 L63,36 L73,32.5"
+        android:strokeColor="#FDFBF7"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="7" />
+</vector>

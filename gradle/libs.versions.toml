@@ -1,0 +1,37 @@
+[versions]
+# 与 MeowUI / EzHookTool / HyperCeiler 对齐。复合构建要求工具链一致：
+# MeowUI 用 Kotlin 2.4.10 编译，2.3.x 的编译器读不了它的 metadata。
+agp = "9.3.1"
+kotlin = "2.4.10"
+
+compileSdk = "37"
+minSdk = "36"
+targetSdk = "36"
+
+androidxAnnotation = "1.9.1"
+activityCompose = "1.13.0"
+
+dexkit = "2.2.0"
+ezhooktool = "1.1.3"
+libxposedApi = "102.0.0"
+# 复合构建会把这个坐标替换成 ../MeowUI 里的工程，版本号只作记录。
+meowui = "0.1.5-rc01"
+
+[libraries]
+androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidxAnnotation" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version = "1.7.8" }
+
+meowui-xposed = { module = "io.github.lingqiqi5211.meowui:meowui-xposed", version.ref = "meowui" }
+
+dexkit = { module = "org.luckypray:dexkit", version.ref = "dexkit" }
+ezhooktool-core = { module = "io.github.lingqiqi5211.ezhooktool:core", version.ref = "ezhooktool" }
+ezhooktool-xposed102 = { module = "io.github.lingqiqi5211.ezhooktool:hook-xposed-102", version.ref = "ezhooktool" }
+libxposed-api = { module = "io.github.libxposed:api", version.ref = "libxposedApi" }
+# 模块自己的进程用：热重载、作用域。和 api 不是一个东西，api 是宿主进程那侧的。
+libxposed-service = { module = "io.github.libxposed:service", version.ref = "libxposedApi" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

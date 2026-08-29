@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">MeowCeiler</string>
+
+    <string name="tab_home">Home</string>
+    <string name="tab_settings">Settings</string>
+    <string name="tab_about">About</string>
+
+    <string name="module_enabled">Enable module</string>
+    <string name="module_debug">Debug logging</string>
+    <string name="about_source">View source code</string>
+    <string name="about_licenses">Open source licenses</string>
+
+    <string name="settings_display">Display</string>
+    <string name="settings_module">Module</string>
+    <string name="settings_data">Data</string>
+    <string name="settings_hide_launcher_icon">Hide launcher icon</string>
+    <string name="settings_hide_launcher_icon_summary">Open the module from your Xposed manager instead</string>
+    <string name="settings_entry_position">Entry in system Settings</string>
+    <string name="settings_entry_position_summary">Add a MeowCeiler row to the Settings app</string>
+    <string name="settings_entry_off">Don\'t add</string>
+    <string name="settings_entry_device">After My device</string>
+    <string name="settings_entry_launcher">After Home screen</string>
+    <string name="settings_entry_more">After Additional settings</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_system">Follow system</string>
+    <string name="settings_language_zh">简体中文</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_scope">Scope</string>
+    <string name="settings_scope_summary">Which apps the module is allowed to hook</string>
+    <string name="settings_scope_extra">In scope but not supported</string>
+    <string name="settings_scope_supported">Apps this module can hook</string>
+    <string name="settings_scope_drives_home">Also controls whether it shows on the home page</string>
+    <string name="settings_scope_sync">Sync scope</string>
+    <string name="settings_scope_sync_summary">Show only the apps you granted in the Xposed scope on the home page</string>
+    <string name="settings_hot_reload">Hot reload</string>
+    <string name="settings_hot_reload_summary">Load the updated module into running processes</string>
+    <string name="settings_hot_reload_done">Reloaded %1$d process(es).</string>
+    <string name="settings_hot_reload_none">Nothing to reload — every injected process is already up to date.</string>
+    <string name="settings_framework_failed">Xposed framework: %1$s</string>
+
+    <string name="safe_mode">Safe mode</string>
+    <string name="safe_mode_summary">Stop hooking an app when the module keeps failing in it</string>
+    <string name="safe_mode_enabled">Enable safe mode</string>
+    <string name="safe_mode_enabled_summary">After 3 failures in one app, the module stops hooking it until you retry or the module is updated</string>
+    <string name="safe_mode_blocked">Stopped</string>
+    <string name="safe_mode_blocked_empty">Nothing stopped. Every app in scope is being hooked.</string>
+    <string name="safe_mode_warned">Had failures, still running</string>
+    <string name="safe_mode_retry">Retry</string>
+    <string name="safe_mode_retry_note">Retrying takes effect the next time that app restarts.</string>
+
+    <string name="settings_backup">Back up settings</string>
+    <string name="settings_backup_summary">Save every switch to a file</string>
+    <string name="settings_backup_done">Settings saved.</string>
+    <string name="settings_restore">Restore settings</string>
+    <string name="settings_restore_summary">Read switches back from a file</string>
+    <string name="settings_restore_done">Restored %1$d settings.</string>
+    <string name="settings_restore_failed">That file is not a MeowCeiler backup.</string>
+    <string name="settings_file_failed">Could not read or write that file.</string>
+    <string name="settings_reset">Reset settings</string>
+    <string name="settings_reset_summary">Put every switch back to its default</string>
+    <string name="settings_reset_confirm">Every switch goes back to its default, including appearance. Features you turned on will be turned off.</string>
+
+    <string name="appearance_navigation">Navigation</string>
+    <string name="settings_floating_nav">Floating navigation bar</string>
+    <string name="settings_floating_nav_summary">Show the bottom bar as a floating capsule</string>
+
+    <string name="appearance_title">Appearance</string>
+    <string name="appearance_theme_color">Theme color</string>
+    <string name="appearance_theme_mode">Theme mode</string>
+    <string name="appearance_mode_system">Follow system</string>
+    <string name="appearance_mode_light">Light</string>
+    <string name="appearance_mode_dark">Dark</string>
+    <string name="appearance_colors">Colors</string>
+    <string name="appearance_palette">Color style</string>
+    <string name="appearance_interface">Interface</string>
+    <string name="appearance_style">Interface style</string>
+    <string name="appearance_amoled">AMOLED dark</string>
+    <string name="appearance_amoled_summary">Pure black backgrounds in dark theme</string>
+    <string name="appearance_color_spec">Color standard</string>
+    <string name="appearance_monet">Monet colors</string>
+    <string name="appearance_monet_summary">Generate colors from the wallpaper or a custom seed</string>
+    <string name="appearance_predictive_back">Predictive back gesture</string>
+    <string name="appearance_predictive_back_summary">Preview the destination while swiping back</string>
+    <string name="appearance_scale">Interface scale</string>
+    <string name="appearance_scale_summary">Adjust the size of the entire interface</string>
+    <string name="appearance_custom_color">Custom color</string>
+    <string name="dialog_confirm">Done</string>
+    <string name="dialog_cancel">Cancel</string>
+
+    <string name="restart_host">Restart</string>
+
+    <string name="feature_health">Status</string>
+    <string name="feature_health_ok">Active</string>
+    <string name="feature_health_failed">%1$d error(s)</string>
+    <string name="feature_health_unknown">No records</string>
+    <string name="log_clear">Clear</string>
+    <string name="hook_log">Hook log</string>
+    <string name="hook_log_summary">Which features loaded, and what went wrong</string>
+    <string name="log_refresh">Refresh</string>
+    <string name="log_generation_toggle">Switch generation</string>
+    <string name="log_empty">Nothing recorded yet</string>
+    <string name="log_problems">Problems</string>
+    <string name="log_trace">Trace</string>
+    <string name="log_trace_entry">Log</string>
+    <string name="log_generation_current">This run</string>
+    <string name="log_generation_previous">Before last restart</string>
+    <string name="log_kind_installed">Installed</string>
+    <string name="log_kind_init_failed">Init failed</string>
+    <string name="log_kind_hook_failed">Hook failed</string>
+    <string name="log_kind_callback_failed">Callback failed</string>
+    <string name="log_kind_safe_mode">Stopped by safe mode</string>
+    <string name="log_kind_log">Log</string>
+    <string name="restart_failed">Restart failed — root permission required</string>
+
+    <string name="about_device">Device</string>
+    <string name="about_hyperos">HyperOS</string>
+    <string name="about_android">Android</string>
+    <string name="about_model">Model</string>
+
+    <string name="scope_systemui">System UI</string>
+    <string name="systemui_section_lockscreen">Lock screen</string>
+    <string name="systemui_double_tap_to_sleep">Double-tap to sleep</string>
+    <string name="systemui_double_tap_to_sleep_summary">Double-tap an empty area of the lock screen to turn off the screen</string>
+</resources>

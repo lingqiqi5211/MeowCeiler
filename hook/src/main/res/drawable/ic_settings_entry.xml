@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  注入到系统设置列表里的入口图标。
+
+  和启动器图标是两个资产：列表图标要自带底色（28dp 的小方块，MIUI 设置项就是这个尺寸），
+  而 ic_launcher 的前景层是白色透明底、专为叠在背景层上设计的，单独拿出来在浅色列表里
+  会看不见。尺寸对齐 HyperCeiler 的做法。
+
+  杯子与吸管的几何不重画：直接引用启动器前景层那套 108 视口的坐标，用 group 缩放平移到位
+  （scale 0.33，把 x 31.7..76.5 / y 29..82 这块收进 28dp 的中间）。改了启动器图标记得同步这里。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="28dp"
+    android:height="28dp"
+    android:viewportWidth="28"
+    android:viewportHeight="28">
+
+    <!-- MIUI 标准 squircle 外框 -->
+    <path
+        android:fillColor="#6B4FB8"
+        android:pathData="M0,12.8C0,8.32 0,6.079 0.872,4.368C1.639,2.863 2.863,1.639 4.368,0.872C6.079,0 8.32,0 12.8,0H15.2C19.68,0 21.921,0 23.632,0.872C25.137,1.639 26.361,2.863 27.128,4.368C28,6.079 28,8.32 28,12.8V15.2C28,19.68 28,21.921 27.128,23.632C26.361,25.137 25.137,26.361 23.632,27.128C21.921,28 19.68,28 15.2,28H12.8C8.32,28 6.079,28 4.368,27.128C2.863,26.361 1.639,25.137 0.872,23.632C0,21.921 0,19.68 0,15.2V12.8Z" />
+
+    <group
+        android:scaleX="0.33"
+        android:scaleY="0.33"
+        android:translateX="-3.87"
+        android:translateY="-4.33">
+        <path
+            android:fillColor="#FDFBF7"
+            android:pathData="M40.6,48 L67.4,48 A9,9 0 0 1 76.26,58.45 L74,72 A10,10 0 0 1 64,82 L44,82 A10,10 0 0 1 34,72 L31.74,58.45 A9,9 0 0 1 40.6,48 Z
+                              M39,71 a7,7 0 1 0 14,0 a7,7 0 1 0 -14,0 Z
+                              M56.7,66 a4.3,4.3 0 1 0 8.6,0 a4.3,4.3 0 1 0 -8.6,0 Z
+                              M59.3,77 a3.7,3.7 0 1 0 7.4,0 a3.7,3.7 0 1 0 -7.4,0 Z" />
+        <path
+            android:pathData="M59,56 L63,36 L73,32.5"
+            android:strokeColor="#FDFBF7"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:strokeWidth="7" />
+    </group>
+</vector>
