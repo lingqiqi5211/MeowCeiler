@@ -117,6 +117,7 @@ hook/
     ├── Settings.kt           持有 XposedModulePreferenceStore + 那个 scope(§4)
     ├── SafeMode.kt           功能级安全模式(§9)
     ├── HostApp.kt            宿主自己的 ApplicationInfo
+    ├── HostResources.kt      按名字访问宿主资源、找 View
     ├── DexKit.kt             DexKit 会话 + 结果落盘(§8)
     └── MLog.kt
 ```
