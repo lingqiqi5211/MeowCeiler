@@ -50,8 +50,6 @@ fun MeowCeilerApp(bridge: FrameworkBridge = NoFrameworkBridge) {
                     floatingNavigation = floatingNav,
                     home = {
                         HomePage(
-                            // 同步关着就不过滤；开着但还没读到作用域(null)也不过滤 —— 宁可多显示，
-                            // 也不能因为服务没答上来就把宿主列表清空。
                             scopeFilter = scopeState.packages?.takeIf { scopeSync },
                             onOpenHost = push,
                         )
@@ -72,8 +70,6 @@ fun MeowCeilerApp(bridge: FrameworkBridge = NoFrameworkBridge) {
                     onAppearanceChange = appearance.onChange,
                     onBackClick = pop,
                     labels = appearanceLabels(),
-                    // 悬浮底栏是外观的事，不是模块设置的事；MeowUI 不认识这个键，
-                    // 所以挂在它的 extraContent 上，跟在它自己的分组后面。
                     extraContent = {
                         SettingsSection(
                             titleRes = R.string.appearance_navigation,

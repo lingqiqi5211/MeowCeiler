@@ -35,12 +35,7 @@ object Settings {
 
     fun <T : Any> observe(key: PreferenceKey<T>): Flow<T> = requireStore().observe(key)
 
-    /**
-     * remote 这一趟是不是真的通了。
-     *
-     * [read] 在不通时会安静地回落到 key 的默认值，安全模式必须能区分「读到了空」和「没读到」——
-     * 解锁前偏好在 CE 区读不出来，把那种情况当成「没有被停掉的宿主」会让门闸白设。
-     */
+    /** remote 是否真的通了。[read] 不通时回落默认值，安全模式必须能区分「读到空」和「没读到」。 */
     fun isConnected(): Boolean =
         store?.connectionState?.value == PreferenceConnectionState.Connected
 

@@ -51,6 +51,10 @@ private val Dependencies = listOf(
     Dependency("libxposed", "Apache-2.0"),
 )
 
+/**
+ * 应用自己的启动器图标。读自身资源而不是复制一份矢量；不用 `getApplicationIcon()`，HyperOS 会先整形。
+ * 边界直接给目标尺寸：AdaptiveIconDrawable 自己负责内缩和遮罩，再裁一次会切掉边。
+ */
 @Composable
 fun AboutPage() {
     val context = LocalContext.current
@@ -124,17 +128,6 @@ private fun AboutHero(versionName: String) {
     }
 }
 
-/**
- * 应用自己的启动器图标。
- *
- * 读自身资源而不是在 :ui 里复制一份矢量 —— 图标已经改过好几版，复制出来的那份迟早对不上。
- * 也不用 `getApplicationIcon()`：HyperOS 会先拿系统的图标整形过一遍，拿回来的已经不是
- * 原始那张自适应图标了。
- *
- * 边界直接给目标尺寸就行：[android.graphics.drawable.AdaptiveIconDrawable] 自己负责
- * 108dp 图层到 72dp 可见区的内缩，并套上设备的图标遮罩 —— 所以这里既不裁中心也不裁圆角，
- * 再裁一次等于缩放叠加两遍，图形会被切掉边。
- */
 @Composable
 private fun rememberLauncherIcon(size: Dp): ImageBitmap? {
     val context = LocalContext.current

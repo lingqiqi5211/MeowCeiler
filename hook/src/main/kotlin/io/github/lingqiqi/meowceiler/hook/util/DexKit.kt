@@ -1,5 +1,3 @@
-// DexKit 2.2.0 里带 key 的缓存查询标了 @DexKitExperimentalApi。这里显式 opt-in：缓存正是引它的
-// 理由，不用就得自己再写一套。升级 DexKit 时先看这个 API 有没有变。
 @file:OptIn(DexKitExperimentalApi::class)
 
 package io.github.lingqiqi.meowceiler.hook.util
@@ -15,29 +13,10 @@ import java.lang.reflect.Field
 import java.lang.reflect.Method
 
 /**
- * DexKit 会话。
- *
- * 原生桥不便宜（要把宿主整个 dex 读进内存），所以按会话开：一个 scope 里所有需要 DexKit 的功能
- * 包在同一个 [session] 里装，块结束就释放。查询结果按 key 落盘，第二次启动直接命中缓存、
- * 根本不会创建原生桥。
- *
- * 用法（在 scope 的 `onInit` 里）：
- * ```
- * object SystemUi : StaticHooker() {
- *     override fun onInit() {
- *         attach(DoubleTapToSleep)          // 不用 DexKit 的照旧
- *         DexKit.session {                  // 桥只开一次，块结束即释放
- *             attach(SomeDexKitHooker)
- *         }
- *     }
- * }
- * ```
- *
- * key 由调用方负责唯一，约定用 `功能id.用途`。**改了查询条件就要换 key**（或改宿主版本），
- * 否则会命中旧结果。
+ * DexKit 会话。原生桥要把宿主 dex 读进内存，所以一个 scope 里的 DexKit 查询都包在同一个 [session] 里，块结束释放。
+ * 结果按 key 落盘，第二次启动不再开桥。key 约定 `功能id.用途`，改了查询条件就换 key。
  */
 object DexKit {
-
     /** 宿主 cache 目录下的子目录名。宿主 apk 路径与目录都来自 [HostApp]。 */
     private const val CacheDir = "meowceiler"
     private const val CacheFile = "dexkit.json"
@@ -100,7 +79,6 @@ object DexKit {
         return try {
             block(current)
         } catch (error: UnsatisfiedLinkError) {
-            // 只有缓存未命中、需要真的开桥时才会走到这里。
             throw IllegalStateException(
                 "DexKit native bridge unavailable (libdexkit is already owned by an older " +
                     "module generation). Key '$key' is not cached; restart the host process.",
@@ -119,7 +97,6 @@ object DexKit {
             if (cache == null) {
                 val current = DexKitCache(cacheFileOf(appInfo), stampOf(appInfo))
                 runCatching { DexKitCacheBridge.init(current) }
-                    // 同一 generation 里已经 init 过；DexKit 只允许一次，复用即可。
                     .onFailure { if (it !is IllegalStateException) throw it }
                 cache = current
                 nativeReady = runCatching { System.loadLibrary("dexkit") }

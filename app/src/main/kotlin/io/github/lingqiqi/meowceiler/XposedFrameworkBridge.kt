@@ -11,16 +11,10 @@ import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
 
 /**
- * [FrameworkBridge] 的真身，跑在模块自己的进程里。
- *
- * 服务从 [MeowXposedService] 取，**不要**自己去 XposedServiceHelper.registerListener ——
- * 那个监听位只有一个且是覆盖式的，自己注册会把 MeowUI 的顶掉，远程偏好从此连不上，
- * 表现是设置页里所有绑定偏好的行整片变灰。这个坑踩过一次。
- *
- * 服务是异步绑上来的，没绑好时所有操作直接失败而不是排队等 —— 点了没反应比报错更难查。
+ * [FrameworkBridge] 的实现。服务从 [MeowXposedService] 取：自己 registerListener 会顶掉 MeowUI 的监听，远程偏好会断。
+ * 服务没绑好时直接失败，不排队。
  */
 object XposedFrameworkBridge : FrameworkBridge {
-
     /** 重载失败会拖垮整个系统的进程，一律不碰。 */
     private val ProtectedProcesses = setOf("system_server", "android")
 
@@ -31,16 +25,7 @@ object XposedFrameworkBridge : FrameworkBridge {
         require().runningTargets.map { it.processName }
     }
 
-    /**
-     * 只重载**确实过期**的进程。
-     *
-     * 曾经写成无差别重载所有已注入进程，点一下把设备搞成了软重启。两条教训：
-     * 已经是最新的进程重载它毫无意义，只是白白冒一次风险；系统进程被重载失败会直接拖垮
-     * system_server。所以先按状态筛，再排除系统进程。
-     *
-     * 正常情况下这里通常无事可做 —— module.prop 里 autoHotReload=true，模块更新后框架
-     * 自己就重载了。这个入口是给自动重载没赶上的场合兜底的。
-     */
+    /** 只重载 STALE 的进程并排除系统进程：无差别重载曾把设备搞成软重启。autoHotReload 开着时这里通常无事可做。 */
     override suspend fun hotReload(): Result<Int> = call {
         val stale = require().runningTargets.filter {
             it.state == HookedTarget.State.STALE && it.processName !in ProtectedProcesses

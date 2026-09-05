@@ -9,13 +9,7 @@ import androidx.compose.ui.res.stringResource
 import io.github.lingqiqi.meowceiler.ui.R
 import io.github.lingqiqi5211.meowui.core.preference.PreferenceKey
 
-/**
- * 带标题的设置分组。
- *
- * 容器、标题样式、分段圆角与条目间距都来自当前 MeowUI 风格。行必须经由下面的 scope 扩展
- * 声明（或 [MeowPreferenceSectionScope.item] 放真正自定义的内容）——直接在 content 里发
- * Composable 不会进分组。
- */
+/** 带标题的设置分组。行必须经由 scope 扩展或 [MeowPreferenceSectionScope.item] 声明，直接发 Composable 不会进分组。 */
 @Composable
 fun SettingsSection(
     titleRes: Int,
@@ -70,13 +64,7 @@ fun MeowPreferenceSectionScope.SettingsInfoRow(
     MeowActionRow(titleRes, testTag, summaryRes = null, value = value, navigation = false, onClick = {})
 }
 
-/**
- * 功能的附属参数：整数滑块。
- *
- * [visible] 为 false 时整行收起来 —— 用主开关的当前值传进来，参数就跟着功能一起折叠。
- * 必须走 `item(visible = ...)` 而不是「干脆不声明」：分区靠「条目声明过」才知道自己重收了一轮，
- * 直接省略会让它停在旧内容上。
- */
+/** 功能的整数滑块。[visible] 为 false 时走 `item(visible = ...)` 收起，直接不声明会让分区停在旧内容上。 */
 @Suppress("FunctionName")
 fun MeowPreferenceSectionScope.FeatureIntSliderRow(
     key: PreferenceKey<Int>,

@@ -129,9 +129,9 @@ hook/
 这是整套设计的中心,直接借 XiaomiHelper 的 `BaseHooker`。它比「一个功能清单挨个
 `install()`」多买到三样东西:
 
-- **免重启开关**。`DynamicHooker` 能摘 hook,配合 §4 的 `observe` 实现开关一改立即生效。
+- **免重启开关**。`DynamicHooker` 订阅 §4 的 `observe`,回调开头读 `enabled` 决定放行,开关一改立即生效。
 - **组开关**。父 hooker 关掉,整棵子树自动失效,不用每个子功能重复判断。
-- **受管 handle**。装出去的 hook 自动登记,unhook / 热重载清理不用手写。
+- **异常隔离交给工具**。EzHookTool 的 safeMode 挡住回调异常并回落原调用,`EzLogBridge` 把它记进日志并计入安全模式(§9)。
 
 **功能声明走构造参数,不用功能自己去读。** 这是相对 XiaomiHelper 的一处简化:它每个功能都要写一行
 `updateSelfState(Preferences.X.Y.get())`,589 遍相同的样板。这里把 `:shared` 里那个
@@ -146,8 +146,9 @@ sealed class BaseHooker(
     /** 日志标识。用与语言无关的 id，不用显示名 —— 宿主进程里没有模块资源（§7）。 */
     val id: String get() = feature?.id ?: this::class.java.simpleName
 
-    private val handles = CopyOnWriteArraySet<HookHandle>()
     private val children = CopyOnWriteArraySet<BaseHooker>()
+
+    private var installed = false
 
     private var selfEnabled = true
     private var parentEnabled = false
@@ -171,7 +172,7 @@ sealed class BaseHooker(
 
     private fun applySwitch() = when {
         feature == null -> updateSelfState(extraCondition)
-        // Dynamic 订阅 Flow,开关一变就 hook / unhook;Static 同步读一次,不碰协程。
+        // Dynamic 订阅 Flow,开关一变立刻改变回调行为;Static 同步读一次,不碰协程。
         this is DynamicHooker -> Settings.scope.launch {
             Settings.observe(feature.key).collect { updateSelfState(it && extraCondition) }
         }
@@ -186,15 +187,13 @@ sealed class BaseHooker(
     }
 
     private fun applyStateChange(old: Boolean) {
+        // Dynamic 关着也装,否则打开还得等重启
+        val shouldInstall = if (this is DynamicHooker) parentEnabled else effectiveEnabled
+        if (!installed && shouldInstall) {
+            runCatching { onHook() }.onSuccess { installed = true }
+        }
         val new = effectiveEnabled
         if (old == new) return
-        if (new) {
-            if (handles.isEmpty()) onHook()
-        } else when (this) {
-            // 静态 hooker 装了就不摘,关掉需要重启宿主
-            is StaticHooker -> MLog.d("$id: static hooker, unhook skipped")
-            is DynamicHooker -> { handles.forEach { it.unhook() }; handles.clear() }
-        }
         children.forEach { it.updateParentState(new) }
     }
 
@@ -206,15 +205,14 @@ sealed class BaseHooker(
     }
 
     /** 走这个装 hook,handle 才会被登记。 */
-    protected fun Method.hookManaged(block: HookFactory.() -> Unit) {
-        handles += createHook { block() }
-    }
+    /** 回调里自己读它。hook 装了就不摘,开关只是这一位。 */
+    protected val enabled get() = effectiveEnabled
 }
 
-/** 装了不摘。绝大多数功能用这个 —— 关掉后重启宿主生效。 */
+/** 开关只在启动时读一次。绝大多数功能用这个 —— 关掉后重启宿主生效。 */
 abstract class StaticHooker(feature: Feature? = null) : BaseHooker(feature)
 
-/** 可运行时摘除。用于确实需要免重启切换的功能。 */
+/** 订阅开关,hook 照装,回调按开关放行。用于确实需要免重启切换的功能。 */
 abstract class DynamicHooker(feature: Feature? = null) : BaseHooker(feature)
 ```
 
@@ -246,7 +244,7 @@ object LockscreenDoubleTapToSleep : StaticHooker(SystemUi.DoubleTapToSleep) {
         // 拦 dispatchTouchEvent,250ms 内的第二次原位点击直接息屏
         "com.android.systemui.shade.NotificationsQuickSettingsContainer".toClass()
             .findMethod { name("dispatchTouchEvent") }
-            .hookManaged { … }
+            .createHook { before { … } }
     }
 }
 ```
@@ -299,8 +297,10 @@ object SystemUi : StaticHooker() {          // scope 自身不带开关,由 Hook
 ### `StaticHooker` 还是 `DynamicHooker`
 
 默认 `StaticHooker`。只有当「改完立刻看到效果」对这个功能确实重要时才用 `DynamicHooker` ——
-它要求 `onHook()` 里装的东西都能干净摘除(纯方法 hook 可以;注册了监听器、替换了 View、
-改了静态字段的就不行,摘了也回不去)。判断标准就一句:**unhook 之后宿主能回到原状吗?**
+它的回调开头要自己写 `if (!enabled) return@before`(注册了监听器、替换了 View、改了静态字段的
+不适合,那些在回调之外就已经生效)。判断标准就一句:**不执行回调是否等于没改?**
+
+不摘 hook 是照 EzHookTool 文档来的(`doc/overview.md`「多 hook 与功能开关」)。
 
 ---
 
@@ -744,9 +744,9 @@ XiaomiHelper 同样如此。这个比例是对的,照抄。
 
 1. 未知宿主静默退出(§6),作用域外的进程一个 rule 类都不加载。
 2. 安全模式:同一宿主连续出错到阈值就整个停掉(§9)。
-3. 开关由框架在 `performInit()` 里统一读,`onHook()` 只在启用时执行 —— 关掉的功能连 hook 都不装。
+3. 开关由框架在 `performInit()` 里统一读。`StaticHooker` 关着就不装 hook;`DynamicHooker` 装了但回调不执行。
 4. `attach()` 内层 `runCatching`,单个功能 init 失败不影响兄弟功能与宿主。
-5. hook handle 受管(§3),unhook 与热重载清理不依赖各功能自觉。
+5. 回调异常由 EzHookTool safeMode 挡住并回落原调用,`EzLogBridge` 记日志并计入安全模式。
 6. EzHookTool 的 Safe Mode（`EzXposed.safeMode`）**默认就是 true**，回调抛异常时回落原始逻辑，不用额外开。
 
 ### 功能代码的唯一硬规则

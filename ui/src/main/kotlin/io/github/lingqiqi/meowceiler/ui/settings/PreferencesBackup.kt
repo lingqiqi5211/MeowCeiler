@@ -14,7 +14,6 @@ import org.json.JSONObject
  * 反过来，文件里缺的键保持当前值不动 —— 导入是合并，不是整表替换。
  */
 object PreferencesBackup {
-
     const val MimeType = "application/json"
     const val FileName = "meowceiler-settings.json"
 
@@ -44,18 +43,17 @@ object PreferencesBackup {
         return applied
     }
 
+    /** 类型对不上就跳过这一条，返回 false —— 半个错值比缺一项更难查。 */
     @Suppress("UNCHECKED_CAST")
     private fun PreferenceStore.readAsJson(key: PreferenceKey<*>): Any = when (key.type) {
         PreferenceType.Boolean -> read(key as PreferenceKey<Boolean>)
         PreferenceType.Int -> read(key as PreferenceKey<Int>)
         PreferenceType.Long -> read(key as PreferenceKey<Long>)
-        // JSON 没有 float，org.json 只认 double，取回来时再收窄。
         PreferenceType.Float -> read(key as PreferenceKey<Float>).toDouble()
         PreferenceType.String -> read(key as PreferenceKey<String>)
         PreferenceType.StringSet -> JSONArray(read(key as PreferenceKey<Set<String>>).toList())
     }
 
-    /** 类型对不上就跳过这一条，返回 false —— 半个错值比缺一项更难查。 */
     @Suppress("UNCHECKED_CAST")
     private suspend fun PreferenceStore.writeFromJson(key: PreferenceKey<*>, raw: Any): Boolean {
         when (key.type) {

@@ -44,8 +44,6 @@ fun HostPage(
                 contentDescription = stringResource(R.string.restart_host),
                 modifier = Modifier.testTag("action.restart"),
                 onClick = {
-                    // 不先 show 提示：MeowSnackbarState.show() 会挂起到它消失为止，
-                    // 先提示会把重启本身挡在后面。重启成功屏幕自己会闪，无需额外反馈。
                     scope.launch {
                         val ok = withContext(Dispatchers.IO) { restartPackage(hostPackage) }
                         if (!ok) snackbar.show(failed)

@@ -24,13 +24,8 @@ import io.github.lingqiqi5211.meowui.preference.rememberMeowPreferenceValue
 import kotlinx.coroutines.launch
 
 /**
- * 作用域。
- *
- * 列的是**模块支持的宿主**，而不是一整份已安装应用 —— 模块只 hook 自己有功能的那几个，
- * 给别的应用勾上作用域没有任何作用，只会白白扩大注入面（顺带也就不需要 QUERY_ALL_PACKAGES）。
- * 另外单列一段「在作用域里但模块用不到的」，方便清理历史残留。
- *
- * 开了「作用域同步」时，这里的勾选同时决定首页会显示哪些宿主。
+ * 作用域。列的是模块支持的宿主而不是全部已安装应用；另列一段「在作用域里但模块用不到的」方便清理。
+ * 开了「作用域同步」时，这里的勾选决定首页显示哪些宿主。
  */
 @Composable
 fun ScopePage(
@@ -52,7 +47,6 @@ fun ScopePage(
     fun toggle(packageName: String, enabled: Boolean) = scope.launch {
         bridge.setInScope(packageName, enabled)
             .onFailure { error = frameworkFailed.format(it.message.orEmpty()) }
-        // 成功与否都重新读一遍：申请授权是用户在管理器里点的，本地猜不准最终状态。
         scopeState.reload()
     }
 

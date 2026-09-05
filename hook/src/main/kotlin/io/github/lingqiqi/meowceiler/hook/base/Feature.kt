@@ -1,11 +1,6 @@
 package io.github.lingqiqi.meowceiler.hook.base
 
-/**
- * 功能元信息，标在每个 hooker 头上。
- *
- * SOURCE 保留：只给读代码的人和工具看，不进 dex，宿主进程零成本。
- * 这些字段不会出现在设置界面里 —— 界面上的标题与说明走 `:ui` 的字符串资源。
- */
+/** 功能元信息。SOURCE 保留，只给读代码的人看；界面文案走 `:ui` 的字符串资源。 */
 @Retention(AnnotationRetention.SOURCE)
 @Target(AnnotationTarget.CLASS)
 annotation class Feature(

@@ -52,7 +52,6 @@ fun rememberAppearanceController(): AppearanceController {
     )
 
     return AppearanceController(current) { next ->
-        // 只写真正变了的项，避免一次改动触发十次远程写入。
         scope.launch {
             if (next.style != current.style) store.write(Keys.Style, next.style.key)
             if (next.themeMode != current.themeMode) store.write(Keys.ThemeMode, next.themeMode.key)

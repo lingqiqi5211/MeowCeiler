@@ -8,7 +8,6 @@ import io.github.lingqiqi5211.meowui.core.preference.PreferenceWriteResult
 import io.github.lingqiqi5211.meowui.xposed.setMeowXposedContent
 
 class SettingsActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

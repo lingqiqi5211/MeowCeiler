@@ -21,6 +21,7 @@ import io.github.lingqiqi5211.ezhooktool.core.findMethod
 import io.github.lingqiqi5211.ezhooktool.core.toClass
 import io.github.lingqiqi5211.ezhooktool.core.toClassOrNull
 import io.github.lingqiqi5211.ezhooktool.xposed.EzXposed
+import io.github.lingqiqi5211.ezhooktool.xposed.dsl.createHook
 import java.lang.reflect.Field
 
 @Feature(
@@ -30,7 +31,6 @@ import java.lang.reflect.Field
     updated = "2026-08-18",
 )
 object ModuleEntry : StaticHooker() {
-
     /** 自己插的那条的 id。updateHeaderList 会被反复调用，靠它判重。 */
     private const val HeaderId = 20260817L
 
@@ -46,11 +46,8 @@ object ModuleEntry : StaticHooker() {
     private const val IconSizeDimen = "header_icon_size"
 
     /**
-     * 各位置的锚点，插在命中那条之后。
-     *
-     * 用系统设置自己的 id 资源名找，不按下标写死 —— 条目顺序各版本会变。名字是在设备上把整份
-     * header 列表 dump 出来核对过的：「更多设置」是 other_advanced_settings。别再把
-     * app_timer 当锚点，那条是「应用使用时间」，先前就是插到那儿去了。
+     * 各位置的锚点，按系统设置的 id 资源名找，条目顺序各版本会变。
+     * 「更多设置」是 other_advanced_settings；app_timer 是「应用使用时间」，别当锚点。
      */
     private val Anchors = mapOf(
         SettingsEntryPosition.Device to "my_device",
@@ -79,31 +76,30 @@ object ModuleEntry : StaticHooker() {
                 name("updateHeaderList")
                 paramCount(1)
             }
-            // hookAfter 而不是裸的 hookManaged：异常不会漏进系统设置的调用栈（会让它崩），
-            // 而且会记到安全模式上。所以这里不再自己 runCatching —— 自己吞掉的话就统计不到了。
-            .hookAfter { param ->
-                val activity = param.thisObjectOrNull as? Activity ?: return@hookAfter
-                @Suppress("UNCHECKED_CAST")
-                val headers = param.args.getOrNull(0) as? MutableList<Any> ?: return@hookAfter
-                if (headers.any { idField.getLong(it) == HeaderId }) return@hookAfter
+            .createHook {
+                after { param ->
+                    val activity = param.thisObjectOrNull as? Activity ?: return@after
+                    @Suppress("UNCHECKED_CAST")
+                    val headers = param.args.getOrNull(0) as? MutableList<Any> ?: return@after
+                    if (headers.any { idField.getLong(it) == HeaderId }) return@after
 
-                val header = headerClass.getDeclaredConstructor()
-                    .apply { isAccessible = true }
-                    .newInstance()
-                idField.setLong(header, HeaderId)
-                titleField.set(header, ModuleName)
-                intentField.set(
-                    header,
-                    Intent().setClassName(ModulePackage, ModuleSettingsActivity),
-                )
+                    val header = headerClass.getDeclaredConstructor()
+                        .apply { isAccessible = true }
+                        .newInstance()
+                    idField.setLong(header, HeaderId)
+                    titleField.set(header, ModuleName)
+                    intentField.set(
+                        header,
+                        Intent().setClassName(ModulePackage, ModuleSettingsActivity),
+                    )
 
-                val at = insertPosition(activity, headers, idField)
-                // 跟着邻居走分组，否则这一条会被画到分组的圆角外面。
-                headers.getOrNull((at - 1).coerceAtLeast(0))?.let { neighbour ->
-                    groupIdField.setInt(header, groupIdField.getInt(neighbour))
+                    val at = insertPosition(activity, headers, idField)
+                    headers.getOrNull((at - 1).coerceAtLeast(0))?.let { neighbour ->
+                        groupIdField.setInt(header, groupIdField.getInt(neighbour))
+                    }
+                    headers.add(at, header)
+                    MLog.d("$id: inserted at $at")
                 }
-                headers.add(at, header)
-                MLog.d("$id: inserted at $at")
             }
 
         hookIcon(idField)
@@ -126,21 +122,8 @@ object ModuleEntry : StaticHooker() {
     }
 
     /**
-     * 给自己那条补图标。
-     *
-     * 绑定点是反编译 `Settings.apk` 找到的 `HeaderAdapter.setIcon(HeaderViewHolder, Header)`：
-     * ```
-     * int i = header.iconRes;
-     * if (i != 0) { icon.setVisibility(VISIBLE); icon.setImageResource(header.iconRes); }
-     * else        { icon.setVisibility(INVISIBLE); }
-     * ```
-     * 所以挂 after：宿主看我们 iconRes 是 0 会把图标位设成 INVISIBLE，我们在它之后把 Drawable
-     * 和可见性都补回去。
-     *
-     * **不要**去填 iconRes。它由**宿主的** Resources 解析，而模块 apk 的包 id 同样是 0x7f、
-     * 和 com.android.settings 的资源在一个 id 空间：填模块的 id 会命中设置自己的某个资源，
-     * 图标渲染成巨大一张图；再用 Resources.addLoaders 把模块资源表并进宿主想让 id 生效，
-     * 同 id 空间的冲突会让设置别处的资源查找也出错 —— 这两条都真的把设置搞崩过。
+     * 给自己那条补图标。挂 after：宿主看 iconRes 为 0 会把图标位设成 INVISIBLE，之后再补 Drawable 和可见性。
+     * 不填 iconRes：它由宿主 Resources 解析，模块 id 在宿主里对不上，填了会命中别的资源。真崩过。
      */
     private fun hookIcon(idField: Field) {
         val adapterClass = AdapterClassName.toClassOrNull() ?: run {
@@ -152,18 +135,18 @@ object ModuleEntry : StaticHooker() {
                 name("setIcon")
                 paramCount(2)
             }
-            // setIcon 每次绑定行都会走。异常由 hookAfter 统一挡住并计入安全模式，
-            // 这里不再自己 runCatching —— 自己吞掉就统计不到了。
-            .hookAfter { param ->
-                val header = param.args.getOrNull(1) ?: return@hookAfter
-                if (idField.getLong(header) != HeaderId) return@hookAfter
+            .createHook {
+                after { param ->
+                    val header = param.args.getOrNull(1) ?: return@after
+                    if (idField.getLong(header) != HeaderId) return@after
 
-                val holder = param.args.getOrNull(0) ?: return@hookAfter
-                val iconView = holder.javaClass.getField("icon").get(holder) as? ImageView
-                    ?: return@hookAfter
+                    val holder = param.args.getOrNull(0) ?: return@after
+                    val iconView = holder.javaClass.getField("icon").get(holder) as? ImageView
+                        ?: return@after
 
-                iconView.setImageBitmap(iconBitmap(iconView) ?: return@hookAfter)
-                iconView.visibility = View.VISIBLE
+                    iconView.setImageBitmap(iconBitmap(iconView) ?: return@after)
+                    iconView.visibility = View.VISIBLE
+                }
             }
     }
 
@@ -177,12 +160,7 @@ object ModuleEntry : StaticHooker() {
 
     private var cachedBitmap: Bitmap? = null
 
-    /**
-     * 按宿主的 header_icon_size 出图并缓存。
-     *
-     * 宿主对 BitmapDrawable 会自己缩放到这个尺寸，对矢量则不会 —— 直接给矢量的话它按自身
-     * 固有尺寸走，和邻居不齐。所以这里自己渲成同尺寸的位图。
-     */
+    /** 按宿主的 header_icon_size 渲成位图。宿主只缩放 BitmapDrawable，矢量按固有尺寸走，会和邻居不齐。 */
     private fun iconBitmap(iconView: ImageView): Bitmap? {
         cachedBitmap?.let { return it }
         val drawable = icon ?: return null

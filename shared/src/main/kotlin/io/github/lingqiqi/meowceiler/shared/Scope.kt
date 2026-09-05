@@ -1,6 +1,5 @@
 package io.github.lingqiqi.meowceiler.shared
 
-
 /** 加常量后要同步 `app/src/main/resources/META-INF/xposed/scope.list`。 */
 object Scope {
     const val SystemUi = "com.android.systemui"

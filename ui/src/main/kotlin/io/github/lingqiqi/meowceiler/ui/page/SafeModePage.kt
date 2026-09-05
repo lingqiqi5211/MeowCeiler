@@ -20,15 +20,8 @@ import io.github.lingqiqi5211.meowui.preference.rememberMeowPreferenceValue
 import kotlinx.coroutines.launch
 
 /**
- * 安全模式。
- *
- * 这一页只读写模块自己的偏好（[Preferences.SafeMode]），它是真相来源，也进了 Preferences.all
- * 所以备份/恢复/重置都覆盖得到。
- *
- * 另有一份「解锁前门闸」镜像在 persist. 系统属性里（见 shared 的 SafeModeGate）：偏好在 CE 区，
- * 解锁前读不出来，而 SystemUI 那时已经起来了。属性只有 hook 侧（宿主是 system UID）写得动，
- * 模块应用自己是普通 UID 写不了 —— 所以这里点「重试」只改偏好，门闸会在该宿主下次装载 hook 时
- * 被反向对齐抹掉。
+ * 安全模式。只读写模块自己的偏好（[Preferences.SafeMode]），它是真相来源。解锁前门闸是 persist. 属性，
+ * 只有 hook 侧写得动，所以「重试」只改偏好，门闸在宿主下次装载时被反向对齐。
  */
 @Composable
 fun SafeModePage(onBack: () -> Unit) {
@@ -72,8 +65,6 @@ fun SafeModePage(onBack: () -> Unit) {
                 )
             }
             if (blocked.isNotEmpty()) {
-                // 解锁前的门闸是系统属性，只有 hook 侧（宿主是 system UID）写得动，
-                // 所以这里改完偏好还得等宿主重启那一刻才真正兑现。
                 MeowActionPreference(
                     title = stringResource(R.string.safe_mode_retry_note),
                     enabled = false,
@@ -91,7 +82,6 @@ fun SafeModePage(onBack: () -> Unit) {
             }
         }
 
-        // 还没到阈值的也列出来：出过错但仍在跑，比彻底不告诉用户好。
         val warned = records.filterNot { it.blocked }
         if (warned.isNotEmpty()) {
             SettingsSection(

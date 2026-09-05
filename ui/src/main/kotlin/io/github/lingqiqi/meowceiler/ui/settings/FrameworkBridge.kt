@@ -8,7 +8,6 @@ package io.github.lingqiqi.meowceiler.ui.settings
  * 所有操作都返回 [Result]：框架服务随时可能没连上或者中途死掉，这里不能是「安静地什么都没发生」。
  */
 interface FrameworkBridge {
-
     /** 当前被模块注入的进程名，用于热重载前告诉用户会重载哪些。 */
     suspend fun hookedProcesses(): Result<List<String>>
 

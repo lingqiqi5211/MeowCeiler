@@ -16,8 +16,6 @@ android {
         versionName = "0.1.0"
 
         ndk {
-            // 只发 arm64。HyperOS 4 的设备没有 32 位的，x86 只有模拟器用得上；
-            // 不筛的话 dexkit 的 .so 会白带四份、多出 1MB 多。
             abiFilters += "arm64-v8a"
         }
     }
@@ -36,7 +34,10 @@ android {
         compose = true
     }
 
-    // 没有这段，META-INF/xposed/* 会在打包时被丢掉，框架就认不出这是个模块。
+    androidResources {
+        additionalParameters += listOf("--allow-reserved-package-id", "--package-id", "0x64")
+    }
+
     packaging {
         resources {
             merges += "META-INF/xposed/*"
@@ -60,9 +61,6 @@ dependencies {
     implementation(project(":hook"))
     implementation(libs.androidx.activity.compose)
 
-    // 打包进 APK，但运行时由框架在宿主进程提供 —— 模块自己的进程里没有。
     compileOnly(libs.libxposed.api)
-
-    // 这个反过来：跑在模块自己的进程里，要打进包。热重载与作用域都走它。
     implementation(libs.libxposed.service)
 }

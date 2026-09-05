@@ -4,14 +4,7 @@ import android.util.Log
 import io.github.lingqiqi.meowceiler.shared.HookEventKind
 import io.github.lingqiqi.meowceiler.shared.HookLog
 
-/**
- * hook 侧日志。
- *
- * 每条同时去两个地方：logcat（开发时看得最快），以及模块自己的日志页（[HookLogReporter]）。
- * 后者是给用户看的 —— 不用去 LSPosed 管理器，也不用连电脑。
- *
- * 带 tag 的重载里，tag 就是功能 id，日志页按它分组。不带 tag 的算框架级。
- */
+/** hook 侧日志：同时进 logcat 和模块的日志页（[HookLogReporter]）。带 tag 的重载里 tag 是功能 id。 */
 object MLog {
     private const val Tag = "MeowCeiler"
 
@@ -45,12 +38,7 @@ object MLog {
     fun e(tag: String, message: String, throwable: Throwable) =
         write('E', tag, message, throwable)
 
-    /**
-     * 结构化事件。日志页据此推每个功能的健康状态，不用去猜消息文本的意思。
-     *
-     * 功能代码不需要调这个 —— [io.github.lingqiqi.meowceiler.hook.base.BaseHooker] 已经在
-     * 该发的地方发了。
-     */
+    /** 结构化事件，日志页据此推功能健康状态。功能代码不用调，[io.github.lingqiqi.meowceiler.hook.base.BaseHooker] 已经发了。 */
     internal fun event(
         kind: HookEventKind,
         level: Char,
@@ -76,7 +64,6 @@ object MLog {
             else -> Log.e(Tag, text, throwable)
         }
 
-        // 异常摘要并进消息：合并键里带上它，同一处抛出的同一种异常才会合并成一条。
         val reported = if (throwable == null) message else "$message — ${throwable.summary()}"
         runCatching { HookLogReporter.report(kind, level, tag, reported) }
     }

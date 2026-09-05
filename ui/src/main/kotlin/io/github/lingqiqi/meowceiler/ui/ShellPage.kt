@@ -104,7 +104,6 @@ private suspend fun androidx.compose.foundation.pager.PagerState.slideTo(target:
         value = (target - from) * pageSize,
         animationSpec = tween(100 * distance + 100, easing = EaseInOut),
     )
-    // 像素走可能差一点点到不了边界，且没有 fling 收尾，手动落位。
     scrollToPage(target)
 }
 

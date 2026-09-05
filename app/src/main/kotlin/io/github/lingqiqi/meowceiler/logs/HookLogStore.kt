@@ -7,28 +7,10 @@ import io.github.lingqiqi.meowceiler.shared.HookLogRecord
 import java.io.File
 
 /**
- * hook 日志的落盘。跑在模块进程里，由 [HookLogProvider] 独占调用。
- *
- * ## append-only journal
- *
- * 每次写就是往文件尾追加几行。这样便宜，而且天然抗撕裂：进程在写一半时被杀，读的时候丢掉最后
- * 那行残行，之前的全都还在。**不整体重写** —— 重写到一半死掉会把历史一起赔进去。
- *
- * 行数超过 [HookLog.CompactThreshold] 才压缩一次：回放成内存态，写临时文件，rename 顶上去。
- * rename 在同一文件系统上是原子的，所以压缩本身也不会留下半个文件。
- *
- * ## 两代
- *
- * journal 里插 `#boot` 标记分代，读的时候按标记切分。**不做文件轮转** —— 轮转要在「写入时发现
- * 换代了」才触发，这一代要是一条都没写，上一代的内容会被当成本次运行显示。标记法没有这个洞。
- *
- * ## 放 DE 区
- *
- * `createDeviceProtectedStorageContext()`。SystemUI 在解锁前就起来了，CE 区那时候读写不了，
- * 而开机早期恰恰是最需要日志的时候。
+ * hook 日志落盘，[HookLogProvider] 独占调用。append-only journal：追加便宜且抗撕裂，超过 [HookLog.CompactThreshold]
+ * 才压缩，写临时文件后 rename。用 `#boot` 标记分代而不轮转文件。放 DE 区，SystemUI 解锁前就在写。
  */
 internal class HookLogStore(context: Context) {
-
     private val lock = Any()
 
     private val directory: File =
@@ -78,7 +60,6 @@ internal class HookLogStore(context: Context) {
     private fun load(): Generations {
         val lines = runCatching { journal.readLines() }.getOrDefault(emptyList())
 
-        // 按 #boot 标记切代。标记之前的行属于「更早」，读的时候直接丢。
         val generations = mutableListOf<MutableList<HookLogRecord>>()
         var current: MutableList<HookLogRecord>? = null
         for (line in lines) {
@@ -87,7 +68,6 @@ internal class HookLogStore(context: Context) {
                 generations += current
                 continue
             }
-            // decode 返回 null 的是半行残留或旧格式，丢掉它就行，不影响其它行。
             val record = HookLog.decode(line) ?: continue
             (current ?: mutableListOf<HookLogRecord>().also { generations += it; current = it }) += record
         }
@@ -99,11 +79,7 @@ internal class HookLogStore(context: Context) {
         )
     }
 
-    /**
-     * 回放：同一合并键的多条压成一条，时间取并集。
-     *
-     * 流水不合并，只保留最近 [HookLog.MaxTrace] 条。
-     */
+    /** 回放：同一合并键压成一条；流水不合并，只保留最近 [HookLog.MaxTrace] 条。 */
     private fun merge(records: List<HookLogRecord>): List<HookLogRecord> {
         val problems = LinkedHashMap<String, HookLogRecord>()
         val trace = ArrayDeque<HookLogRecord>()
@@ -118,8 +94,6 @@ internal class HookLogStore(context: Context) {
             problems[record.mergeKey] = if (existing == null) {
                 record
             } else {
-                // 宿主侧送来的 count 已经是它那边的累计值，取大的那个而不是相加 ——
-                // 同一代里的多次 flush 是同一串计数的快照，相加会翻倍。
                 record.copy(
                     firstMillis = minOf(existing.firstMillis, record.firstMillis),
                     lastMillis = maxOf(existing.lastMillis, record.lastMillis),
@@ -150,7 +124,6 @@ internal class HookLogStore(context: Context) {
             val temp = File(directory, "journal.tmp")
             val text = buildString {
                 if (generations.previous.isNotEmpty()) {
-                    // 上一代的标记用一个不等于当前的值，保证它仍然被切成单独一代。
                     appendLine(HookLog.encodeBootMarker(bootCount - 1))
                     generations.previous.forEach { appendLine(HookLog.encode(it)) }
                 }

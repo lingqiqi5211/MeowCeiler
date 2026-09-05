@@ -12,7 +12,7 @@ androidxAnnotation = "1.9.1"
 activityCompose = "1.13.0"
 
 dexkit = "2.2.0"
-ezhooktool = "1.1.3"
+ezhooktool = "1.2.2"
 libxposedApi = "102.0.0"
 # 复合构建会把这个坐标替换成 ../MeowUI 里的工程，版本号只作记录。
 meowui = "0.1.5-rc01"

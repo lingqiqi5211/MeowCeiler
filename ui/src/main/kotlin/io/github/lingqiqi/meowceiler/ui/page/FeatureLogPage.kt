@@ -27,12 +27,8 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * 一个功能的 hook 日志。
- *
- * 分两段：**问题**是合并过的（同一个异常抛一万次只占一条，右边是次数），**流水**是没合并的
- * `D`/`I`，只有打开调试日志时 hook 侧才会送过来。
- *
- * 顶上可以切「本次运行 / 上次重启前」—— SystemUI 崩掉导致重启时，要看的恰恰是崩之前那一代。
+ * 一个功能的 hook 日志。「问题」是合并过的，「流水」只在打开调试日志时才有。
+ * 顶上可切「本次运行 / 上次重启前」：宿主崩掉重启时要看的正是崩之前那一代。
  */
 @Composable
 fun FeatureLogPage(tag: String, state: HookLogState, onBack: () -> Unit) {

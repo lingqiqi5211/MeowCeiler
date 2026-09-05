@@ -8,14 +8,8 @@ import android.graphics.drawable.Drawable
 import android.view.View
 
 /**
- * 按名字访问宿主资源。
- *
- * 宿主的资源 ID 每个版本都会变，模块里只能写名字。这一组是 `getIdentifier` 的薄封装，
- * 统一「查不到返回 0 / null」而不是抛 `NotFoundException` —— 在 hook 回调里抛出去就是宿主崩溃，
- * 而某个版本少一个资源是常态。
- *
- * `getIdentifier` 是字符串查表，不便宜。热路径上先在 `onReady` 之类的地方解析成 Int 再用，
- * 见 [io.github.lingqiqi.meowceiler.hook.base.ContextScope]。
+ * 按名字访问宿主资源。查不到返回 0 / null 而不是抛：在 hook 回调里抛出去就是宿主崩溃。
+ * `getIdentifier` 是字符串查表，热路径上先解析成 Int 再用，见 [io.github.lingqiqi.meowceiler.hook.base.ContextScope]。
  */
 @SuppressLint("DiscouragedApi")
 fun Resources.idOf(name: String, type: String, packageName: String): Int =

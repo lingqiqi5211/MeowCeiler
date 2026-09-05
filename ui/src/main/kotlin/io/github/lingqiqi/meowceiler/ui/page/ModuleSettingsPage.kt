@@ -32,6 +32,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/** optionLabel 是普通 lambda 不是 Composable，字符串得在这里先取好。 */
 @Composable
 fun ModuleSettingsPage(
     bridge: FrameworkBridge,
@@ -44,7 +45,6 @@ fun ModuleSettingsPage(
     val store = currentMeowPreferenceStore()
     val scope = rememberCoroutineScope()
 
-    // 桌面图标与语言的真实状态都在系统那边，不是偏好 —— 这里只缓存一份用于显示。
     var iconHidden by remember { mutableStateOf(LauncherIcon.isHidden(context)) }
     var language by remember { mutableStateOf(AppLanguage.current(context)) }
 
@@ -77,8 +77,6 @@ fun ModuleSettingsPage(
         }
     }
 
-    // 只声明 "*/*"：备份文件在部分文件提供方那里报的是 octet-stream，
-    // 按 json 过滤会让用户在选择器里根本看不到自己刚导出的那份。
     val restore = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument(),
     ) { uri: Uri? ->
@@ -233,7 +231,6 @@ fun ModuleSettingsPage(
     )
 }
 
-/** optionLabel 是普通 lambda 不是 Composable，字符串得在这里先取好。 */
 @Composable
 private fun languageLabels(): Map<AppLanguage, String> = mapOf(
     AppLanguage.System to stringResource(R.string.settings_language_system),

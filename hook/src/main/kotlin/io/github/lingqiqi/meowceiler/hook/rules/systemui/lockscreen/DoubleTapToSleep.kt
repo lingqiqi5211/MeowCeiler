@@ -12,6 +12,7 @@ import io.github.lingqiqi.meowceiler.hook.util.MLog
 import io.github.lingqiqi.meowceiler.shared.Preferences
 import io.github.lingqiqi5211.ezhooktool.core.findMethod
 import io.github.lingqiqi5211.ezhooktool.core.toClass
+import io.github.lingqiqi5211.ezhooktool.xposed.dsl.createHook
 import kotlin.math.abs
 
 @Feature(
@@ -21,7 +22,6 @@ import kotlin.math.abs
     updated = "2026-08-15",
 )
 object DoubleTapToSleep : StaticHooker(Preferences.SystemUi.DoubleTapToSleep) {
-
     private const val DoubleTapWindowMs = 250L
     private const val SlopPx = 100f
 
@@ -40,27 +40,27 @@ object DoubleTapToSleep : StaticHooker(Preferences.SystemUi.DoubleTapToSleep) {
     }
 
     override fun onHook() {
-        // NotificationsQuickSettingsContainer 是锁屏与下拉的公共容器，
-        // 在 dispatchTouchEvent 上拦得到整块区域，比逐个 View 挂监听稳。
         "com.android.systemui.shade.NotificationsQuickSettingsContainer".toClass()
             .findMethod { name("dispatchTouchEvent") }
-            .hookBefore { param ->
-                val event = param.args.getOrNull(0) as? MotionEvent ?: return@hookBefore
-                if (event.action != MotionEvent.ACTION_DOWN) return@hookBefore
-                val view = param.thisObjectOrNull as? View ?: return@hookBefore
+            .createHook {
+                before { param ->
+                    val event = param.args.getOrNull(0) as? MotionEvent ?: return@before
+                    if (event.action != MotionEvent.ACTION_DOWN) return@before
+                    val view = param.thisObjectOrNull as? View ?: return@before
 
-                val now = SystemClock.uptimeMillis()
-                val isDoubleTap = now - lastDownTime < DoubleTapWindowMs &&
-                    abs(event.x - lastX) < SlopPx &&
-                    abs(event.y - lastY) < SlopPx
+                    val now = SystemClock.uptimeMillis()
+                    val isDoubleTap = now - lastDownTime < DoubleTapWindowMs &&
+                        abs(event.x - lastX) < SlopPx &&
+                        abs(event.y - lastY) < SlopPx
 
-                if (isDoubleTap) {
-                    lastDownTime = 0L
-                    if (sleepIfLocked(view.context)) param.result = true
-                } else {
-                    lastDownTime = now
-                    lastX = event.x
-                    lastY = event.y
+                    if (isDoubleTap) {
+                        lastDownTime = 0L
+                        if (sleepIfLocked(view.context)) param.result = true
+                    } else {
+                        lastDownTime = now
+                        lastX = event.x
+                        lastY = event.y
+                    }
                 }
             }
     }

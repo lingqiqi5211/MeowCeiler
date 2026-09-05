@@ -6,14 +6,8 @@ import io.github.lingqiqi.meowceiler.hook.util.idOf
 import io.github.lingqiqi5211.ezhooktool.xposed.EzXposed
 import io.github.lingqiqi5211.meowui.core.preference.PreferenceKey
 
-/**
- * 需要宿主 Context / Resources 的 hooker。
- *
- * 不用自己去 hook `Application.attachBaseContext`，EzHookTool 已经提供了
- * [EzXposed.runOnApplicationAttach]。
- */
+/** 需要宿主 Context / Resources 的 hooker，context 来自 [EzXposed.runOnApplicationAttach]。 */
 abstract class ContextAwareHooker(switch: PreferenceKey<Boolean>? = null) : StaticHooker(switch) {
-
     abstract val targetPackage: String
 
     private var ready = false
@@ -31,7 +25,6 @@ abstract class ContextAwareHooker(switch: PreferenceKey<Boolean>? = null) : Stat
 
 /** `getIdentifier` 是字符串查表，按约定在 onReady 里一次性解析完，回调里只用 Int。 */
 class ContextScope(val context: Context, private val packageName: String) {
-
     val res: Resources get() = context.resources
 
     fun String.toId(): Int = res.idOf(this, "id", packageName)

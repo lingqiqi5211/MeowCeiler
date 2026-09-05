@@ -1,17 +1,8 @@
 package io.github.lingqiqi.meowceiler.shared
 
 /**
- * 一条安全模式记录：某个宿主被暂时停掉了。
- *
- * 粒度是**整个宿主**（等于一个作用域），和 HyperCeiler 一致 —— 出问题时把模块在那个宿主里
- * 的全部功能一起停掉，比留一半继续跑更安全。
- *
- * 区别在**存哪儿**：HyperCeiler 记在系统属性里（`setProp`），那要特权写、是设备级全局状态、
- * 不随模块配置走、备份/恢复/重置都覆盖不到，还得靠 root 才生效。这里记在模块自己的偏好存储里 ——
- * hook 侧和设置侧本来就共用它，顺带被 [Preferences.all] 覆盖，能备份也能重置。
- *
- * [moduleStamp] 是有效期凭据：模块一变（重装、热重载新版本）旧记录立即作废、宿主自动恢复，
- * 不用用户手动去解除。
+ * 一条安全模式记录：某个宿主被暂时停掉。粒度是整个宿主。记在模块自己的偏好里而不是系统属性，
+ * 能备份、重置。[moduleStamp] 是有效期：模块一换旧记录作废，宿主自动恢复。
  */
 data class SafeModeRecord(
     /** 被停掉的宿主包名，取值见 [Scope]。 */
@@ -64,23 +55,11 @@ data class SafeModeRecord(
 }
 
 /**
- * 安全模式的**解锁前门闸**。
- *
- * 偏好存储在 CE(凭据加密)区，用户解锁之前根本读不出来；而 SystemUI 在解锁前就已经起来了。
- * 如果那个阶段模块把它崩掉，而记录只躺在读不到的偏好里，就会陷入崩溃循环 —— 连锁屏都进不去，
- * 也就没法解锁去关掉它。所以另外把「被停掉的宿主」镜像到一个 `persist.` 系统属性里：
- * 它存在 /data/property，属 DE 级，解锁前可读，且重启后仍在。这也是 HyperCeiler 用属性的原因。
- *
- * 真相来源仍是偏好（[SafeModeRecord]）；属性只是给解锁前用的缓存，由 hook 侧在偏好可读时
- * 反向对齐。值里带模块标识，模块一换整条作废。
+ * 安全模式的解锁前门闸。偏好在 CE 区解锁前读不出来，而 SystemUI 那时已经起来了，崩了会进崩溃循环；
+ * 所以把「被停掉的宿主」镜像到 `persist.` 属性，DE 级、解锁前可读。真相来源仍是偏好，属性由 hook 侧反向对齐。
  */
 object SafeModeGate {
-
-    /**
-     * `persist.` 保证跨重启保留；`persist.service.` 这一段在 property_contexts 里是
-     * system_prop，宿主进程（system UID）有机会写得进去。普通应用 UID 写不了 —— 所以只在
-     * hook 侧写，并且必须当成可能失败。
-     */
+    /** `persist.service.` 段是 system_prop，宿主进程（system UID）能写；模块自己写不了，只在 hook 侧写且可能失败。 */
     const val PropertyKey = "persist.service.meowceiler.safemode"
 
     private const val StampSeparator = ":"

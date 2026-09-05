@@ -21,7 +21,6 @@ import kotlinx.coroutines.withContext
  * 跨 uid 那一段发生在写入侧（宿主 → provider），见 `:shared` 的 `HookLog`。
  */
 class HookLogState internal constructor(private val context: Context) {
-
     var current by mutableStateOf<List<HookLogRecord>>(emptyList())
         private set
 
@@ -102,6 +101,5 @@ fun List<HookLogRecord>.groupByHost(): Map<String, List<FeatureHealth>> =
                             .sortedByDescending { it.lastMillis },
                     )
                 }
-                // 出过问题的排前面，其余按 id 排，位置稳定。
                 .sortedWith(compareByDescending<FeatureHealth> { it.hasProblem }.thenBy { it.tag })
         }
