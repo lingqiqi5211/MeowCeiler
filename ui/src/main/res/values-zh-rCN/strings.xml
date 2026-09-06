@@ -33,12 +33,23 @@
     <string name="settings_scope_empty">没有匹配的应用</string>
     <string name="settings_scope_granted">已在作用域</string>
     <string name="settings_scope_not_granted">不在作用域</string>
+    <string name="home_empty">首页没有宿主</string>
+    <string name="home_empty_summary">到设置 → 首页显示里把要用的宿主打开</string>
+    <string name="home_status_framework">Xposed 框架未连接</string>
+    <string name="home_status_framework_summary">在管理器里启用模块，再重启宿主</string>
+    <string name="home_status_module_off">模块已关闭</string>
+    <string name="home_status_module_off_summary">所有功能都不会装载</string>
+    <string name="home_status_safe_mode">安全模式已停用 %1$d 个宿主</string>
+    <string name="home_status_safe_mode_summary">模块在这些应用里反复出错，已停止注入</string>
+    <string name="home_status_open">查看</string>
     <string name="settings_scope_filter">筛选</string>
     <string name="settings_scope_filter_all">全部</string>
     <string name="settings_scope_filter_in">已在作用域</string>
     <string name="settings_scope_filter_out">不在作用域</string>
     <string name="settings_scope_filter_user">用户应用</string>
     <string name="settings_scope_filter_system">系统应用</string>
+    <string name="settings_home_hosts">首页显示</string>
+    <string name="settings_home_hosts_summary">挑首页列出哪些宿主</string>
     <string name="settings_hot_reload">热重载</string>
     <string name="settings_hot_reload_summary">把更新后的模块载入正在运行的进程</string>
     <string name="settings_hot_reload_done">已重载 %1$d 个进程。</string>
@@ -66,7 +77,6 @@
     <string name="settings_reset">重置配置</string>
     <string name="settings_reset_summary">所有开关恢复默认值</string>
     <string name="settings_reset_confirm">所有开关都会恢复默认值，外观也包括在内。已开启的功能会被关掉。</string>
-    <string name="appearance_navigation">导航</string>
 
     <string name="settings_floating_nav">悬浮导航栏</string>
     <string name="settings_floating_nav_summary">底栏显示为悬浮胶囊</string>
@@ -81,6 +91,8 @@
     <string name="appearance_palette">配色风格</string>
     <string name="appearance_interface">界面</string>
     <string name="appearance_style">界面风格</string>
+    <string name="appearance_blur">背景模糊</string>
+    <string name="appearance_blur_summary">为顶栏和悬浮底栏启用毛玻璃效果</string>
     <string name="appearance_amoled">AMOLED 深色</string>
     <string name="appearance_amoled_summary">深色主题下使用纯黑背景</string>
     <string name="appearance_color_spec">色彩标准</string>

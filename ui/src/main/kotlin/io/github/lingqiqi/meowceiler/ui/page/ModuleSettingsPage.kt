@@ -37,6 +37,7 @@ fun ModuleSettingsPage(
     bridge: FrameworkBridge,
     onOpenAppearance: () -> Unit,
     onOpenScope: () -> Unit,
+    onOpenHomeHosts: () -> Unit,
     onOpenSafeMode: () -> Unit,
     onOpenHookLog: () -> Unit,
 ) {
@@ -47,6 +48,7 @@ fun ModuleSettingsPage(
     var iconHidden by remember { mutableStateOf(LauncherIcon.isHidden(context)) }
 
 
+    val scopeSync by rememberMeowPreferenceValue(Preferences.Framework.ScopeSync)
     val entryPositionKey by rememberMeowPreferenceValue(Preferences.SettingsEntry.Position)
     val entryPosition = SettingsEntryPosition.from(entryPositionKey)
 
@@ -136,6 +138,13 @@ fun ModuleSettingsPage(
                 title = stringResource(R.string.settings_scope_sync),
                 modifier = Modifier.testTag("row.scope_sync"),
                 summary = stringResource(R.string.settings_scope_sync_summary),
+            )
+            SettingsNavigationRow(
+                titleRes = R.string.settings_home_hosts,
+                testTag = "row.home_hosts",
+                summaryRes = R.string.settings_home_hosts_summary,
+                visible = !scopeSync,
+                onClick = onOpenHomeHosts,
             )
             MeowActionPreference(
                 title = stringResource(R.string.settings_scope),

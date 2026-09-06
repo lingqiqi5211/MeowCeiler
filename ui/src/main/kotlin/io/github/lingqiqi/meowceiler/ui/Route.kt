@@ -12,6 +12,9 @@ sealed interface Route {
     /** 框架作用域。 */
     data object Scope : Route
 
+    /** 首页显示哪些宿主。 */
+    data object HomeHosts : Route
+
     /** hook 日志总览。 */
     data object HookLog : Route
 

@@ -50,8 +50,9 @@ fun MeowPreferenceSectionScope.SettingsNavigationRow(
     titleRes: Int,
     testTag: String,
     summaryRes: Int? = null,
+    visible: Boolean = true,
     onClick: () -> Unit,
-) = item(key = testTag, container = false) {
+) = item(key = testTag, visible = visible, container = false) {
     MeowActionRow(titleRes, testTag, summaryRes, value = null, navigation = true, onClick = onClick)
 }
 

@@ -4,8 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
-import io.github.lingqiqi.meowceiler.ui.component.FeatureSwitchRow
-import io.github.lingqiqi.meowceiler.ui.component.SettingsSection
 import io.github.lingqiqi.meowceiler.ui.settings.FrameworkBridge
 import io.github.lingqiqi.meowceiler.ui.settings.NoFrameworkBridge
 import io.github.lingqiqi.meowceiler.ui.settings.rememberHookLogState
@@ -14,6 +12,7 @@ import io.github.lingqiqi.meowceiler.ui.component.AppLanguageRow
 import io.github.lingqiqi.meowceiler.ui.page.AboutPage
 import io.github.lingqiqi.meowceiler.ui.page.FeatureLogPage
 import io.github.lingqiqi.meowceiler.ui.page.HomePage
+import io.github.lingqiqi.meowceiler.ui.page.HomeHostsPage
 import io.github.lingqiqi.meowceiler.ui.page.HookLogPage
 import io.github.lingqiqi.meowceiler.ui.page.LogRecordPage
 import io.github.lingqiqi.meowceiler.ui.page.ModuleSettingsPage
@@ -25,17 +24,16 @@ import io.github.lingqiqi.meowceiler.ui.page.SystemUiClockLayoutPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiStatusBarPage
 import io.github.lingqiqi5211.meowui.component.MeowAppearancePage
 import io.github.lingqiqi5211.meowui.component.MeowAppearanceLabels
-import io.github.lingqiqi.meowceiler.shared.Preferences
-import io.github.lingqiqi5211.meowui.component.MeowNavHost
 import io.github.lingqiqi5211.meowui.preference.rememberMeowPreferenceValue
+import io.github.lingqiqi5211.meowui.component.MeowNavHost
 import androidx.compose.runtime.getValue
 import io.github.lingqiqi5211.meowui.theme.MeowTheme
 
 @Composable
 fun MeowCeilerApp(bridge: FrameworkBridge = NoFrameworkBridge) {
     val appearance = rememberAppearanceController()
-    val floatingNav by rememberMeowPreferenceValue(Preferences.Appearance.FloatingNavigation)
-    val scopeSync by rememberMeowPreferenceValue(Preferences.Framework.ScopeSync)
+    val scopeSync by rememberMeowPreferenceValue(io.github.lingqiqi.meowceiler.shared.Preferences.Framework.ScopeSync)
+    val hiddenHosts by rememberMeowPreferenceValue(io.github.lingqiqi.meowceiler.shared.Preferences.Home.HiddenHosts)
     val scopeState = rememberScopeState(bridge)
     val hookLog = rememberHookLogState()
 
@@ -51,10 +49,12 @@ fun MeowCeilerApp(bridge: FrameworkBridge = NoFrameworkBridge) {
         ) { route ->
             when (route) {
                 Route.Shell -> ShellPage(
-                    floatingNavigation = floatingNav,
+                    floatingNavigation = appearance.appearance.floatingNavigationBarEnabled,
                     home = {
                         HomePage(
                             scopeFilter = scopeState.packages?.takeIf { scopeSync },
+                            hiddenHosts = if (scopeSync) emptySet() else hiddenHosts,
+                            onOpenSafeMode = { push(Route.SafeMode) },
                             onOpenHost = push,
                         )
                     },
@@ -63,6 +63,7 @@ fun MeowCeilerApp(bridge: FrameworkBridge = NoFrameworkBridge) {
                             bridge = bridge,
                             onOpenAppearance = { push(Route.Appearance) },
                             onOpenScope = { push(Route.Scope) },
+                            onOpenHomeHosts = { push(Route.HomeHosts) },
                             onOpenSafeMode = { push(Route.SafeMode) },
                             onOpenHookLog = { push(Route.HookLog) },
                         )
@@ -75,20 +76,9 @@ fun MeowCeilerApp(bridge: FrameworkBridge = NoFrameworkBridge) {
                     onBackClick = pop,
                     labels = appearanceLabels(),
                     interfaceItems = { AppLanguageRow() },
-                    extraContent = {
-                        SettingsSection(
-                            titleRes = R.string.appearance_navigation,
-                            testTag = "section.appearance.navigation",
-                        ) {
-                            FeatureSwitchRow(
-                                key = Preferences.Appearance.FloatingNavigation,
-                                titleRes = R.string.settings_floating_nav,
-                                summaryRes = R.string.settings_floating_nav_summary,
-                            )
-                        }
-                    },
                 )
                 Route.Scope -> ScopePage(bridge = bridge, scopeState = scopeState, onBack = pop)
+                Route.HomeHosts -> HomeHostsPage(onBack = pop)
                 Route.SafeMode -> SafeModePage(onBack = pop)
                 Route.SystemUi -> SystemUiPage(onBack = pop, onOpenCategory = push)
                 Route.SystemUiLockScreen -> SystemUiLockScreenPage(onBack = pop)
@@ -128,11 +118,16 @@ private fun appearanceLabels() = MeowAppearanceLabels(
     miuixMonetSummary = stringResource(R.string.appearance_monet_summary),
     interfaceSettings = stringResource(R.string.appearance_interface),
     interfaceStyle = stringResource(R.string.appearance_style),
+    floatingNavigationBar = stringResource(R.string.settings_floating_nav),
+    floatingNavigationBarSummary = stringResource(R.string.settings_floating_nav_summary),
+    blur = stringResource(R.string.appearance_blur),
+    blurSummary = stringResource(R.string.appearance_blur_summary),
     predictiveBack = stringResource(R.string.appearance_predictive_back),
     predictiveBackSummary = stringResource(R.string.appearance_predictive_back_summary),
     interfaceScale = stringResource(R.string.appearance_scale),
     interfaceScaleSummary = stringResource(R.string.appearance_scale_summary),
     customColor = stringResource(R.string.appearance_custom_color),
+    defaultValue = stringResource(R.string.slider_default),
     dialogConfirm = stringResource(R.string.dialog_confirm),
     dialogCancel = stringResource(R.string.dialog_cancel),
 )

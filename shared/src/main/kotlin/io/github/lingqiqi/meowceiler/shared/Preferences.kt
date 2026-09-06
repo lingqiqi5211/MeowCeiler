@@ -78,6 +78,11 @@ object Preferences {
         val ScopeSync = PreferenceKey("framework_scope_sync", false)
     }
 
+    object Home {
+        /** 首页藏起来的宿主。存「藏了谁」而不是「显示谁」：以后新增宿主默认就在首页上。 */
+        val HiddenHosts = PreferenceKey("home_hidden_hosts", emptySet<String>())
+    }
+
     /**
      * 全部键。备份、恢复、重置都按这份走。
      *
@@ -122,6 +127,7 @@ object Preferences {
         SystemUi.ClockOffsetMini,
         SettingsEntry.Position,
         Framework.ScopeSync,
+        Home.HiddenHosts,
         SafeMode.Enabled,
         SafeMode.Records,
     )

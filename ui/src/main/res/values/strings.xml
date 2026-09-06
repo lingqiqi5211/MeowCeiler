@@ -35,12 +35,23 @@
     <string name="settings_scope_empty">No matching apps</string>
     <string name="settings_scope_granted">In scope</string>
     <string name="settings_scope_not_granted">Not in scope</string>
+    <string name="home_empty">No hosts on the home page</string>
+    <string name="home_empty_summary">Turn the hosts you use back on in Settings, Home hosts</string>
+    <string name="home_status_framework">Xposed framework not connected</string>
+    <string name="home_status_framework_summary">Enable the module in your manager, then restart the host</string>
+    <string name="home_status_module_off">Module is off</string>
+    <string name="home_status_module_off_summary">No feature is installed into any host</string>
+    <string name="home_status_safe_mode">Safe mode stopped %1$d host(s)</string>
+    <string name="home_status_safe_mode_summary">The module kept failing there, so it no longer injects them</string>
+    <string name="home_status_open">Open</string>
     <string name="settings_scope_filter">Filter</string>
     <string name="settings_scope_filter_all">All</string>
     <string name="settings_scope_filter_in">In scope</string>
     <string name="settings_scope_filter_out">Not in scope</string>
     <string name="settings_scope_filter_user">User apps</string>
     <string name="settings_scope_filter_system">System apps</string>
+    <string name="settings_home_hosts">Home hosts</string>
+    <string name="settings_home_hosts_summary">Pick which hosts the home page lists</string>
     <string name="settings_hot_reload">Hot reload</string>
     <string name="settings_hot_reload_summary">Load the updated module into running processes</string>
     <string name="settings_hot_reload_done">Reloaded %1$d process(es).</string>
@@ -68,7 +79,6 @@
     <string name="settings_reset">Reset settings</string>
     <string name="settings_reset_summary">Put every switch back to its default</string>
     <string name="settings_reset_confirm">Every switch goes back to its default, including appearance. Features you turned on will be turned off.</string>
-    <string name="appearance_navigation">Navigation</string>
 
     <string name="settings_floating_nav">Floating navigation bar</string>
     <string name="settings_floating_nav_summary">Show the bottom bar as a floating capsule</string>
@@ -83,6 +93,8 @@
     <string name="appearance_palette">Color style</string>
     <string name="appearance_interface">Interface</string>
     <string name="appearance_style">Interface style</string>
+    <string name="appearance_blur">Background blur</string>
+    <string name="appearance_blur_summary">Frosted top bar and floating bottom bar</string>
     <string name="appearance_amoled">AMOLED dark</string>
     <string name="appearance_amoled_summary">Pure black backgrounds in dark theme</string>
     <string name="appearance_color_spec">Color standard</string>
