@@ -20,7 +20,6 @@ import io.github.lingqiqi.meowceiler.ui.component.FeatureSwitchRow
 import io.github.lingqiqi.meowceiler.ui.component.SettingsCard
 import io.github.lingqiqi.meowceiler.ui.component.SettingsNavigationRow
 import io.github.lingqiqi.meowceiler.ui.component.SettingsSection
-import io.github.lingqiqi.meowceiler.ui.settings.AppLanguage
 import io.github.lingqiqi.meowceiler.ui.settings.FrameworkBridge
 import io.github.lingqiqi.meowceiler.ui.settings.LauncherIcon
 import io.github.lingqiqi.meowceiler.ui.settings.PreferencesBackup
@@ -46,7 +45,7 @@ fun ModuleSettingsPage(
     val scope = rememberCoroutineScope()
 
     var iconHidden by remember { mutableStateOf(LauncherIcon.isHidden(context)) }
-    var language by remember { mutableStateOf(AppLanguage.current(context)) }
+
 
     val entryPositionKey by rememberMeowPreferenceValue(Preferences.SettingsEntry.Position)
     val entryPosition = SettingsEntryPosition.from(entryPositionKey)
@@ -126,17 +125,6 @@ fun ModuleSettingsPage(
                 modifier = Modifier.testTag("row.entry_position"),
                 summary = stringResource(R.string.settings_entry_position_summary),
                 optionLabel = entryPositionLabels()::getValue,
-            )
-            MeowPopupPreference(
-                title = stringResource(R.string.settings_language),
-                value = language,
-                options = AppLanguage.entries,
-                onValueChange = {
-                    language = it
-                    AppLanguage.apply(context, it)
-                },
-                modifier = Modifier.testTag("row.language"),
-                optionLabel = languageLabels()::getValue,
             )
         }
 
@@ -231,12 +219,6 @@ fun ModuleSettingsPage(
     )
 }
 
-@Composable
-private fun languageLabels(): Map<AppLanguage, String> = mapOf(
-    AppLanguage.System to stringResource(R.string.settings_language_system),
-    AppLanguage.Chinese to stringResource(R.string.settings_language_zh),
-    AppLanguage.English to stringResource(R.string.settings_language_en),
-)
 
 @Composable
 private fun entryPositionLabels(): Map<SettingsEntryPosition, String> = mapOf(

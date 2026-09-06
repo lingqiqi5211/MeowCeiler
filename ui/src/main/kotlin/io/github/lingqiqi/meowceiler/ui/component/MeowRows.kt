@@ -100,6 +100,8 @@ internal fun MeowSliderRow(
             draft?.let { write(scale.snap(it)) }
         },
         onClick = { showInput = true },
+        defaultValue = key.defaultValue,
+        defaultText = stringResource(R.string.slider_default),
     )
     MeowTextInputDialog(
         show = showInput,

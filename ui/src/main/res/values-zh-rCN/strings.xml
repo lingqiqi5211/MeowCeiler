@@ -88,6 +88,7 @@
     <string name="dialog_blank_error">不能为空</string>
     <string name="slider_input_hint">%1$s ～ %2$s，默认 %3$s</string>
     <string name="slider_input_error">请输入 %1$s ～ %2$s 之间的数</string>
+    <string name="slider_default">默认</string>
 
     <string name="restart_host">重启</string>
 

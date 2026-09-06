@@ -10,6 +10,7 @@ import io.github.lingqiqi.meowceiler.ui.settings.FrameworkBridge
 import io.github.lingqiqi.meowceiler.ui.settings.NoFrameworkBridge
 import io.github.lingqiqi.meowceiler.ui.settings.rememberHookLogState
 import io.github.lingqiqi.meowceiler.ui.settings.rememberScopeState
+import io.github.lingqiqi.meowceiler.ui.component.AppLanguageRow
 import io.github.lingqiqi.meowceiler.ui.page.AboutPage
 import io.github.lingqiqi.meowceiler.ui.page.FeatureLogPage
 import io.github.lingqiqi.meowceiler.ui.page.HomePage
@@ -73,6 +74,7 @@ fun MeowCeilerApp(bridge: FrameworkBridge = NoFrameworkBridge) {
                     onAppearanceChange = appearance.onChange,
                     onBackClick = pop,
                     labels = appearanceLabels(),
+                    interfaceItems = { AppLanguageRow() },
                     extraContent = {
                         SettingsSection(
                             titleRes = R.string.appearance_navigation,
