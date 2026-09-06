@@ -1,21 +1,10 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# 只裁不混淆：hook 日志与堆栈要能对回源码，反射用的自家类名也不能变。
+-dontobfuscate
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Xposed 入口按 META-INF/xposed/java_init.list 里的名字加载。
+-keep class io.github.lingqiqi.meowceiler.hook.HookEntry { *; }
+-keep class io.github.libxposed.api.** { *; }
+-keep class io.github.lingqiqi5211.ezhooktool.** { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# 日志用类名当功能标签。
+-keepnames class io.github.lingqiqi.meowceiler.hook.** { *; }
