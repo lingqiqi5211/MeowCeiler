@@ -111,6 +111,8 @@
     <string name="log_kind_callback_failed">Callback failed</string>
     <string name="log_kind_safe_mode">Stopped by safe mode</string>
     <string name="log_kind_log">Log</string>
+    <string name="log_copy">Copy</string>
+    <string name="log_share">Share</string>
     <string name="restart_failed">Restart failed — root permission required</string>
 
     <string name="about_device">Device</string>

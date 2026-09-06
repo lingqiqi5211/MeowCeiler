@@ -23,6 +23,17 @@
             android:exported="true"
             android:directBootAware="true" />
 
+        <!-- 日志详情页「分享」出去的文本文件。 -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.share"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/share_paths" />
+        </provider>
+
         <!-- 不带 LAUNCHER：桌面入口走下面的别名，这样禁用图标不会连设置界面一起禁掉。 -->
         <activity
             android:name=".SettingsActivity"

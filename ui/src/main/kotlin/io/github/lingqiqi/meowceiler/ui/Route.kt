@@ -1,5 +1,7 @@
 package io.github.lingqiqi.meowceiler.ui
 
+import io.github.lingqiqi.meowceiler.shared.HookLogRecord
+
 /** 导航目的地。层级：Shell（三 Tab）→ 宿主 hub / 外观页 → 分类页。 */
 sealed interface Route {
     data object Shell : Route
@@ -22,4 +24,7 @@ sealed interface Route {
 
     /** 某个功能的 hook 日志。tag 就是功能 id。 */
     data class FeatureLog(val tag: String) : Route
+
+    /** 一条记录的全文。 */
+    data class LogRecord(val record: HookLogRecord) : Route
 }

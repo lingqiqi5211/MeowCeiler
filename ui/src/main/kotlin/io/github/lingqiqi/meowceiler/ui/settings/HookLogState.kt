@@ -51,7 +51,7 @@ class HookLogState internal constructor(private val context: Context) {
 }
 
 /** 状态类记录与 `W`/`E` 级日志都算「问题」。 */
-private val HookLogRecord.isProblem: Boolean
+val HookLogRecord.isProblem: Boolean
     get() = when (kind) {
         HookEventKind.InitFailed,
         HookEventKind.HookFailed,

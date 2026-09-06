@@ -64,14 +64,12 @@ object MLog {
             else -> Log.e(Tag, text, throwable)
         }
 
-        val reported = if (throwable == null) message else "$message — ${throwable.summary()}"
+        val reported = if (throwable == null) message else "$message\n${throwable.detail()}"
         runCatching { HookLogReporter.report(kind, level, tag, reported) }
     }
 
-    /** 类名 + 消息 + 最上面一帧。够定位，又不至于把一整份堆栈塞进记录。 */
-    private fun Throwable.summary(): String {
-        val frame = stackTrace.firstOrNull()
-            ?.let { " @ ${it.className}.${it.methodName}:${it.lineNumber}" }
-        return "${this::class.java.simpleName}: ${message.orEmpty()}${frame.orEmpty()}"
-    }
+    /** 完整堆栈跟着消息进记录，日志页点开看；超长截断。 */
+    private fun Throwable.detail(): String = Log.getStackTraceString(this).trimEnd().take(MaxDetail)
+
+    private const val MaxDetail = 6000
 }
