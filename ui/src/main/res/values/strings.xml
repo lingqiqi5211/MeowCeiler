@@ -28,11 +28,19 @@
     <string name="settings_language_en">English</string>
     <string name="settings_scope">Scope</string>
     <string name="settings_scope_summary">Which apps the module is allowed to hook</string>
-    <string name="settings_scope_extra">In scope but not supported</string>
-    <string name="settings_scope_supported">Apps this module can hook</string>
-    <string name="settings_scope_drives_home">Also controls whether it shows on the home page</string>
     <string name="settings_scope_sync">Sync scope</string>
     <string name="settings_scope_sync_summary">Show only the apps you granted in the Xposed scope on the home page</string>
+    <string name="settings_scope_search">Search apps</string>
+    <string name="settings_scope_loading">Loading apps</string>
+    <string name="settings_scope_empty">No matching apps</string>
+    <string name="settings_scope_granted">In scope</string>
+    <string name="settings_scope_not_granted">Not in scope</string>
+    <string name="settings_scope_filter">Filter</string>
+    <string name="settings_scope_filter_all">All</string>
+    <string name="settings_scope_filter_in">In scope</string>
+    <string name="settings_scope_filter_out">Not in scope</string>
+    <string name="settings_scope_filter_user">User apps</string>
+    <string name="settings_scope_filter_system">System apps</string>
     <string name="settings_hot_reload">Hot reload</string>
     <string name="settings_hot_reload_summary">Load the updated module into running processes</string>
     <string name="settings_hot_reload_done">Reloaded %1$d process(es).</string>
@@ -60,8 +68,8 @@
     <string name="settings_reset">Reset settings</string>
     <string name="settings_reset_summary">Put every switch back to its default</string>
     <string name="settings_reset_confirm">Every switch goes back to its default, including appearance. Features you turned on will be turned off.</string>
-
     <string name="appearance_navigation">Navigation</string>
+
     <string name="settings_floating_nav">Floating navigation bar</string>
     <string name="settings_floating_nav_summary">Show the bottom bar as a floating capsule</string>
 
