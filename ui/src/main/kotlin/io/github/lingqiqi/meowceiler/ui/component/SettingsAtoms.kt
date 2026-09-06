@@ -38,8 +38,9 @@ fun MeowPreferenceSectionScope.FeatureSwitchRow(
     key: PreferenceKey<Boolean>,
     titleRes: Int,
     summaryRes: Int? = null,
+    visible: Boolean = true,
     testTag: String = "row.${key.name}",
-) = item(key = key.name, container = false) {
+) = item(key = key.name, visible = visible, container = false) {
     MeowSwitchPreferenceRow(key, titleRes, summaryRes, testTag)
 }
 
@@ -64,17 +65,22 @@ fun MeowPreferenceSectionScope.SettingsInfoRow(
     MeowActionRow(titleRes, testTag, summaryRes = null, value = value, navigation = false, onClick = {})
 }
 
-/** 功能的整数滑块。[visible] 为 false 时走 `item(visible = ...)` 收起，直接不声明会让分区停在旧内容上。 */
+/**
+ * 功能的滑块。值按 [step] 分档，从 [range] 起点数起，小数位数由 [step] 决定；[range] 可以是负数。
+ * 点数值弹输入框直接填。[visible] 为 false 时走 `item(visible = ...)` 收起，直接不声明会让分区停在旧内容上。
+ */
 @Suppress("FunctionName")
-fun MeowPreferenceSectionScope.FeatureIntSliderRow(
-    key: PreferenceKey<Int>,
+fun MeowPreferenceSectionScope.FeatureSliderRow(
+    key: PreferenceKey<Float>,
     titleRes: Int,
-    range: IntRange,
-    step: Int = 1,
+    range: ClosedFloatingPointRange<Float>,
+    step: Float,
+    unit: String = "",
+    showPlus: Boolean = false,
     visible: Boolean = true,
     testTag: String = "row.${key.name}",
 ) = item(key = key.name, visible = visible, container = false) {
-    MeowIntSliderRow(key, titleRes, range, step, testTag)
+    MeowSliderRow(key, titleRes, range, step, unit, showPlus, testTag)
 }
 
 /**

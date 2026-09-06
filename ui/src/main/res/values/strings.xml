@@ -87,6 +87,9 @@
     <string name="appearance_custom_color">Custom color</string>
     <string name="dialog_confirm">Done</string>
     <string name="dialog_cancel">Cancel</string>
+    <string name="dialog_blank_error">Cannot be empty</string>
+    <string name="slider_input_hint">%1$s to %2$s, default %3$s</string>
+    <string name="slider_input_error">Enter a number from %1$s to %2$s</string>
 
     <string name="restart_host">Restart</string>
 
