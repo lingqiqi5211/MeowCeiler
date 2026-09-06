@@ -33,6 +33,28 @@ object Preferences {
 
     object SystemUi {
         val DoubleTapToSleep = PreferenceKey("systemui_lockscreen_double_tap", false)
+        val Clock = PreferenceKey("systemui_clock", false)
+        val ClockNoSync = PreferenceKey("systemui_clock_no_sync", false)
+        val ClockNoShadeAnimation = PreferenceKey("systemui_clock_no_shade_animation", false)
+        val ClockFormatStatusBar = PreferenceKey("systemui_clock_format_statusbar", "HH:mm")
+        val ClockFormatBig = PreferenceKey("systemui_clock_format_big", "HH:mm")
+        val ClockFormatMini = PreferenceKey("systemui_clock_format_mini", "")
+        val ClockStyle = PreferenceKey("systemui_clock_style", 0)
+        val ClockAlign = PreferenceKey("systemui_clock_align", 0)
+        val ClockSpacing = PreferenceKey("systemui_clock_spacing", 0.8f)
+        val ClockFixedWidth = PreferenceKey("systemui_clock_fixed_width", 30f)
+        val ClockBoldStatusBar = PreferenceKey("systemui_clock_bold_statusbar", false)
+        val ClockLeftStatusBar = PreferenceKey("systemui_clock_left_statusbar", 0f)
+        val ClockRightStatusBar = PreferenceKey("systemui_clock_right_statusbar", 0f)
+        val ClockOffsetStatusBar = PreferenceKey("systemui_clock_offset_statusbar", 12f)
+        val ClockBoldBig = PreferenceKey("systemui_clock_bold_big", false)
+        val ClockLeftBig = PreferenceKey("systemui_clock_left_big", 0f)
+        val ClockRightBig = PreferenceKey("systemui_clock_right_big", 0f)
+        val ClockOffsetBig = PreferenceKey("systemui_clock_offset_big", 12f)
+        val ClockBoldMini = PreferenceKey("systemui_clock_bold_mini", false)
+        val ClockLeftMini = PreferenceKey("systemui_clock_left_mini", 0f)
+        val ClockRightMini = PreferenceKey("systemui_clock_right_mini", 0f)
+        val ClockOffsetMini = PreferenceKey("systemui_clock_offset_mini", 12f)
     }
 
     /** 注入到系统设置里的模块入口。取值见 [SettingsEntryPosition]。 */
@@ -76,6 +98,28 @@ object Preferences {
         Appearance.InterfaceScale,
         Appearance.FloatingNavigation,
         SystemUi.DoubleTapToSleep,
+        SystemUi.Clock,
+        SystemUi.ClockNoSync,
+        SystemUi.ClockNoShadeAnimation,
+        SystemUi.ClockFormatStatusBar,
+        SystemUi.ClockFormatBig,
+        SystemUi.ClockFormatMini,
+        SystemUi.ClockStyle,
+        SystemUi.ClockAlign,
+        SystemUi.ClockSpacing,
+        SystemUi.ClockFixedWidth,
+        SystemUi.ClockBoldStatusBar,
+        SystemUi.ClockLeftStatusBar,
+        SystemUi.ClockRightStatusBar,
+        SystemUi.ClockOffsetStatusBar,
+        SystemUi.ClockBoldBig,
+        SystemUi.ClockLeftBig,
+        SystemUi.ClockRightBig,
+        SystemUi.ClockOffsetBig,
+        SystemUi.ClockBoldMini,
+        SystemUi.ClockLeftMini,
+        SystemUi.ClockRightMini,
+        SystemUi.ClockOffsetMini,
         SettingsEntry.Position,
         Framework.ScopeSync,
         SafeMode.Enabled,

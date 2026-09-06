@@ -20,6 +20,8 @@ import io.github.lingqiqi.meowceiler.ui.page.SafeModePage
 import io.github.lingqiqi.meowceiler.ui.page.ScopePage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiLockScreenPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiPage
+import io.github.lingqiqi.meowceiler.ui.page.SystemUiClockLayoutPage
+import io.github.lingqiqi.meowceiler.ui.page.SystemUiStatusBarPage
 import io.github.lingqiqi5211.meowui.component.MeowAppearancePage
 import io.github.lingqiqi5211.meowui.component.MeowAppearanceLabels
 import io.github.lingqiqi.meowceiler.shared.Preferences
@@ -88,6 +90,8 @@ fun MeowCeilerApp(bridge: FrameworkBridge = NoFrameworkBridge) {
                 Route.SafeMode -> SafeModePage(onBack = pop)
                 Route.SystemUi -> SystemUiPage(onBack = pop, onOpenCategory = push)
                 Route.SystemUiLockScreen -> SystemUiLockScreenPage(onBack = pop)
+                Route.SystemUiStatusBar -> SystemUiStatusBarPage(onBack = pop, onOpen = push)
+                is Route.SystemUiClockLayout -> SystemUiClockLayoutPage(part = route.part, onBack = pop)
                 Route.HookLog -> HookLogPage(
                     state = hookLog,
                     onBack = pop,

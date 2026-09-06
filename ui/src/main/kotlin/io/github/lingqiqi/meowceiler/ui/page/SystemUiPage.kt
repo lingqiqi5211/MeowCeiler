@@ -16,6 +16,10 @@ fun SystemUiPage(onBack: () -> Unit, onOpenCategory: (Route) -> Unit) {
                 titleRes = R.string.systemui_section_lockscreen,
                 testTag = "row.systemui.lockscreen",
             ) { onOpenCategory(Route.SystemUiLockScreen) }
+            SettingsNavigationRow(
+                titleRes = R.string.systemui_section_statusbar,
+                testTag = "row.systemui.statusbar",
+            ) { onOpenCategory(Route.SystemUiStatusBar) }
         }
     }
 }
