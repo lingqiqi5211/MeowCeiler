@@ -1,11 +1,13 @@
 package io.github.lingqiqi.meowceiler.hook.util
 
 import io.github.libxposed.api.XposedModule
+import io.github.lingqiqi.meowceiler.shared.HookLog
 import io.github.lingqiqi.meowceiler.shared.Preferences
 import io.github.lingqiqi5211.meowui.core.preference.PreferenceConnectionState
 import io.github.lingqiqi5211.meowui.core.preference.PreferenceKey
 import io.github.lingqiqi5211.meowui.libxposed.XposedModulePreferenceStore
 import io.github.lingqiqi5211.meowui.libxposed.createPreferenceStore
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,7 +25,12 @@ object Settings {
     var scope: CoroutineScope = newScope()
         private set
 
-    private fun newScope() = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    /** 协程里漏出来的异常不能带崩宿主，记日志了事。 */
+    private fun newScope() = CoroutineScope(
+        SupervisorJob() + Dispatchers.Default + CoroutineExceptionHandler { _, t ->
+            MLog.e(HookLog.FrameworkTag, "coroutine failed", t)
+        },
+    )
 
     fun init(module: XposedModule) {
         store = module.createPreferenceStore(Preferences.NAME)
@@ -44,10 +51,11 @@ object Settings {
         requireStore().write(key, value)
     }
 
+    /** 先停协程再关 store：关 store 会推一次变更，收集者若还活着就会拿着空 store 去读。 */
     fun close() {
+        scope.cancel()
         store?.close()
         store = null
-        scope.cancel()
     }
 
     private fun requireStore(): XposedModulePreferenceStore =
