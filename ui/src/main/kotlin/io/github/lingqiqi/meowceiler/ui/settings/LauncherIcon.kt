@@ -26,5 +26,5 @@ object LauncherIcon {
         )
     }
 
-    private fun Context.alias() = ComponentName(packageName, packageName + LauncherAliasName)
+    private fun Context.alias() = ComponentName(this, packageName + LauncherAliasName)
 }
