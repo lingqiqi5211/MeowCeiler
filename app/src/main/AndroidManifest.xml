@@ -41,7 +41,12 @@
             android:name=".SettingsActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.MeowCeiler" />
+            android:theme="@style/Theme.MeowCeiler">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="de.robv.android.xposed.category.MODULE_SETTINGS" />
+            </intent-filter>
+        </activity>
 
         <!-- 「隐藏桌面图标」开关禁用/启用的就是这个别名，见 shared 的 LauncherAliasName。 -->
         <activity-alias
