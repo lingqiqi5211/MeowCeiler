@@ -39,6 +39,9 @@ object Preferences {
         val ClockFormatStatusBar = PreferenceKey("systemui_clock_format_statusbar", "HH:mm")
         val ClockFormatBig = PreferenceKey("systemui_clock_format_big", "HH:mm")
         val ClockFormatMini = PreferenceKey("systemui_clock_format_mini", "")
+        val ClockSizeStatusBar = PreferenceKey("systemui_clock_size_statusbar", 0f)
+        val ClockSizeBig = PreferenceKey("systemui_clock_size_big", 0f)
+        val ClockSizeMini = PreferenceKey("systemui_clock_size_mini", 0f)
         val ClockStyle = PreferenceKey("systemui_clock_style", 0)
         val ClockAlign = PreferenceKey("systemui_clock_align", 0)
         val ClockSpacing = PreferenceKey("systemui_clock_spacing", 0.8f)
@@ -109,6 +112,9 @@ object Preferences {
         SystemUi.ClockFormatStatusBar,
         SystemUi.ClockFormatBig,
         SystemUi.ClockFormatMini,
+        SystemUi.ClockSizeStatusBar,
+        SystemUi.ClockSizeBig,
+        SystemUi.ClockSizeMini,
         SystemUi.ClockStyle,
         SystemUi.ClockAlign,
         SystemUi.ClockSpacing,

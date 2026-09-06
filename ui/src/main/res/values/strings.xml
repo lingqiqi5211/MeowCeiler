@@ -182,10 +182,9 @@
     <string name="systemui_clock_align_center">Center</string>
     <string name="systemui_clock_align_end">Right</string>
     <string name="systemui_clock_spacing">Line spacing</string>
-    <string name="systemui_clock_spacing_summary">Two-line layout only</string>
     <string name="systemui_clock_left">Left margin</string>
     <string name="systemui_clock_right">Right margin</string>
     <string name="systemui_clock_offset">Vertical offset</string>
     <string name="systemui_clock_fixed_width">Fixed width</string>
-    <string name="systemui_clock_fixed_width_summary">Stops neighbouring items from jittering</string>
+    <string name="systemui_clock_size">Clock size</string>
 </resources>

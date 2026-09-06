@@ -180,10 +180,9 @@
     <string name="systemui_clock_align_center">居中</string>
     <string name="systemui_clock_align_end">右对齐</string>
     <string name="systemui_clock_spacing">双排间距</string>
-    <string name="systemui_clock_spacing_summary">仅在双排显示下生效</string>
     <string name="systemui_clock_left">左边距</string>
     <string name="systemui_clock_right">右边距</string>
     <string name="systemui_clock_offset">上下偏移量</string>
     <string name="systemui_clock_fixed_width">固定宽度</string>
-    <string name="systemui_clock_fixed_width_summary">防止相邻元素左右抖动</string>
+    <string name="systemui_clock_size">字体大小</string>
 </resources>

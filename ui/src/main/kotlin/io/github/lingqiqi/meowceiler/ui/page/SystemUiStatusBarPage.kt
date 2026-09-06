@@ -100,6 +100,7 @@ fun SystemUiClockLayoutPage(part: ClockPart, onBack: () -> Unit) {
             when (part) {
                 ClockPart.StatusBar -> {
                     FeatureSwitchRow(key = p.ClockBoldStatusBar, titleRes = R.string.systemui_clock_bold)
+                    FeatureSliderRow(p.ClockSizeStatusBar, R.string.systemui_clock_size, 0f..40f, 1f, "sp")
                     IntChoiceRow(
                         key = p.ClockAlign,
                         titleRes = R.string.systemui_clock_align,
@@ -110,8 +111,8 @@ fun SystemUiClockLayoutPage(part: ClockPart, onBack: () -> Unit) {
                         ),
                     )
                 }
-                ClockPart.Big -> FeatureSwitchRow(key = p.ClockBoldBig, titleRes = R.string.systemui_clock_bold)
-                ClockPart.Mini -> FeatureSwitchRow(key = p.ClockBoldMini, titleRes = R.string.systemui_clock_bold)
+                ClockPart.Big -> { FeatureSwitchRow(key = p.ClockBoldBig, titleRes = R.string.systemui_clock_bold); FeatureSliderRow(p.ClockSizeBig, R.string.systemui_clock_size, 0f..120f, 1f, "sp") }
+                ClockPart.Mini -> { FeatureSwitchRow(key = p.ClockBoldMini, titleRes = R.string.systemui_clock_bold); FeatureSliderRow(p.ClockSizeMini, R.string.systemui_clock_size, 0f..72f, 1f, "sp") }
             }
         }
         SettingsCard(testTag = "section.systemui.clock.layout.${part.name}.sliders") {

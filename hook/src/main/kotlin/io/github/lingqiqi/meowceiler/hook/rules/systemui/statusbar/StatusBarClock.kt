@@ -53,6 +53,7 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
         val align: Int = 0,
         val spacing: Float = 1f,
         val fixedWidthDp: Float = 0f,
+        val sizeSp: Float = 0f,
     ) {
         val hasSeconds = 's' in format.replace(Regex("'[^']*'"), "")
         val twoLines = '\n' in format
@@ -61,6 +62,8 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
     /** 宿主自己的样式。设置改了先还原再套新值，关掉的项才能真的退回去。 */
     private class Original(view: TextView) {
         private val typeface: Typeface? = view.typeface
+        private var textSize = view.textSize
+        private var appliedTextSize: Float? = null
         private val padStart = view.paddingStart
         private val padTop = view.paddingTop
         private val padEnd = view.paddingEnd
@@ -75,6 +78,10 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
 
         fun restore(view: TextView) {
             view.typeface = typeface
+            if (appliedTextSize != null) {
+                view.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize)
+                appliedTextSize = null
+            }
             view.setPaddingRelative(padStart, padTop, padEnd, padBottom)
             if (minWidth >= 0) view.minWidth = minWidth
             if (maxWidth >= 0) view.maxWidth = maxWidth
@@ -82,6 +89,13 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
             view.maxLines = maxLines
             view.textAlignment = alignment
             view.setLineSpacing(spacingExtra, spacingMultiplier)
+        }
+
+        fun applySize(view: TextView, sizeSp: Float) {
+            if (sizeSp <= 0f || !sizeSp.isFinite()) return
+            if (appliedTextSize == null || view.textSize != appliedTextSize) textSize = view.textSize
+            view.setTextSize(TypedValue.COMPLEX_UNIT_SP, sizeSp)
+            appliedTextSize = view.textSize
         }
     }
 
@@ -109,6 +123,7 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
             pref(Preferences.SystemUi.ClockLeftMini),
             pref(Preferences.SystemUi.ClockRightMini),
             pref(Preferences.SystemUi.ClockOffsetMini),
+            sizeSp = pref(Preferences.SystemUi.ClockSizeMini),
         )
         return mapOf(
             "clock" to Variant(
@@ -120,6 +135,7 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
                 pref(Preferences.SystemUi.ClockAlign),
                 pref(Preferences.SystemUi.ClockSpacing),
                 pref(Preferences.SystemUi.ClockFixedWidth),
+                sizeSp = pref(Preferences.SystemUi.ClockSizeStatusBar),
             ),
             "big_time" to Variant(
                 bigFormat,
@@ -127,6 +143,7 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
                 pref(Preferences.SystemUi.ClockLeftBig),
                 pref(Preferences.SystemUi.ClockRightBig),
                 pref(Preferences.SystemUi.ClockOffsetBig),
+                sizeSp = pref(Preferences.SystemUi.ClockSizeBig),
             ),
             "date_time" to mini,
             "horizontal_time" to mini,
@@ -148,6 +165,19 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
     @Volatile private var marker = Any()
     private val nameById = HashMap<Int, String?>(8)
     private val adopted: MutableSet<TextView> = Collections.newSetFromMap(WeakHashMap())
+    private val clockSizes = WeakHashMap<Any, Pair<SizeOverride, SizeOverride>>()
+
+    private class SizeOverride {
+        private var original = 0
+        private var applied: Int? = null
+
+        fun resolve(current: Int, replacement: Int?): Int {
+            // 配置变化时宿主会重读系统尺寸，记住新的默认值，0sp 才能正确还原。
+            if (applied == null || current != applied) original = current
+            applied = replacement
+            return replacement ?: original
+        }
+    }
 
     private lateinit var controllerField: Field
     private lateinit var calendarField: Field
@@ -220,6 +250,9 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
         statusBarClockSizeField = findField(expandClass) { name("statusBarClockSize") }.apply { isAccessible = true }
         headerControllerField = findField(expandClass) { name("headerController") }.apply { isAccessible = true }
         updateTranslationYMethod = expandClass.findMethod { name("updateTranslationY"); paramCount(0) }
+        updateTranslationYMethod.createHook {
+            before { param -> param.thisObjectOrNull?.let(::applyClockSizes) }
+        }
         val combinedClass = "com.android.systemui.controlcenter.shade.CombinedHeaderController".toClass()
         notificationBigTimeField = findField(combinedClass) { name("notificationBigTime") }.apply { isAccessible = true }
         notificationDateTimeField = findField(combinedClass) { name("notificationDateTime") }.apply { isAccessible = true }
@@ -244,6 +277,10 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
         onExpansionChangedMethod = callbackClass.findMethod { name("onExpansionChanged") }
         onAppearanceChangedMethod = callbackClass.findMethod { name("onAppearanceChanged") }
         onExpansionChangedMethod.createHook {
+            before { param ->
+                val controller = param.thisObjectOrNull?.let(callbackOuterField::get) ?: return@before
+                if (applyClockSizes(controller)) updateTranslationYMethod.invoke(controller)
+            }
             after { param ->
                 val controller = param.thisObjectOrNull?.let(callbackOuterField::get) ?: return@after
                 expandController = WeakReference(controller)
@@ -362,7 +399,41 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
                 adopt(clock)
                 updateTimeMethod.invoke(clock)
             }
+            expandController?.get()?.let { controller ->
+                if (applyClockSizes(controller)) {
+                    updateTranslationYMethod.invoke(controller)
+                    onExpansionChangedMethod.invoke(notificationCallbackField.get(controller), progressField.getFloat(controller))
+                }
+            }
         }
+    }
+
+    /** 只替换宿主的字号输入，缩放、位置与显示时序继续使用原实现。 */
+    private fun applyClockSizes(controller: Any): Boolean {
+        val bigSp = variants["big_time"]?.sizeSp?.takeIf { it.isFinite() && it > 0f } ?: 0f
+        val statusSp = variants["clock"]?.sizeSp?.takeIf { it.isFinite() && it > 0f } ?: 0f
+        if (bigSp <= 0f && statusSp <= 0f && controller !in clockSizes) return false
+        val clock = notificationBigTime(controller) ?: return false
+        fun pixels(sizeSp: Float): Int? = sizeSp.takeIf { it.isFinite() && it > 0f }?.let {
+            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, it, clock.resources.displayMetrics)
+                .roundToInt().coerceAtLeast(1)
+        }
+        val (bigOverride, statusOverride) = clockSizes.getOrPut(controller) { SizeOverride() to SizeOverride() }
+        val oldBig = bigTimeSizeField.getInt(controller)
+        val oldStatus = statusBarClockSizeField.getInt(controller)
+        val big = bigOverride.resolve(oldBig, pixels(bigSp))
+        val status = statusOverride.resolve(savedStatusBarClockSize ?: oldStatus, pixels(statusSp))
+        // 取消动画原本会暂存小字号并让两个端点相同；保持这份已有约定。
+        val endpoint = if (savedStatusBarClockSize != null) {
+            savedStatusBarClockSize = status
+            big
+        } else {
+            status
+        }
+        if (big != oldBig) bigTimeSizeField.setInt(controller, big)
+        if (endpoint != oldStatus) statusBarClockSizeField.setInt(controller, endpoint)
+        if (bigSp == 0f && statusSp == 0f) clockSizes.remove(controller)
+        return big != oldBig || endpoint != oldStatus
     }
 
     private fun adopt(view: TextView) {
@@ -496,6 +567,7 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
 
     private fun style(view: TextView, v: Variant) {
         val density = view.resources.displayMetrics.density
+        (view.getTag(originalKey) as? Original)?.applySize(view, v.sizeSp)
         if (v.bold) view.typeface = bold(view.typeface)
         if (v.twoLines) {
             view.isSingleLine = false
