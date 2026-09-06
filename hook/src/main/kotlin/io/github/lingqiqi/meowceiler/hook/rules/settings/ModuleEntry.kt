@@ -28,10 +28,10 @@ import java.lang.reflect.Field
     name = "系统设置模块入口",
     since = "2026-08-17",
     target = "Settings 17.03.260226.r",
-    updated = "2026-08-18",
+    updated = "2026-09-06",
 )
 object ModuleEntry : StaticHooker() {
-    /** 自己插的那条的 id。updateHeaderList 会被反复调用，靠它判重。 */
+    /** 自己插的那条的 id。updateHeaderList 会被反复调用，每次先按它把旧条目摘掉再按当前设置插。 */
     private const val HeaderId = 20260817L
 
     private const val HeaderClassName =
@@ -55,11 +55,9 @@ object ModuleEntry : StaticHooker() {
         SettingsEntryPosition.More to "other_advanced_settings",
     )
 
+    /** 每次刷列表都重新读，改了位置或关掉，下次进设置就生效，不用重启。 */
     private val position
         get() = SettingsEntryPosition.from(Settings.read(Preferences.SettingsEntry.Position))
-
-    /** 选「不显示」时整个 hook 不装，宿主零负担。 */
-    override val extraCondition: Boolean get() = position != SettingsEntryPosition.Off
 
     override fun onHook() {
         val headerClass = HeaderClassName.toClassOrNull() ?: run {
@@ -81,7 +79,8 @@ object ModuleEntry : StaticHooker() {
                     val activity = param.thisObjectOrNull as? Activity ?: return@after
                     @Suppress("UNCHECKED_CAST")
                     val headers = param.args.getOrNull(0) as? MutableList<Any> ?: return@after
-                    if (headers.any { idField.getLong(it) == HeaderId }) return@after
+                    headers.removeAll { idField.getLong(it) == HeaderId }
+                    if (position == SettingsEntryPosition.Off) return@after
 
                     val header = headerClass.getDeclaredConstructor()
                         .apply { isAccessible = true }
