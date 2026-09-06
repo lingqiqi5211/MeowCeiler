@@ -17,3 +17,5 @@ local.properties
 # 模块级构建产物（原来的 /build 只匹配根目录）
 build/
 .kotlin/
+signing.properties
+key.jks

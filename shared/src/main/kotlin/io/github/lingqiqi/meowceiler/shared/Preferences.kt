@@ -144,4 +144,4 @@ const val ModulePackage = "io.github.lingqiqi.meowceiler"
 const val ModuleSettingsActivity = "$ModulePackage.SettingsActivity"
 
 /** 模块显示名。`app_name` 本来就是 translatable="false"，不必绕资源。 */
-const val ModuleName = "MeowCeiler"
+const val ModuleName = "MeowCeiler-Lite"
