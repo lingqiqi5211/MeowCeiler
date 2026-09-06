@@ -33,4 +33,5 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     // MeowUI 是 implementation 引的图标，没 api 出来；底栏要 ImageVector，这里自己声明。
     implementation(libs.compose.material.icons.extended)
+    implementation(libs.appiconloader)
 }

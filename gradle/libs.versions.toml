@@ -10,6 +10,7 @@ targetSdk = "36"
 
 androidxAnnotation = "1.9.1"
 activityCompose = "1.13.0"
+appiconloader = "1.5.0"
 
 dexkit = "2.2.0"
 ezhooktool = "1.2.2"
@@ -18,6 +19,7 @@ libxposedApi = "102.0.0"
 meowui = "0.1.5-rc01"
 
 [libraries]
+appiconloader = { module = "me.zhanghai.android.appiconloader:appiconloader", version.ref = "appiconloader" }
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidxAnnotation" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version = "1.7.8" }
