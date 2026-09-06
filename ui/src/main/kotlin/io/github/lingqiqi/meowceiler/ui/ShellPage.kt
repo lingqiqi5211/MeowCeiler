@@ -6,6 +6,8 @@ import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerDefaults
+import androidx.compose.foundation.pager.PagerSnapDistance
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Home
@@ -13,9 +15,15 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -49,6 +57,16 @@ fun ShellPage(
     val pagerState = rememberPagerState(pageCount = tabs::size)
     val scope = rememberCoroutineScope()
     val stateHolder = rememberSaveableStateHolder()
+    var selectedTab by remember { mutableIntStateOf(pagerState.currentPage) }
+
+    // 底栏先选中目标，避免跨页途中的 currentPage 把胶囊拉回中间项。
+    // 内容页停止滚动后再同步，也覆盖手动滑动和打断切页动画的情况。
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.isScrollInProgress to pagerState.currentPage }
+            .collect { (scrolling, page) ->
+                if (!scrolling) selectedTab = page
+            }
+    }
 
     val items = listOf(
         MeowNavigationItem(stringResource(R.string.tab_home), Icons.Outlined.Home),
@@ -61,13 +79,16 @@ fun ShellPage(
         bottomBar = {
             MeowNavigationBar(
                 items = items,
-                selectedIndex = pagerState.currentPage,
+                selectedIndex = selectedTab,
                 style = if (floatingNavigation) {
                     MeowNavigationBarStyle.Floating
                 } else {
                     MeowNavigationBarStyle.Standard
                 },
-                onItemSelected = { target -> scope.launch { pagerState.slideTo(target) } },
+                onItemSelected = { target ->
+                    selectedTab = target
+                    scope.launch { pagerState.slideTo(target) }
+                },
             )
         },
     ) { contentPadding ->
@@ -76,6 +97,10 @@ fun ShellPage(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize(),
                 beyondViewportPageCount = tabs.lastIndex,
+                flingBehavior = PagerDefaults.flingBehavior(
+                    state = pagerState,
+                    pagerSnapDistance = PagerSnapDistance.atMost(tabs.lastIndex),
+                ),
             ) { page ->
                 stateHolder.SaveableStateProvider(tabs[page].name) {
                     when (tabs[page]) {
