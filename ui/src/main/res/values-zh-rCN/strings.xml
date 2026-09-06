@@ -42,6 +42,12 @@
     <string name="home_status_safe_mode">安全模式已停用 %1$d 个宿主</string>
     <string name="home_status_safe_mode_summary">模块在这些应用里反复出错，已停止注入</string>
     <string name="home_status_open">查看</string>
+    <string name="licenses_loading">正在读取</string>
+    <string name="licenses_empty">没有依赖信息</string>
+    <string name="licenses_unknown">未标注</string>
+    <string name="licenses_no_text">没有随附许可证全文</string>
+    <string name="licenses_visit">访问主页</string>
+    <string name="licenses_close">关闭</string>
     <string name="settings_scope_filter">筛选</string>
     <string name="settings_scope_filter_all">全部</string>
     <string name="settings_scope_filter_in">已在作用域</string>

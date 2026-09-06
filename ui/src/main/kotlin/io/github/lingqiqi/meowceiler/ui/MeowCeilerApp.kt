@@ -14,6 +14,7 @@ import io.github.lingqiqi.meowceiler.ui.page.FeatureLogPage
 import io.github.lingqiqi.meowceiler.ui.page.HomePage
 import io.github.lingqiqi.meowceiler.ui.page.HomeHostsPage
 import io.github.lingqiqi.meowceiler.ui.page.HookLogPage
+import io.github.lingqiqi.meowceiler.ui.page.LicensesPage
 import io.github.lingqiqi.meowceiler.ui.page.LogRecordPage
 import io.github.lingqiqi.meowceiler.ui.page.ModuleSettingsPage
 import io.github.lingqiqi.meowceiler.ui.page.SafeModePage
@@ -68,7 +69,7 @@ fun MeowCeilerApp(bridge: FrameworkBridge = NoFrameworkBridge) {
                             onOpenHookLog = { push(Route.HookLog) },
                         )
                     },
-                    about = { AboutPage() },
+                    about = { AboutPage(onOpenLicenses = { push(Route.Licenses) }) },
                 )
                 Route.Appearance -> MeowAppearancePage(
                     appearance = appearance.appearance,
@@ -79,6 +80,7 @@ fun MeowCeilerApp(bridge: FrameworkBridge = NoFrameworkBridge) {
                 )
                 Route.Scope -> ScopePage(bridge = bridge, scopeState = scopeState, onBack = pop)
                 Route.HomeHosts -> HomeHostsPage(onBack = pop)
+                Route.Licenses -> LicensesPage(onBack = pop)
                 Route.SafeMode -> SafeModePage(onBack = pop)
                 Route.SystemUi -> SystemUiPage(onBack = pop, onOpenCategory = push)
                 Route.SystemUiLockScreen -> SystemUiLockScreenPage(onBack = pop)

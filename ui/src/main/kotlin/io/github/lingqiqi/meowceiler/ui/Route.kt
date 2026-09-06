@@ -15,6 +15,9 @@ sealed interface Route {
     /** 首页显示哪些宿主。 */
     data object HomeHosts : Route
 
+    /** 开源许可。 */
+    data object Licenses : Route
+
     /** hook 日志总览。 */
     data object HookLog : Route
 

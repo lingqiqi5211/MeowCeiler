@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  资源压缩器只看代码里的 R 引用。依赖清单是按名字查 id 再读的（AboutLibraries 的 withContext），
+  不写在这里的话 release / canary 里整份 JSON 会被剪掉，开源许可页就空了。
+-->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@raw/aboutlibraries" />

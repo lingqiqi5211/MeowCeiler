@@ -44,6 +44,12 @@
     <string name="home_status_safe_mode">Safe mode stopped %1$d host(s)</string>
     <string name="home_status_safe_mode_summary">The module kept failing there, so it no longer injects them</string>
     <string name="home_status_open">Open</string>
+    <string name="licenses_loading">Loading</string>
+    <string name="licenses_empty">No dependency data</string>
+    <string name="licenses_unknown">Not stated</string>
+    <string name="licenses_no_text">No license text shipped</string>
+    <string name="licenses_visit">Visit home page</string>
+    <string name="licenses_close">Close</string>
     <string name="settings_scope_filter">Filter</string>
     <string name="settings_scope_filter_all">All</string>
     <string name="settings_scope_filter_in">In scope</string>

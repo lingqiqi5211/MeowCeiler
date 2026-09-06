@@ -10,6 +10,7 @@ targetSdk = "36"
 
 androidxAnnotation = "1.9.1"
 activityCompose = "1.13.0"
+aboutlibraries = "15.2.0"
 appiconloader = "1.5.0"
 
 dexkit = "2.2.0"
@@ -19,6 +20,7 @@ libxposedApi = "102.0.0"
 meowui = "0.1.5-rc01"
 
 [libraries]
+aboutlibraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref = "aboutlibraries" }
 appiconloader = { module = "me.zhanghai.android.appiconloader:appiconloader", version.ref = "appiconloader" }
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidxAnnotation" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
@@ -34,6 +36,7 @@ libxposed-api = { module = "io.github.libxposed:api", version.ref = "libxposedAp
 libxposed-service = { module = "io.github.libxposed:service", version.ref = "libxposedApi" }
 
 [plugins]
+aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin.android", version.ref = "aboutlibraries" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

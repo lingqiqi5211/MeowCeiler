@@ -12,11 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
@@ -31,35 +27,21 @@ import io.github.lingqiqi.meowceiler.ui.R
 import io.github.lingqiqi.meowceiler.ui.component.SettingsCard
 import io.github.lingqiqi.meowceiler.ui.component.SettingsInfoRow
 import io.github.lingqiqi.meowceiler.ui.component.SettingsSection
-import io.github.lingqiqi5211.meowui.component.MeowAlertDialog
 import io.github.lingqiqi5211.meowui.component.MeowPreferenceScreen
 import io.github.lingqiqi5211.meowui.theme.MeowTheme
 
 private const val ProjectUrl = "https://github.com/lingqiqi5211/MeowCeiler"
-private const val ProjectLabel = "github.com/lingqiqi5211/MeowCeiler"
 
 private val HeroIconSize = 72.dp
-
-private class Dependency(val name: String, val license: String)
-
-/** 依赖与许可证。摘要行和弹窗都由这份生成，不再各写一份、各自漂移。 */
-private val Dependencies = listOf(
-    Dependency("Compose", "Apache-2.0"),
-    Dependency("Miuix", "Apache-2.0"),
-    Dependency("MeowUI", "Apache-2.0"),
-    Dependency("EzHookTool", "MIT"),
-    Dependency("libxposed", "Apache-2.0"),
-)
 
 /**
  * 应用自己的启动器图标。读自身资源而不是复制一份矢量；不用 `getApplicationIcon()`，HyperOS 会先整形。
  * 边界直接给目标尺寸：AdaptiveIconDrawable 自己负责内缩和遮罩，再裁一次会切掉边。
  */
 @Composable
-fun AboutPage() {
+fun AboutPage(onOpenLicenses: () -> Unit) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    var showLicenses by rememberSaveable { mutableStateOf(false) }
 
     val versionName = runCatching {
         context.packageManager.getPackageInfo(context.packageName, 0).versionName
@@ -71,13 +53,13 @@ fun AboutPage() {
         SettingsCard(testTag = "section.about.links") {
             MeowActionPreference(
                 title = stringResource(R.string.about_source),
-                summary = ProjectLabel,
+                navigation = true,
                 onClick = { uriHandler.openUri(ProjectUrl) },
             )
             MeowActionPreference(
                 title = stringResource(R.string.about_licenses),
-                summary = Dependencies.joinToString(" · ") { it.name },
-                onClick = { showLicenses = true },
+                navigation = true,
+                onClick = onOpenLicenses,
             )
         }
 
@@ -91,15 +73,6 @@ fun AboutPage() {
             SettingsInfoRow(R.string.about_model, Build.MODEL, "row.about.model")
         }
     }
-
-    MeowAlertDialog(
-        show = showLicenses,
-        title = stringResource(R.string.about_licenses),
-        message = Dependencies.joinToString("\n") { "${it.name} · ${it.license}" },
-        onConfirm = { showLicenses = false },
-        onDismissRequest = { showLicenses = false },
-        cancelText = null,
-    )
 }
 
 @Composable
