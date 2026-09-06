@@ -26,9 +26,9 @@ object Preferences {
         val MiuixMonet = PreferenceKey("appearance_miuix_monet", true)
         val AmoledDark = PreferenceKey("appearance_amoled_dark", false)
         val Blur = PreferenceKey("appearance_blur", true)
+        val FloatingNavigation = PreferenceKey("appearance_floating_nav", false)
         val PredictiveBack = PreferenceKey("appearance_predictive_back", true)
         val InterfaceScale = PreferenceKey("appearance_interface_scale", 1f)
-        val FloatingNavigation = PreferenceKey("appearance_floating_nav", false)
     }
 
     object SystemUi {
@@ -102,9 +102,9 @@ object Preferences {
         Appearance.MiuixMonet,
         Appearance.AmoledDark,
         Appearance.Blur,
+        Appearance.FloatingNavigation,
         Appearance.PredictiveBack,
         Appearance.InterfaceScale,
-        Appearance.FloatingNavigation,
         SystemUi.DoubleTapToSleep,
         SystemUi.Clock,
         SystemUi.ClockNoSync,

@@ -34,6 +34,7 @@ fun rememberAppearanceController(): AppearanceController {
     val miuixMonet by rememberMeowPreferenceValue(Keys.MiuixMonet)
     val amoledDark by rememberMeowPreferenceValue(Keys.AmoledDark)
     val blur by rememberMeowPreferenceValue(Keys.Blur)
+    val floatingNavigation by rememberMeowPreferenceValue(Keys.FloatingNavigation)
     val predictiveBack by rememberMeowPreferenceValue(Keys.PredictiveBack)
     val interfaceScale by rememberMeowPreferenceValue(Keys.InterfaceScale)
 
@@ -47,6 +48,7 @@ fun rememberAppearanceController(): AppearanceController {
         miuixMonetEnabled = miuixMonet,
         amoledDarkEnabled = amoledDark,
         blurEnabled = blur,
+        floatingNavigationBarEnabled = floatingNavigation,
         predictiveBackEnabled = predictiveBack,
         interfaceScale = interfaceScale,
     )
@@ -61,6 +63,9 @@ fun rememberAppearanceController(): AppearanceController {
             if (next.miuixMonetEnabled != current.miuixMonetEnabled) store.write(Keys.MiuixMonet, next.miuixMonetEnabled)
             if (next.amoledDarkEnabled != current.amoledDarkEnabled) store.write(Keys.AmoledDark, next.amoledDarkEnabled)
             if (next.blurEnabled != current.blurEnabled) store.write(Keys.Blur, next.blurEnabled)
+            if (next.floatingNavigationBarEnabled != current.floatingNavigationBarEnabled) {
+                store.write(Keys.FloatingNavigation, next.floatingNavigationBarEnabled)
+            }
             if (next.predictiveBackEnabled != current.predictiveBackEnabled) store.write(Keys.PredictiveBack, next.predictiveBackEnabled)
             if (next.interfaceScale != current.interfaceScale) store.write(Keys.InterfaceScale, next.interfaceScale)
         }
