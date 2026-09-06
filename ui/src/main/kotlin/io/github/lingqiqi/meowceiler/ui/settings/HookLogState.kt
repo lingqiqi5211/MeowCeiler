@@ -37,10 +37,11 @@ class HookLogState internal constructor(private val context: Context) {
         previous = result?.decode(HookLog.KeyRecordsPrevious).orEmpty()
     }
 
-    suspend fun clear() {
+    /** [tag] 为空清全部；给了功能 id 就只清这个功能。 */
+    suspend fun clear(tag: String? = null) {
         withContext(Dispatchers.IO) {
             runCatching {
-                context.contentResolver.call(HookLog.Authority, HookLog.MethodClear, null, null)
+                context.contentResolver.call(HookLog.Authority, HookLog.MethodClear, tag, null)
             }
         }
         refresh()

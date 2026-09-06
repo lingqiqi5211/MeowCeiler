@@ -44,7 +44,7 @@ class HookLogProvider : ContentProvider() {
             }
 
             HookLog.MethodClear -> {
-                store.clear()
+                store.clear(arg)
                 null
             }
 

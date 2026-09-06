@@ -58,7 +58,7 @@ fun FeatureLogPage(tag: String, state: HookLogState, onBack: () -> Unit, onOpenR
                 icon = Icons.Filled.DeleteSweep,
                 contentDescription = stringResource(R.string.log_clear),
                 modifier = Modifier.testTag("action.log.clear"),
-                onClick = { scope.launch { state.clear() } },
+                onClick = { scope.launch { state.clear(tag) } },
             ),
         ),
     ) {

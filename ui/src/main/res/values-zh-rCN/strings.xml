@@ -135,6 +135,9 @@
     <string name="log_kind_log">日志</string>
     <string name="log_copy">复制</string>
     <string name="log_share">分享</string>
+    <string name="log_record">日志详情</string>
+    <string name="log_record_feature">功能</string>
+    <string name="log_record_host">宿主</string>
     <string name="restart_failed">重启失败 —— 需要 root 权限</string>
 
     <string name="about_device">设备</string>

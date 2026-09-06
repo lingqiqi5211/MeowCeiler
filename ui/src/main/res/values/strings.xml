@@ -137,6 +137,9 @@
     <string name="log_kind_log">Log</string>
     <string name="log_copy">Copy</string>
     <string name="log_share">Share</string>
+    <string name="log_record">Log record</string>
+    <string name="log_record_feature">Feature</string>
+    <string name="log_record_host">Host</string>
     <string name="restart_failed">Restart failed — root permission required</string>
 
     <string name="about_device">Device</string>

@@ -48,10 +48,20 @@ internal class HookLogStore(context: Context) {
     /** 返回 (本次运行, 上次重启前) 两代的记录，各自已经合并过。 */
     fun read(): Generations = synchronized(lock) { load() }
 
-    fun clear() {
+    /** [tag] 为空清全部；给了功能 id 就只删这个功能的记录，其余按原样写回。 */
+    fun clear(tag: String?) {
         synchronized(lock) {
-            runCatching { journal.delete() }
-            bootMarkerWritten = false
+            if (tag == null) {
+                runCatching { journal.delete() }
+                bootMarkerWritten = false
+                return
+            }
+            runCatching {
+                val kept = journal.readLines().filter { line ->
+                    HookLog.decodeBootMarker(line) != null || HookLog.decode(line)?.tag != tag
+                }
+                journal.writeText(kept.joinToString("\n", postfix = if (kept.isEmpty()) "" else "\n"))
+            }
         }
     }
 

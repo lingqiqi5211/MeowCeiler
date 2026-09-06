@@ -23,6 +23,7 @@ import androidx.core.content.FileProvider
 import io.github.lingqiqi.meowceiler.shared.HookLogRecord
 import io.github.lingqiqi.meowceiler.ui.R
 import io.github.lingqiqi.meowceiler.ui.component.SettingsCard
+import io.github.lingqiqi.meowceiler.ui.component.SettingsValueRow
 import io.github.lingqiqi.meowceiler.ui.settings.featureTitle
 import io.github.lingqiqi5211.meowui.component.MeowPreferencePage
 import io.github.lingqiqi5211.meowui.component.MeowTopBarAction
@@ -38,8 +39,7 @@ fun LogRecordPage(record: HookLogRecord, onBack: () -> Unit) {
     val context = LocalContext.current
     val text = remember(record) { record.fullText() }
     MeowPreferencePage(
-        title = stringResource(record.kind.titleRes()),
-        subtitle = "${record.host} · ${featureTitle(record.tag)}",
+        title = stringResource(R.string.log_record),
         onBackClick = onBack,
         actionItems = listOf(
             MeowTopBarAction.Icon(
@@ -56,6 +56,23 @@ fun LogRecordPage(record: HookLogRecord, onBack: () -> Unit) {
             ),
         ),
     ) {
+        SettingsCard(testTag = "section.log.record.state") {
+            SettingsValueRow(
+                title = stringResource(record.kind.titleRes()),
+                value = record.time(),
+                testTag = "row.log.record.kind",
+            )
+            SettingsValueRow(
+                title = stringResource(R.string.log_record_feature),
+                value = featureTitle(record.tag),
+                testTag = "row.log.record.feature",
+            )
+            SettingsValueRow(
+                title = stringResource(R.string.log_record_host),
+                value = record.host,
+                testTag = "row.log.record.host",
+            )
+        }
         SettingsCard(testTag = "section.log.record") {
             item(key = "text") {
                 SelectionContainer {
@@ -85,6 +102,12 @@ private fun HookLogRecord.fullText(): String {
         append('\n').append(host).append("  ").append(tag).append("  ").append(kind.name).append(' ').append(level)
         append("\n\n").append(message)
     }
+}
+
+/** 状态卡片里的时间。次数跟在后面，与功能页的行一致。 */
+private fun HookLogRecord.time(): String {
+    val time = SimpleDateFormat("MM-dd HH:mm:ss", Locale.getDefault()).format(Date(lastMillis))
+    return if (count > 1) "$time ×$count+" else time
 }
 
 private fun copyToClipboard(context: Context, text: String) {
