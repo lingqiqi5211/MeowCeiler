@@ -184,8 +184,6 @@
     <string name="systemui_clock_format_pad">Pad 状态栏日期时钟格式</string>
     <string name="systemui_clock_hidden">隐藏时钟</string>
     <string name="systemui_clock_hidden_summary">不显示 Pad 状态栏日期时钟</string>
-    <string name="systemui_icons">图标</string>
-    <string name="systemui_icons_empty">暂无图标设置</string>
     <string name="systemui_clock_bold">加粗</string>
     <string name="systemui_clock_align">双排对齐方式</string>
     <string name="systemui_clock_align_start">左对齐</string>
@@ -198,4 +196,16 @@
     <string name="systemui_clock_fixed_width">固定宽度</string>
     <string name="systemui_clock_size">字体大小</string>
     <string name="adaptive_select_detail">选择左侧项目以查看设置</string>
+    <string name="systemui_icons">图标</string>
+    <string name="systemui_icons_empty">暂无图标设置</string>
+    <string name="systemui_notification_control_center">通知与控制中心</string>
+    <string name="systemui_notification_weather">显示天气</string>
+    <string name="systemui_notification_weather_summary">在通知中心的时钟旁显示天气，点按打开天气应用。需要系统天气应用。</string>
+    <string name="systemui_notification_weather_city">显示地区</string>
+    <string name="systemui_notification_weather_new_line">换行</string>
+    <string name="systemui_notification_weather_bold">加粗</string>
+    <string name="systemui_notification_weather_size">字号</string>
+    <string name="systemui_notification_weather_icon">天气以图标显示</string>
+    <string name="systemui_notification_weather_margin">边距</string>
+    <string name="systemui_notification_section">通知中心</string>
 </resources>

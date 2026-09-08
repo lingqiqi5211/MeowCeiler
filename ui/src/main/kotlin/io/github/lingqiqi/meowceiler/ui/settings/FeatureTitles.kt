@@ -12,6 +12,7 @@ import io.github.lingqiqi.meowceiler.ui.R
 private val Titles: Map<String, Int> = mapOf(
     Preferences.SystemUi.DoubleTapToSleep.name to R.string.systemui_double_tap_to_sleep,
     Preferences.SystemUi.Clock.name to R.string.systemui_clock,
+    Preferences.SystemUi.NotificationWeather.name to R.string.systemui_notification_weather,
 )
 
 @Composable

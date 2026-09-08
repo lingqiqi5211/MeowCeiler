@@ -7,7 +7,6 @@ import io.github.lingqiqi.meowceiler.ui.Route
 import io.github.lingqiqi.meowceiler.ui.component.SettingsCard
 import io.github.lingqiqi.meowceiler.ui.component.SettingsNavigationRow
 
-/** 宿主 hub：只放分类入口，开关在分类页里。 */
 @Composable
 fun SystemUiPage(onBack: () -> Unit, onOpenCategory: (Route) -> Unit) {
     HostPage(titleRes = R.string.scope_systemui, hostPackage = Scope.SystemUi, onBack = onBack) {
@@ -20,6 +19,10 @@ fun SystemUiPage(onBack: () -> Unit, onOpenCategory: (Route) -> Unit) {
                 titleRes = R.string.systemui_section_statusbar,
                 testTag = "row.systemui.statusbar",
             ) { onOpenCategory(Route.SystemUiStatusBar) }
+            SettingsNavigationRow(
+                titleRes = R.string.systemui_notification_control_center,
+                testTag = "row.systemui.notification.controlcenter",
+            ) { onOpenCategory(Route.SystemUiNotificationCenter) }
         }
     }
 }

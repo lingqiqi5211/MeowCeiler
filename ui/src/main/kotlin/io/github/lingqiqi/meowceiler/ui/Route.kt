@@ -26,6 +26,8 @@ sealed interface Route {
     data object SystemUiStatusBar : Route
     data object SystemUiClock : Route
     data object SystemUiIcons : Route
+    data object SystemUiNotificationCenter : Route
+    data object SystemUiNotificationWeather : Route
     data class SystemUiClockLayout(val part: ClockPart) : Route
 
     /** 某个功能的 hook 日志。tag 就是功能 id。 */

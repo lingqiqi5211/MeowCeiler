@@ -186,8 +186,6 @@
     <string name="systemui_clock_format_pad">Pad status bar date clock format</string>
     <string name="systemui_clock_hidden">Hide this clock</string>
     <string name="systemui_clock_hidden_summary">Do not show the date clock in the Pad status bar</string>
-    <string name="systemui_icons">Icons</string>
-    <string name="systemui_icons_empty">No icon settings yet</string>
     <string name="systemui_clock_bold">Bold</string>
     <string name="systemui_clock_align">Two-line alignment</string>
     <string name="systemui_clock_align_start">Left</string>
@@ -200,4 +198,16 @@
     <string name="systemui_clock_fixed_width">Fixed width</string>
     <string name="systemui_clock_size">Clock size</string>
     <string name="adaptive_select_detail">Select an item on the left to view its settings</string>
+    <string name="systemui_icons">Icons</string>
+    <string name="systemui_icons_empty">No icon settings yet</string>
+    <string name="systemui_notification_control_center">Notifications and Control center</string>
+    <string name="systemui_notification_weather">Show weather</string>
+    <string name="systemui_notification_weather_summary">Show weather next to the clock in the notification shade; tap to open Weather. Requires the system Weather app.</string>
+    <string name="systemui_notification_weather_city">Show area</string>
+    <string name="systemui_notification_weather_new_line">New line</string>
+    <string name="systemui_notification_weather_bold">Bold</string>
+    <string name="systemui_notification_weather_size">Text size</string>
+    <string name="systemui_notification_weather_icon">Show weather as an icon</string>
+    <string name="systemui_notification_weather_margin">Margin</string>
+    <string name="systemui_notification_section">Notification shade</string>
 </resources>

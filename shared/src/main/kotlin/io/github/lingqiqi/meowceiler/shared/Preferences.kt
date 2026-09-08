@@ -33,6 +33,15 @@ object Preferences {
     object SystemUi {
         val DoubleTapToSleep = PreferenceKey("systemui_lockscreen_double_tap", false)
         val Clock = PreferenceKey("systemui_clock", false)
+        val NotificationWeather = PreferenceKey("systemui_notification_weather", false)
+        val NotificationWeatherCity = PreferenceKey("systemui_notification_weather_city", false)
+        val NotificationWeatherNewLine = PreferenceKey("systemui_notification_weather_new_line", false)
+        val NotificationWeatherBold = PreferenceKey("systemui_notification_weather_bold", false)
+        /** sp，0 表示跟随宿主日期字号。 */
+        val NotificationWeatherSize = PreferenceKey("systemui_notification_weather_size", 0f)
+        val NotificationWeatherIcon = PreferenceKey("systemui_notification_weather_icon", false)
+        /** dp，0 表示跟随宿主给日期留的间距。 */
+        val NotificationWeatherMargin = PreferenceKey("systemui_notification_weather_margin", 0f)
         val ClockNoSync = PreferenceKey("systemui_clock_no_sync", false)
         val ClockNoShadeAnimation = PreferenceKey("systemui_clock_no_shade_animation", false)
         val ClockFormatStatusBar = PreferenceKey("systemui_clock_format_statusbar", "HH:mm")
@@ -104,6 +113,13 @@ object Preferences {
         Appearance.InterfaceScale,
         SystemUi.DoubleTapToSleep,
         SystemUi.Clock,
+        SystemUi.NotificationWeather,
+        SystemUi.NotificationWeatherCity,
+        SystemUi.NotificationWeatherNewLine,
+        SystemUi.NotificationWeatherBold,
+        SystemUi.NotificationWeatherSize,
+        SystemUi.NotificationWeatherIcon,
+        SystemUi.NotificationWeatherMargin,
         SystemUi.ClockNoSync,
         SystemUi.ClockNoShadeAnimation,
         SystemUi.ClockFormatStatusBar,

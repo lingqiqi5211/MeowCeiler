@@ -24,6 +24,8 @@ import io.github.lingqiqi.meowceiler.ui.page.SystemUiPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiClockLayoutPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiClockPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiIconsPage
+import io.github.lingqiqi.meowceiler.ui.page.SystemUiNotificationCenterPage
+import io.github.lingqiqi.meowceiler.ui.page.SystemUiNotificationWeatherPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiStatusBarPage
 import io.github.lingqiqi5211.meowui.component.MeowAppearancePage
 import io.github.lingqiqi5211.meowui.component.MeowAppearanceLabels
@@ -88,8 +90,10 @@ fun MeowCeilerApp(bridge: FrameworkBridge = NoFrameworkBridge) {
                 Route.SystemUiLockScreen -> SystemUiLockScreenPage(onBack = nav::pop)
                 Route.SystemUiStatusBar -> SystemUiStatusBarPage(onBack = nav::pop, onOpen = nav::push)
                 Route.SystemUiClock -> SystemUiClockPage(onBack = nav::pop, onOpen = nav::push)
-                Route.SystemUiIcons -> SystemUiIconsPage(onBack = nav::pop)
                 is Route.SystemUiClockLayout -> SystemUiClockLayoutPage(part = route.part, onBack = nav::pop)
+                Route.SystemUiIcons -> SystemUiIconsPage(onBack = nav::pop)
+                Route.SystemUiNotificationCenter -> SystemUiNotificationCenterPage(onBack = nav::pop, onOpen = nav::push)
+                Route.SystemUiNotificationWeather -> SystemUiNotificationWeatherPage(onBack = nav::pop)
                 Route.HookLog -> HookLogPage(
                     state = hookLog,
                     onBack = nav::pop,
