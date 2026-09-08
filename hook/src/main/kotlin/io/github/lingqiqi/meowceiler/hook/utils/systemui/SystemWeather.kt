@@ -6,6 +6,8 @@ import android.content.Intent
 import android.database.ContentObserver
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -75,9 +77,36 @@ object SystemWeather {
         icon.setBounds(0, 0, iconSize, iconSize)
         val start = builder.length
         builder.append(' ')
-        builder.setSpan(ImageSpan(icon, ImageSpan.ALIGN_CENTER), start, builder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        builder.setSpan(CenteredIcon(icon), start, builder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         if (weather.temperature.isNotBlank()) builder.append(' ').append(weather.temperature)
         return builder
+    }
+
+    /**
+     * 按文字的 ascent/descent 居中。
+     *
+     * [ImageSpan.ALIGN_CENTER] 拿的是整行高度，行距一大图标就偏上。
+     */
+    private class CenteredIcon(drawable: Drawable) : ImageSpan(drawable) {
+        override fun draw(
+            canvas: Canvas,
+            text: CharSequence?,
+            start: Int,
+            end: Int,
+            x: Float,
+            top: Int,
+            y: Int,
+            bottom: Int,
+            paint: Paint,
+        ) {
+            val metrics = paint.fontMetricsInt
+            val bounds = drawable.bounds
+            val offset = y + (metrics.ascent + metrics.descent) / 2 - bounds.height() / 2
+            canvas.save()
+            canvas.translate(x, offset.toFloat())
+            drawable.draw(canvas)
+            canvas.restore()
+        }
     }
 
     /** Provider 变更后延迟 200ms 再读：天气应用会连着写好几列。 */
