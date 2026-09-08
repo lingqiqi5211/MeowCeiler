@@ -30,6 +30,9 @@ sealed interface Route {
     data object SystemUiNotificationWeather : Route
     data class SystemUiClockLayout(val part: ClockPart) : Route
 
+    /** 某个作用域的全部日志。 */
+    data class ScopeLog(val host: String) : Route
+
     /** 某个功能的 hook 日志。tag 就是功能 id。 */
     data class FeatureLog(val tag: String) : Route
 

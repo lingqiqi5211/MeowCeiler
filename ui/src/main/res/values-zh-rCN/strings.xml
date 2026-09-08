@@ -134,6 +134,7 @@
     <string name="log_refresh">刷新</string>
     <string name="log_generation_toggle">切换代次</string>
     <string name="log_empty">还没有记录</string>
+    <string name="log_detail">详细日志</string>
     <string name="log_problems">问题</string>
     <string name="log_trace">流水</string>
     <string name="log_trace_entry">日志</string>

@@ -136,6 +136,7 @@
     <string name="log_refresh">Refresh</string>
     <string name="log_generation_toggle">Switch generation</string>
     <string name="log_empty">Nothing recorded yet</string>
+    <string name="log_detail">Detailed logs</string>
     <string name="log_problems">Problems</string>
     <string name="log_trace">Trace</string>
     <string name="log_trace_entry">Log</string>

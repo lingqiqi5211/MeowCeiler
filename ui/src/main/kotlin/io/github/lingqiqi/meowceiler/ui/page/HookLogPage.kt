@@ -15,11 +15,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import io.github.lingqiqi.meowceiler.ui.R
+import io.github.lingqiqi.meowceiler.ui.component.MeowPreferenceSectionByTitle
 import io.github.lingqiqi.meowceiler.ui.component.SettingsCard
 import io.github.lingqiqi.meowceiler.ui.component.SettingsInfoRow
+import io.github.lingqiqi.meowceiler.ui.component.SettingsNavigationRow
 import io.github.lingqiqi.meowceiler.ui.component.SettingsValueRow
-import io.github.lingqiqi.meowceiler.ui.component.MeowPreferenceSectionByTitle
-import io.github.lingqiqi.meowceiler.ui.component.SettingsSection
 import io.github.lingqiqi.meowceiler.ui.settings.HookLogState
 import io.github.lingqiqi.meowceiler.ui.settings.featureTitle
 import io.github.lingqiqi.meowceiler.ui.settings.groupByHost
@@ -29,7 +29,12 @@ import kotlinx.coroutines.launch
 
 /** 功能清单来自日志记录，未装载过的功能不显示。 */
 @Composable
-fun HookLogPage(state: HookLogState, onBack: () -> Unit, onOpenFeature: (String) -> Unit) {
+fun HookLogPage(
+    state: HookLogState,
+    onBack: () -> Unit,
+    onOpenScope: (String) -> Unit,
+    onOpenFeature: (String) -> Unit,
+) {
     val scope = rememberCoroutineScope()
     var showPrevious by remember { mutableStateOf(false) }
 
@@ -76,6 +81,10 @@ fun HookLogPage(state: HookLogState, onBack: () -> Unit, onOpenFeature: (String)
 
         hosts.forEach { (host, features) ->
             MeowPreferenceSectionByTitle(title = host, testTag = "section.log.$host") {
+                SettingsNavigationRow(
+                    titleRes = R.string.log_detail,
+                    testTag = "row.log.detail.$host",
+                ) { onOpenScope(host) }
                 features.forEach { health ->
                     SettingsValueRow(
                         title = featureTitle(health.tag),

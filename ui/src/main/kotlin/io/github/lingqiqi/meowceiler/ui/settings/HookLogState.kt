@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import io.github.lingqiqi.meowceiler.shared.HookEventKind
 import io.github.lingqiqi.meowceiler.shared.HookLog
 import io.github.lingqiqi.meowceiler.shared.HookLogRecord
+import io.github.lingqiqi.meowceiler.shared.Preferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -78,12 +79,18 @@ fun rememberHookLogState(): HookLogState {
     return state
 }
 
+/** 功能 id 就是它的开关键名；框架和 EzHookTool 的日志另有 tag，不能当成功能列出来。 */
+private val featureTags: Set<String> by lazy(LazyThreadSafetyMode.NONE) {
+    Preferences.all.mapTo(mutableSetOf()) { it.name }
+}
+
 /** 按宿主分组，只包含日志中出现过的功能。 */
 fun List<HookLogRecord>.groupByHost(): Map<String, List<FeatureHealth>> =
     groupBy { it.host }
         .toSortedMap()
         .mapValues { (_, hostRecords) ->
-            hostRecords.groupBy { it.tag }
+            hostRecords.filter { it.tag in featureTags }
+                .groupBy { it.tag }
                 .map { (tag, tagRecords) ->
                     FeatureHealth(
                         tag = tag,

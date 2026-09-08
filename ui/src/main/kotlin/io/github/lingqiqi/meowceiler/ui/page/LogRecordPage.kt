@@ -4,8 +4,10 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
@@ -23,8 +25,6 @@ import androidx.core.content.FileProvider
 import io.github.lingqiqi.meowceiler.shared.HookLogRecord
 import io.github.lingqiqi.meowceiler.ui.R
 import io.github.lingqiqi.meowceiler.ui.component.SettingsCard
-import io.github.lingqiqi.meowceiler.ui.component.SettingsValueRow
-import io.github.lingqiqi.meowceiler.ui.settings.featureTitle
 import io.github.lingqiqi5211.meowui.component.MeowPreferencePage
 import io.github.lingqiqi5211.meowui.component.MeowTopBarAction
 import io.github.lingqiqi5211.meowui.theme.MeowTheme
@@ -55,36 +55,22 @@ fun LogRecordPage(record: HookLogRecord, onBack: () -> Unit) {
             ),
         ),
     ) {
-        SettingsCard(testTag = "section.log.record.state") {
-            SettingsValueRow(
-                title = stringResource(record.kind.titleRes()),
-                value = record.time(),
-                testTag = "row.log.record.kind",
-            )
-            SettingsValueRow(
-                title = stringResource(R.string.log_record_feature),
-                value = featureTitle(record.tag),
-                testTag = "row.log.record.feature",
-            )
-            SettingsValueRow(
-                title = stringResource(R.string.log_record_host),
-                value = record.host,
-                testTag = "row.log.record.host",
-            )
-        }
         SettingsCard(testTag = "section.log.record") {
             item(key = "text") {
+                // 堆栈按原样横向滚动：折行会把缩进和栈帧顺序搅在一起，读不出层级。
                 SelectionContainer {
                     BasicText(
                         text = text,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState())
                             .padding(16.dp)
                             .testTag("text.log.record"),
                         style = MeowTheme.typography.summary.copy(
                             color = MeowTheme.colors.onSurface,
                             fontFamily = FontFamily.Monospace,
                         ),
+                        softWrap = false,
                     )
                 }
             }
@@ -92,7 +78,7 @@ fun LogRecordPage(record: HookLogRecord, onBack: () -> Unit) {
     }
 }
 
-private fun HookLogRecord.fullText(): String {
+internal fun HookLogRecord.fullText(): String {
     val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
     return buildString {
         append(format.format(Date(firstMillis)))
@@ -103,12 +89,7 @@ private fun HookLogRecord.fullText(): String {
     }
 }
 
-private fun HookLogRecord.time(): String {
-    val time = SimpleDateFormat("MM-dd HH:mm:ss", Locale.getDefault()).format(Date(lastMillis))
-    return if (count > 1) "$time ×$count+" else time
-}
-
-private fun copyToClipboard(context: Context, text: String) {
+internal fun copyToClipboard(context: Context, text: String) {
     context.getSystemService(ClipboardManager::class.java)
         ?.setPrimaryClip(ClipData.newPlainText("MeowCeiler", text))
 }

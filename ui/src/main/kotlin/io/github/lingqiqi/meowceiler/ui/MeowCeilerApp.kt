@@ -14,6 +14,7 @@ import io.github.lingqiqi.meowceiler.ui.page.FeatureLogPage
 import io.github.lingqiqi.meowceiler.ui.page.HomePage
 import io.github.lingqiqi.meowceiler.ui.page.HomeHostsPage
 import io.github.lingqiqi.meowceiler.ui.page.HookLogPage
+import io.github.lingqiqi.meowceiler.ui.page.ScopeLogPage
 import io.github.lingqiqi.meowceiler.ui.page.LicensesPage
 import io.github.lingqiqi.meowceiler.ui.page.LogRecordPage
 import io.github.lingqiqi.meowceiler.ui.page.ModuleSettingsPage
@@ -97,8 +98,10 @@ fun MeowCeilerApp(bridge: FrameworkBridge = NoFrameworkBridge) {
                 Route.HookLog -> HookLogPage(
                     state = hookLog,
                     onBack = nav::pop,
+                    onOpenScope = { nav.push(Route.ScopeLog(it)) },
                     onOpenFeature = { nav.push(Route.FeatureLog(it)) },
                 )
+                is Route.ScopeLog -> ScopeLogPage(host = route.host, state = hookLog, onBack = nav::pop)
                 is Route.FeatureLog -> FeatureLogPage(
                     tag = route.tag,
                     state = hookLog,
