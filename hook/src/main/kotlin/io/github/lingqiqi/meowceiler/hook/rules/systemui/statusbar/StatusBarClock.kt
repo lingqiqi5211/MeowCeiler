@@ -675,9 +675,10 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
         if (v.fixedWidthDp > 30f) view.width = (v.fixedWidthDp * density).roundToInt()
     }
 
-    private fun render(view: TextView, v: Variant) {
+    /** [now] 由调用方给：渲染与排下一拍须用同一时刻，见 [startTicker]。 */
+    private fun render(view: TextView, v: Variant, now: Long = System.currentTimeMillis()) {
         val calendar = calendarField.get(controllerField.get(view)) ?: return
-        if (v.hasSeconds) setTimeMethod.invoke(calendar, System.currentTimeMillis(), *setTimeExtraArgs)
+        if (v.hasSeconds) setTimeMethod.invoke(calendar, now, *setTimeExtraArgs)
         val text = formatMethod.invoke(calendar, view.context, v.format) as? CharSequence ?: return
         if (!TextUtils.equals(text, view.text)) view.text = text
     }
@@ -690,8 +691,11 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
                     view.setTag(tickKey, null)
                     return
                 }
-                if (view.isShown) render(view, v)
-                view.postDelayed(this, 1000 - System.currentTimeMillis() % 1000)
+                // 渲染与调度共用时间基准，避免渲染跨过秒边界后漏掉下一秒。
+                val now = System.currentTimeMillis()
+                val next = SystemClock.uptimeMillis() + (1000 - now % 1000)
+                if (view.isShown) render(view, v, now)
+                view.postDelayed(this, (next - SystemClock.uptimeMillis()).coerceAtLeast(1))
             }
         }
         view.setTag(tickKey, tick)
