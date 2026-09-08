@@ -39,6 +39,7 @@
     <string name="home_empty_summary">Turn the hosts you use back on in Settings, Home hosts</string>
     <string name="home_status_framework">Xposed framework not connected</string>
     <string name="home_status_framework_summary">Enable the module in your manager, then restart the host</string>
+    <string name="preference_not_connected">Not saved: the Xposed framework is not connected</string>
     <string name="home_status_module_off">Module is off</string>
     <string name="home_status_module_off_summary">No feature is installed into any host</string>
     <string name="home_status_safe_mode">Safe mode stopped %1$d host(s)</string>
@@ -187,4 +188,5 @@
     <string name="systemui_clock_offset">Vertical offset</string>
     <string name="systemui_clock_fixed_width">Fixed width</string>
     <string name="systemui_clock_size">Clock size</string>
+    <string name="adaptive_select_detail">Select an item on the left to view its settings</string>
 </resources>

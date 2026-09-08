@@ -14,18 +14,13 @@
         android:enableOnBackInvokedCallback="true"
         tools:targetApi="36">
 
-        <!--
-          hook 日志的回传通道。必须 exported —— 投递方是宿主进程，它们持不了模块的签名级权限；
-          作为补偿 HookLogProvider 按调用方 uid 校验，只放行作用域里的宿主和模块自己。
-          directBootAware：SystemUI 在解锁前就起来了，不标的话那段时间 provider 拉不起来。
-        -->
+        <!-- 宿主跨进程写日志，由 Provider 校验 UID；directBootAware 支持解锁前写入。 -->
         <provider
             android:name=".logs.HookLogProvider"
             android:authorities="${applicationId}.logs"
             android:exported="true"
             android:directBootAware="true" />
 
-        <!-- 日志详情页「分享」出去的文本文件。 -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.share"
@@ -36,9 +31,10 @@
                 android:resource="@xml/share_paths" />
         </provider>
 
-        <!-- 不带 LAUNCHER：桌面入口走下面的别名，这样禁用图标不会连设置界面一起禁掉。 -->
+        <!-- 自行处理窗口配置变化，保留 composition 中的返回栈。 -->
         <activity
             android:name=".SettingsActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.MeowCeiler">
@@ -48,7 +44,7 @@
             </intent-filter>
         </activity>
 
-        <!-- 「隐藏桌面图标」开关禁用/启用的就是这个别名，见 shared 的 LauncherAliasName。 -->
+        <!-- 隐藏桌面入口只禁用别名，保留 SettingsActivity 的模块设置入口。 -->
         <activity-alias
             android:name=".LauncherAlias"
             android:exported="true"

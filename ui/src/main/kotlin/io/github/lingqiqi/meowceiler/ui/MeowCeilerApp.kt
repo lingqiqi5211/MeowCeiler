@@ -26,7 +26,6 @@ import io.github.lingqiqi.meowceiler.ui.page.SystemUiStatusBarPage
 import io.github.lingqiqi5211.meowui.component.MeowAppearancePage
 import io.github.lingqiqi5211.meowui.component.MeowAppearanceLabels
 import io.github.lingqiqi5211.meowui.preference.rememberMeowPreferenceValue
-import io.github.lingqiqi5211.meowui.component.MeowNavHost
 import androidx.compose.runtime.getValue
 import io.github.lingqiqi5211.meowui.theme.MeowTheme
 
@@ -40,64 +39,66 @@ fun MeowCeilerApp(bridge: FrameworkBridge = NoFrameworkBridge) {
 
     MeowTheme(appearance = appearance.appearance) {
         val backStack = remember { mutableStateListOf<Route>(Route.Shell) }
-        val push: (Route) -> Unit = { backStack.add(it) }
-        val pop: () -> Unit = { if (backStack.size > 1) backStack.removeAt(backStack.lastIndex) }
+        // 记下来：这几个回调要一路传到各个页面，每趟重组换新实例的话，下游全都跳不过去。
+        val nav = remember(backStack) { AppNavigation(backStack) }
 
-        MeowNavHost(
+        AdaptiveAppNavHost(
             backStack = backStack,
-            onBack = pop,
+            onBack = nav::pop,
             predictiveBackEnabled = appearance.appearance.predictiveBackEnabled,
+            floatingNavigation = appearance.appearance.floatingNavigationBarEnabled,
         ) { route ->
             when (route) {
                 Route.Shell -> ShellPage(
                     floatingNavigation = appearance.appearance.floatingNavigationBarEnabled,
+                    onTabChanged = nav::resetDetail,
                     home = {
                         HomePage(
                             scopeFilter = scopeState.packages?.takeIf { scopeSync },
                             hiddenHosts = if (scopeSync) emptySet() else hiddenHosts,
-                            onOpenSafeMode = { push(Route.SafeMode) },
-                            onOpenHost = push,
+                            onOpenSafeMode = { nav.openRoot(Route.SafeMode) },
+                            onOpenHost = nav::openRoot,
                         )
                     },
                     settings = {
                         ModuleSettingsPage(
                             bridge = bridge,
-                            onOpenAppearance = { push(Route.Appearance) },
-                            onOpenScope = { push(Route.Scope) },
-                            onOpenHomeHosts = { push(Route.HomeHosts) },
-                            onOpenSafeMode = { push(Route.SafeMode) },
-                            onOpenHookLog = { push(Route.HookLog) },
+                            onOpenAppearance = { nav.openRoot(Route.Appearance) },
+                            onOpenScope = { nav.openRoot(Route.Scope) },
+                            onOpenHomeHosts = { nav.openRoot(Route.HomeHosts) },
+                            onOpenSafeMode = { nav.openRoot(Route.SafeMode) },
+                            onOpenHookLog = { nav.openRoot(Route.HookLog) },
                         )
                     },
-                    about = { AboutPage(onOpenLicenses = { push(Route.Licenses) }) },
+                    about = { AboutPage(onOpenLicenses = { nav.openRoot(Route.Licenses) }) },
                 )
                 Route.Appearance -> MeowAppearancePage(
                     appearance = appearance.appearance,
                     onAppearanceChange = appearance.onChange,
-                    onBackClick = pop,
+                    onBackClick = nav::pop,
                     labels = appearanceLabels(),
                     interfaceItems = { AppLanguageRow() },
                 )
-                Route.Scope -> ScopePage(bridge = bridge, scopeState = scopeState, onBack = pop)
-                Route.HomeHosts -> HomeHostsPage(onBack = pop)
-                Route.Licenses -> LicensesPage(onBack = pop)
-                Route.SafeMode -> SafeModePage(onBack = pop)
-                Route.SystemUi -> SystemUiPage(onBack = pop, onOpenCategory = push)
-                Route.SystemUiLockScreen -> SystemUiLockScreenPage(onBack = pop)
-                Route.SystemUiStatusBar -> SystemUiStatusBarPage(onBack = pop, onOpen = push)
-                is Route.SystemUiClockLayout -> SystemUiClockLayoutPage(part = route.part, onBack = pop)
+                Route.Scope -> ScopePage(bridge = bridge, scopeState = scopeState, onBack = nav::pop)
+                Route.HomeHosts -> HomeHostsPage(onBack = nav::pop)
+                Route.Licenses -> LicensesPage(onBack = nav::pop)
+                Route.SafeMode -> SafeModePage(onBack = nav::pop)
+                Route.SystemUi -> SystemUiPage(onBack = nav::pop, onOpenCategory = nav::push)
+                Route.SystemUiLockScreen -> SystemUiLockScreenPage(onBack = nav::pop)
+                Route.SystemUiStatusBar -> SystemUiStatusBarPage(onBack = nav::pop, onOpen = nav::push)
+                is Route.SystemUiClockLayout -> SystemUiClockLayoutPage(part = route.part, onBack = nav::pop)
                 Route.HookLog -> HookLogPage(
                     state = hookLog,
-                    onBack = pop,
-                    onOpenFeature = { push(Route.FeatureLog(it)) },
+                    onBack = nav::pop,
+                    onOpenFeature = { nav.push(Route.FeatureLog(it)) },
                 )
                 is Route.FeatureLog -> FeatureLogPage(
                     tag = route.tag,
                     state = hookLog,
-                    onBack = pop,
-                    onOpenRecord = { push(Route.LogRecord(it)) },
+                    onBack = nav::pop,
+                    onOpenRecord = { nav.push(Route.LogRecord(it)) },
                 )
-                is Route.LogRecord -> LogRecordPage(record = route.record, onBack = pop)
+                is Route.LogRecord -> LogRecordPage(record = route.record, onBack = nav::pop)
             }
         }
     }
