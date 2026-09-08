@@ -1,9 +1,7 @@
 package io.github.lingqiqi.meowceiler.hook.rules.systemui.statusbar
 
 import android.content.Context
-import android.graphics.Paint
 import android.graphics.Typeface
-import android.graphics.fonts.FontVariationAxis
 import android.os.SystemClock
 import android.text.TextUtils
 import android.util.TypedValue
@@ -13,6 +11,7 @@ import android.view.animation.PathInterpolator
 import android.widget.TextView
 import io.github.lingqiqi.meowceiler.hook.base.Feature
 import io.github.lingqiqi.meowceiler.hook.base.StaticHooker
+import io.github.lingqiqi.meowceiler.hook.util.boldTypeface
 import io.github.lingqiqi.meowceiler.hook.util.Settings
 import io.github.lingqiqi.meowceiler.hook.util.findViewByName
 import io.github.lingqiqi.meowceiler.hook.util.idOf
@@ -615,36 +614,6 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
         return field.get(header) as? View
     }
 
-    private val boldCache = HashMap<Typeface, Typeface>()
-
-    private const val BoldSettings = "'wght' 701"
-    private val boldAxes: List<FontVariationAxis> = FontVariationAxis.fromFontVariationSettings(BoldSettings).orEmpty().toList()
-
-    /** 公开类上的隐藏成员桩不了，只能反射；SystemUI 是平台签名，隐藏 API 对它放行。 */
-    private val createWithVariation: Method? by lazy {
-        runCatching {
-            Typeface::class.java.getMethod("createFromTypefaceWithVariation", Typeface::class.java, List::class.java)
-        }.getOrNull()
-    }
-
-    /**
-     * 宿主的 MiPro 是可变字体，且构造时写死了 wght 轴，Typeface.create 改字重对它无效，得改轴。
-     * 按来源缓存 701 字重；生成的字体也映射到自身，重复刷新样式时不再派生新字体。
-     * 反射不可用时退到 Paint.setFontVariationSettings 这条公开 API。
-     */
-    private fun bold(base: Typeface?): Typeface {
-        val source = base ?: Typeface.DEFAULT
-        if (boldCache.size > 32) boldCache.clear()
-        boldCache[source]?.let { return it }
-        val result = runCatching { createWithVariation?.invoke(null, source, boldAxes) as? Typeface }.getOrNull()
-            ?: Paint().apply { typeface = source }.let {
-                if (it.setFontVariationSettings(BoldSettings)) it.typeface else Typeface.create(source, 701, false)
-            }
-        boldCache[source] = result
-        boldCache[result] = result
-        return result
-    }
-
     private fun nameOf(view: TextView): String? {
         val id = view.id
         if (id == View.NO_ID) return null
@@ -660,7 +629,7 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
         }
         val density = view.resources.displayMetrics.density
         (view.getTag(originalKey) as? Original)?.applySize(view, v.sizeSp)
-        if (v.bold) view.typeface = bold(view.typeface)
+        if (v.bold) view.typeface = boldTypeface(view.typeface)
         if (v.twoLines) {
             view.isSingleLine = false
             view.maxLines = 2
