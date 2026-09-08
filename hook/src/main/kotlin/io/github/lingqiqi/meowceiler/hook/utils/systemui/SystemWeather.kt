@@ -51,6 +51,8 @@ object SystemWeather {
         "icon_pm_dirt", "icon_ice_rain",
     )
 
+    private const val DayMillis = 24 * 60 * 60 * 1000L
+
     private val bitmaps = HashMap<String, Bitmap>()
 
     @Volatile
@@ -61,7 +63,20 @@ object SystemWeather {
         val description: String,
         val temperature: String,
         val type: Int,
+        val sunrise: Long,
+        val sunset: Long,
     ) {
+        /**
+         * 日出日落给的是 UTC 日内毫秒，本地白天跨了 UTC 的零点，所以日出常比日落大，
+         * 这种情况要反过来比。缺值时按白天算。
+         */
+        val daytime: Boolean
+            get() {
+                if (sunrise < 0 || sunset < 0) return true
+                val now = System.currentTimeMillis() % DayMillis
+                return if (sunrise < sunset) now in sunrise..sunset else now >= sunrise || now <= sunset
+            }
+
         /** [describe] 为 false 时省掉天气描述，图标那一路用它。 */
         fun text(showCity: Boolean, describe: Boolean = true): String =
             listOfNotNull(city.takeIf { showCity }, description.takeIf { describe }, temperature)
@@ -138,6 +153,8 @@ object SystemWeather {
                 description = column("description"),
                 temperature = column("temperature"),
                 type = column("weather_type").toIntOrNull() ?: -1,
+                sunrise = column("sunrise").toLongOrNull() ?: -1,
+                sunset = column("sunset").toLongOrNull() ?: -1,
             )
         }
 
@@ -147,20 +164,26 @@ object SystemWeather {
      * 新版天气应用是 Flutter 写的，图标在 flutter_assets 里；旧版在资源表。位图按名字留着，
      * 每次现包一层 [BitmapDrawable]：调用方会改 bounds，共用一个实例会互相盖掉。
      */
-    fun icon(context: Context, type: Int, tag: String): Drawable? {
-        val name = iconNames.getOrNull(type) ?: return null
-        val weather = weatherContext(context, tag) ?: return null
-        bitmaps[name]?.let { return BitmapDrawable(weather.resources, it) }
+    fun icon(context: Context, weather: Weather, tag: String): Drawable? {
+        val base = iconNames.getOrNull(weather.type) ?: return null
+        val source = weatherContext(context, tag) ?: return null
+        // 夜间另有一套，只有晴、多云、雾这类分昼夜；取不到就退回白天那张。
+        val names = if (weather.daytime) listOf(base) else listOf("${base}_night", base)
+        return names.firstNotNullOfOrNull { load(source, it, tag) }
+    }
+
+    private fun load(source: Context, name: String, tag: String): Drawable? {
+        bitmaps[name]?.let { return BitmapDrawable(source.resources, it) }
         val bitmap = runCatching {
-            weather.assets.open("$AssetImages$name.webp").use(BitmapFactory::decodeStream)
+            source.assets.open("$AssetImages$name.webp").use(BitmapFactory::decodeStream)
         }.getOrNull()
         if (bitmap != null) {
             bitmaps[name] = bitmap
-            return BitmapDrawable(weather.resources, bitmap)
+            return BitmapDrawable(source.resources, bitmap)
         }
-        val id = weather.resources.getIdentifier(name, "drawable", WeatherPackage)
+        val id = source.resources.getIdentifier(name, "drawable", WeatherPackage)
         if (id == 0) return null
-        return runCatching { weather.getDrawable(id) }
+        return runCatching { source.getDrawable(id) }
             .onFailure { MLog.w(tag, "Cannot load weather icon $name", it) }
             .getOrNull()
     }

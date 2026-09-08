@@ -236,7 +236,7 @@ object NotificationWeather : StaticHooker(Preferences.SystemUi.NotificationWeath
         private fun render() {
             for (slot in slots) {
                 syncAppearance(slot)
-                val icon = weather?.takeIf { style.icon }?.let { SystemWeather.icon(header.context, it.type, featureTag) }
+                val icon = weather?.takeIf { style.icon }?.let { SystemWeather.icon(header.context, it, featureTag) }
                 slot.icon = icon
                 slot.weather.text = weather?.let {
                     SystemWeather.format(it, style.city, icon, (slot.weather.textSize * 1.2f).roundToInt())
