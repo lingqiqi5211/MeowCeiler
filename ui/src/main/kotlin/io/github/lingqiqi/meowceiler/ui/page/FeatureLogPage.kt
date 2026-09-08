@@ -28,10 +28,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/**
- * 一个功能的 hook 日志。「问题」是合并过的，「流水」只在打开调试日志时才有。
- * 顶上可切「本次运行 / 上次重启前」：宿主崩掉重启时要看的正是崩之前那一代。
- */
 @Composable
 fun FeatureLogPage(tag: String, state: HookLogState, onBack: () -> Unit, onOpenRecord: (HookLogRecord) -> Unit) {
     val scope = rememberCoroutineScope()
@@ -121,7 +117,7 @@ internal fun HookEventKind.titleRes(): Int = when (this) {
     HookEventKind.Log -> R.string.log_kind_log
 }
 
-/** 行里只放时间和次数，全文在详情页。次数是按对数阶梯上报的，所以它是下界，加个 `+` 免得看着像精确值。 */
+/** 次数按对数阶梯上报，是实际次数的下界，因此显示「+」。 */
 private fun HookLogRecord.summary(): String {
     val times = if (count > 1) " ×$count+" else ""
     return "${time()}$times"

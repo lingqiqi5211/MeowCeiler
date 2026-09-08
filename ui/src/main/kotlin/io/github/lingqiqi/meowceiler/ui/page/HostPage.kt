@@ -17,12 +17,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * 属于某个宿主的页面外壳。
- *
- * 重启放在这里而不是各页自己写：宿主下每一级（hub 与各分类页）都该能直接重启，
- * 改完开关不用退回上一级去找按钮。
- */
 @Composable
 fun HostPage(
     titleRes: Int,

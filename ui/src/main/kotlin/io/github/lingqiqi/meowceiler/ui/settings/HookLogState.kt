@@ -14,12 +14,7 @@ import io.github.lingqiqi.meowceiler.shared.HookLogRecord
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/**
- * 从模块自己的 provider 把 hook 日志读回来。
- *
- * 读的是模块自己进程的 provider、落在模块自己的目录里，所以既不需要 root，也不用跨 uid ——
- * 跨 uid 那一段发生在写入侧（宿主 → provider），见 `:shared` 的 `HookLog`。
- */
+/** 读取模块自身的日志 Provider，无需 root；跨 UID 校验由写入侧负责。 */
 class HookLogState internal constructor(private val context: Context) {
     var current by mutableStateOf<List<HookLogRecord>>(emptyList())
         private set
@@ -83,12 +78,7 @@ fun rememberHookLogState(): HookLogState {
     return state
 }
 
-/**
- * 记录里出现过的功能，按宿主分组。
- *
- * 清单从记录本身来 —— 不需要在 `:shared` 里另立一份功能注册表。代价是没被装载过的功能不会出现，
- * 而那恰恰也是一种有用的信息：它在这一代里从没被碰过。
- */
+/** 按宿主分组，只包含日志中出现过的功能。 */
 fun List<HookLogRecord>.groupByHost(): Map<String, List<FeatureHealth>> =
     groupBy { it.host }
         .toSortedMap()

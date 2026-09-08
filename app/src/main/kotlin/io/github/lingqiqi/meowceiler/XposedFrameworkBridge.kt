@@ -10,12 +10,9 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
 
-/**
- * [FrameworkBridge] 的实现。服务从 [MeowXposedService] 取：自己 registerListener 会顶掉 MeowUI 的监听，远程偏好会断。
- * 服务没绑好时直接失败，不排队。
- */
+/** 复用 [MeowXposedService] 的连接，避免重复注册监听覆盖远程偏好监听。 */
 object XposedFrameworkBridge : FrameworkBridge {
-    /** 重载失败会拖垮整个系统的进程，一律不碰。 */
+    /** 不热重载系统关键进程，避免系统重启。 */
     private val ProtectedProcesses = setOf("system_server", "android")
 
     private fun require(): XposedService =
@@ -25,7 +22,6 @@ object XposedFrameworkBridge : FrameworkBridge {
         require().runningTargets.map { it.processName }
     }
 
-    /** 只重载 STALE 的进程并排除系统进程：无差别重载曾把设备搞成软重启。autoHotReload 开着时这里通常无事可做。 */
     override suspend fun hotReload(): Result<Int> = call {
         val stale = require().runningTargets.filter {
             it.state == HookedTarget.State.STALE && it.processName !in ProtectedProcesses
@@ -34,7 +30,6 @@ object XposedFrameworkBridge : FrameworkBridge {
         stale.count { reloadOne(it) }
     }
 
-    /** 逐个等结果而不是一起发：一起发拿不到是哪个进程失败了。 */
     private suspend fun reloadOne(target: HookedTarget): Boolean =
         suspendCancellableCoroutine { continuation ->
             runCatching {
@@ -57,7 +52,7 @@ object XposedFrameworkBridge : FrameworkBridge {
         }
     }
 
-    /** 申请要用户在管理器里点同意；没批准的当失败报出去，别假装成功。 */
+    /** 作用域申请须经管理器批准；部分批准也返回失败。 */
     private suspend fun requestScope(service: XposedService, packages: List<String>) =
         suspendCancellableCoroutine { continuation ->
             service.requestScope(
@@ -83,7 +78,6 @@ object XposedFrameworkBridge : FrameworkBridge {
             )
         }
 
-    /** 所有调用都可能抛 RemoteException / ServiceException，统一收进 Result。 */
     private suspend fun <T> call(block: suspend () -> T): Result<T> =
         withContext(Dispatchers.IO) { runCatching { block() } }
 }

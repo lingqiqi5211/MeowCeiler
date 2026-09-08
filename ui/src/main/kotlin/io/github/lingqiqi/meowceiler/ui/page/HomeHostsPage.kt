@@ -13,7 +13,6 @@ import io.github.lingqiqi5211.meowui.component.MeowPreferencePage
 import io.github.lingqiqi5211.meowui.preference.rememberMeowPreferenceValue
 import io.github.lingqiqi5211.meowui.preference.rememberMeowPreferenceWriter
 
-/** 首页显示哪些宿主。只列真正装着的宿主；关掉的记在偏好里，首页据此过滤。 */
 @Composable
 fun HomeHostsPage(onBack: () -> Unit) {
     val hosts = rememberInstalledHosts()

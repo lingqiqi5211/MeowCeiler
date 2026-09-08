@@ -27,14 +27,7 @@ private enum class ShellTab(val titleRes: Int) {
     About(R.string.tab_about),
 }
 
-/**
- * 三 Tab 外壳。
- *
- * scaffold 归外壳所有，pager 只装内容 —— 顶栏与底栏因此不跟着左右滑动。
- * 根页面不得自带 scaffold，它们拿到的是 [LocalShellContentPadding]。
- *
- * [LocalSideRail] 非空时底栏换成左侧栏，[floatingNavigation] 这时不起作用。
- */
+/** 外壳持有 Scaffold；根页面通过 [LocalShellContentPadding] 获取内边距。 */
 @Composable
 fun ShellPage(
     floatingNavigation: Boolean,
@@ -47,7 +40,6 @@ fun ShellPage(
     val pagerState = rememberPagerState(pageCount = tabs::size)
     val selection = rememberMeowNavigationSelection(pagerState) { onTabChanged() }
 
-    // 记下来而不是每趟重组重建：这一份要传给底栏或侧栏，换新实例它们就得整条重画。
     val homeLabel = stringResource(R.string.tab_home)
     val settingsLabel = stringResource(R.string.tab_settings)
     val aboutLabel = stringResource(R.string.tab_about)
@@ -104,13 +96,7 @@ fun ShellPage(
     }
 }
 
-/** 外壳发布的内容内边距。根页面自己 padding，而不是由外壳裁掉可滚动区域。 */
 val LocalShellContentPadding = compositionLocalOf { PaddingValues(0.dp) }
 
-/**
- * 侧边导航栏的展开状态，null 表示这一档不用侧栏。
- *
- * 该不该用侧栏由 [AdaptiveAppNavHost] 定，外壳自己量不出来：宽屏时它只占左栏那一列，
- * 量到的宽度永远小于分栏阈值。状态也归那边拿着，左栏宽度要跟着侧栏一起变。
- */
+/** 侧栏状态由完整窗口决定；分栏后的 Shell 宽度不能用于判断设备布局。null 表示不用侧栏。 */
 internal val LocalSideRail = compositionLocalOf<MeowNavigationRailState?> { null }

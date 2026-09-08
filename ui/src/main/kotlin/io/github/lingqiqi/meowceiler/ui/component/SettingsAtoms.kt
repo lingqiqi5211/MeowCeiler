@@ -23,7 +23,6 @@ fun SettingsSection(
     )
 }
 
-/** 无标题分组，用于页面自带大标题的场合。 */
 @Composable
 fun SettingsCard(
     testTag: String,
@@ -32,7 +31,6 @@ fun SettingsCard(
     MeowPreferenceSection(modifier = Modifier.testTag(testTag), content = content)
 }
 
-/** 功能开关。summary 写这个功能做什么，不写适配版本 —— 那是 hook 头注释的事。 */
 @Suppress("FunctionName")
 fun MeowPreferenceSectionScope.FeatureSwitchRow(
     key: PreferenceKey<Boolean>,
@@ -44,7 +42,6 @@ fun MeowPreferenceSectionScope.FeatureSwitchRow(
     MeowSwitchPreferenceRow(key, titleRes, summaryRes, testTag)
 }
 
-/** 打开另一个页面的行。 */
 @Suppress("FunctionName")
 fun MeowPreferenceSectionScope.SettingsNavigationRow(
     titleRes: Int,
@@ -56,7 +53,6 @@ fun MeowPreferenceSectionScope.SettingsNavigationRow(
     MeowActionRow(titleRes, testTag, summaryRes, value = null, navigation = true, onClick = onClick)
 }
 
-/** 只读信息行。 */
 @Suppress("FunctionName")
 fun MeowPreferenceSectionScope.SettingsInfoRow(
     titleRes: Int,
@@ -66,10 +62,7 @@ fun MeowPreferenceSectionScope.SettingsInfoRow(
     MeowActionRow(titleRes, testTag, summaryRes = null, value = value, navigation = false, onClick = {})
 }
 
-/**
- * 功能的滑块。值按 [step] 分档，从 [range] 起点数起，小数位数由 [step] 决定；[range] 可以是负数。
- * 点数值弹输入框直接填。[visible] 为 false 时走 `item(visible = ...)` 收起，直接不声明会让分区停在旧内容上。
- */
+/** 值按 [step] 分档；通过 [visible] 更新分组中的可见性。 */
 @Suppress("FunctionName")
 fun MeowPreferenceSectionScope.FeatureSliderRow(
     key: PreferenceKey<Float>,
@@ -84,11 +77,6 @@ fun MeowPreferenceSectionScope.FeatureSliderRow(
     MeowSliderRow(key, titleRes, range, step, unit, showPlus, testTag)
 }
 
-/**
- * 标题不是资源、而是运行时字符串的行。
- *
- * 功能 id、宿主包名这些没有对应的 string 资源 —— 它们本来就不该被翻译。
- */
 @Suppress("FunctionName")
 fun MeowPreferenceSectionScope.SettingsValueRow(
     title: String,
@@ -100,7 +88,6 @@ fun MeowPreferenceSectionScope.SettingsValueRow(
     MeowTextActionRow(title, value, testTag, navigation, onClick)
 }
 
-/** 分组标题是运行时字符串（宿主包名这类）的分组。 */
 @Composable
 fun MeowPreferenceSectionByTitle(
     title: String,

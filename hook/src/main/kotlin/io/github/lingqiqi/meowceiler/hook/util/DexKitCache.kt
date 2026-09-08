@@ -23,7 +23,6 @@ internal class DexKitCache(
         load()
     }
 
-    /** 会话结束时落盘。整个会话只写一次文件。 */
     @Synchronized
     override fun getString(key: String, default: String?): String? = strings[key] ?: default
 

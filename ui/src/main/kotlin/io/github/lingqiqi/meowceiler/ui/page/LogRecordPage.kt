@@ -33,7 +33,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/** 一条 hook 记录的全文：时间、次数、宿主、功能，然后是消息与堆栈。可复制，也可以当文本文件分享出去。 */
 @Composable
 fun LogRecordPage(record: HookLogRecord, onBack: () -> Unit) {
     val context = LocalContext.current
@@ -104,7 +103,6 @@ private fun HookLogRecord.fullText(): String {
     }
 }
 
-/** 状态卡片里的时间。次数跟在后面，与功能页的行一致。 */
 private fun HookLogRecord.time(): String {
     val time = SimpleDateFormat("MM-dd HH:mm:ss", Locale.getDefault()).format(Date(lastMillis))
     return if (count > 1) "$time ×$count+" else time

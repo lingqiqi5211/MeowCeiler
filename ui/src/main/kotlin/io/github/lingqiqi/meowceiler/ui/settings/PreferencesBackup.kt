@@ -7,12 +7,7 @@ import io.github.lingqiqi5211.meowui.core.preference.PreferenceType
 import org.json.JSONArray
 import org.json.JSONObject
 
-/**
- * 配置的导出与导入，按 [Preferences.all] 走。
- *
- * 只认契约里声明过的键：文件里多出来的键一概忽略，别的版本或手改过的文件灌不进来。
- * 反过来，文件里缺的键保持当前值不动 —— 导入是合并，不是整表替换。
- */
+/** 仅导入 [Preferences.all] 中的键；缺失键保持当前值，导入采用合并语义。 */
 object PreferencesBackup {
     const val MimeType = "application/json"
     const val FileName = "meowceiler-settings.json"
@@ -43,7 +38,7 @@ object PreferencesBackup {
         return applied
     }
 
-    /** 类型对不上就跳过这一条，返回 false —— 半个错值比缺一项更难查。 */
+    /** 类型不匹配时跳过该项并返回 false。 */
     @Suppress("UNCHECKED_CAST")
     private fun PreferenceStore.readAsJson(key: PreferenceKey<*>): Any = when (key.type) {
         PreferenceType.Boolean -> read(key as PreferenceKey<Boolean>)

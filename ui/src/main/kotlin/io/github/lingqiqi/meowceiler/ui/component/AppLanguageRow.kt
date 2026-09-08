@@ -13,7 +13,6 @@ import io.github.lingqiqi.meowceiler.ui.R
 import io.github.lingqiqi.meowceiler.ui.settings.AppLanguage
 import io.github.lingqiqi5211.meowui.component.MeowPreferenceSectionScope
 
-/** 应用语言，放在外观页的「界面」分区里。 */
 @Composable
 fun MeowPreferenceSectionScope.AppLanguageRow() {
     val context = LocalContext.current

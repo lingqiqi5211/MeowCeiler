@@ -35,13 +35,7 @@ import io.github.lingqiqi5211.meowui.preference.rememberMeowPreferenceConnection
 import io.github.lingqiqi5211.meowui.preference.rememberMeowPreferenceValue
 import io.github.lingqiqi5211.meowui.theme.MeowTheme
 
-/**
- * 首页：宿主应用平铺列表，图标与名称取自实际安装的应用。scaffold 归外壳所有。
- *
- * [scopeFilter] 非空时只显示在作用域里的宿主（「作用域同步」开着时如此）；为 null 表示不过滤。
- * 注意作用域读取失败时上游传的是 null 而不是空集合 —— 服务抽一下不该把用户的宿主列表整个清空。
- * [hiddenHosts] 是用户在「首页显示」里关掉的宿主，只在作用域同步关着时才有意义。
- */
+/** [scopeFilter] 为 null 时不过滤，空集合表示无作用域；[hiddenHosts] 仅在关闭作用域同步时生效。 */
 @Composable
 fun HomePage(
     scopeFilter: Set<String>?,
@@ -70,7 +64,6 @@ fun HomePage(
     }
 }
 
-/** 模块整体状态。没问题时整条不画。 */
 @Composable
 private fun StatusTip(onOpenSafeMode: () -> Unit) {
     val connection by rememberMeowPreferenceConnectionState()
@@ -108,7 +101,6 @@ private fun StatusTip(onOpenSafeMode: () -> Unit) {
     }
 }
 
-/** 一个宿主都不显示时的空页。 */
 @Composable
 private fun EmptyHosts() {
     Column(

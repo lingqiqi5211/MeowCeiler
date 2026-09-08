@@ -27,10 +27,7 @@ import io.github.lingqiqi5211.meowui.component.MeowPreferencePage
 import io.github.lingqiqi5211.meowui.component.MeowTopBarAction
 import kotlinx.coroutines.launch
 
-/**
- * hook 日志总览。清单从记录本身来，不另立功能注册表：没出现的功能就是这一代没装过。
- * 顶上可切「本次运行 / 上次重启前」。
- */
+/** 功能清单来自日志记录，未装载过的功能不显示。 */
 @Composable
 fun HookLogPage(state: HookLogState, onBack: () -> Unit, onOpenFeature: (String) -> Unit) {
     val scope = rememberCoroutineScope()

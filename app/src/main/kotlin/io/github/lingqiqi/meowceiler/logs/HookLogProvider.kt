@@ -9,10 +9,7 @@ import io.github.lingqiqi.meowceiler.shared.HookLog
 import io.github.lingqiqi.meowceiler.shared.ModulePackage
 import io.github.lingqiqi.meowceiler.shared.Scope
 
-/**
- * 收 hook 日志的 provider，只实现 [call]。投递方是宿主进程，拿不到模块签名权限，所以必须 exported，
- * 由 [assertCallerAllowed] 按 uid 限制在 [Scope] 里的宿主。directBootAware 且存 DE 区：SystemUI 解锁前就起来了。
- */
+/** 接收宿主日志，通过 [assertCallerAllowed] 校验调用方 UID；解锁前使用 DE 存储。 */
 class HookLogProvider : ContentProvider() {
     private val store: HookLogStore by lazy {
         HookLogStore(requireNotNull(context) { "HookLogProvider has no context" })

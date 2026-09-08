@@ -15,7 +15,6 @@ import android.view.View
 fun Resources.idOf(name: String, type: String, packageName: String): Int =
     getIdentifier(name, type, packageName)
 
-/** 默认查宿主自己的包。 */
 fun Context.idOf(name: String, type: String = "id", packageName: String = this.packageName): Int =
     resources.idOf(name, type, packageName)
 
@@ -36,14 +35,11 @@ fun Context.stringByName(name: String): String? =
 fun Context.drawableByName(name: String): Drawable? =
     idOf(name, "drawable").takeIf { it != 0 }?.let(::getDrawable)
 
-/** 直接给像素值。dimen 的 ID 本身没什么用，要的都是解析后的尺寸。 */
 fun Context.dimenPxByName(name: String): Int? =
     idOf(name, "dimen").takeIf { it != 0 }?.let(resources::getDimensionPixelSize)
 
-/** 四边同值。 */
 fun View.setPadding(padding: Int) = setPadding(padding, padding, padding, padding)
 
-/** 只改左右，保留宿主自己的上下间距。 */
 fun View.setPaddingHorizontal(left: Int, right: Int = left) =
     setPadding(left, paddingTop, right, paddingBottom)
 

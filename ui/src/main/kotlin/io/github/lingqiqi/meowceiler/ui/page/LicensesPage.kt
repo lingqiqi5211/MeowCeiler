@@ -49,12 +49,7 @@ import kotlinx.coroutines.Dispatchers
 import java.text.Collator
 import kotlinx.coroutines.withContext as onDispatcher
 
-/**
- * 开源许可。清单由 AboutLibraries 的 Gradle 插件在构建时生成，打进 `res/raw/aboutlibraries.json`。
- *
- * 列表走 LazyColumn：一百多条依赖，用整屏滚动的 Column 会在进页面那一帧全部组合完，明显卡一下。
- * 点一条从底部抽屉看许可证全文。
- */
+/** 许可清单由 AboutLibraries 在构建时生成至 res/raw/aboutlibraries.json。 */
 @Composable
 fun LicensesPage(onBack: () -> Unit) {
     val context = LocalContext.current
@@ -228,14 +223,12 @@ private fun LicenseChip(name: String) {
     }
 }
 
-/** 开发者，没有就退到组织名。 */
 private fun Library.author(): String? =
     developers.mapNotNull { it.name?.takeIf(String::isNotBlank) }
         .takeIf { it.isNotEmpty() }
         ?.joinToString(", ")
         ?: organization?.name?.takeIf(String::isNotBlank)
 
-/** 主页优先，没有就退到源码仓库。 */
 private val Library.link: String?
     get() = website?.takeIf(String::isNotBlank) ?: scm?.url?.takeIf(String::isNotBlank)
 

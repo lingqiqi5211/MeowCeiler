@@ -42,15 +42,13 @@ object DexKit {
         }
     }
 
-    /** 查一个方法。 */
     fun method(key: String, query: RecyclableBridge.FindMethodBuilder): Method =
         lookup(key) { it.getMethod(key, query).getMethodInstance(EzXposed.classLoader) }
 
-    /** 查一个构造器。查询条件写 `name("<init>")`。 */
+    /** 构造器查询使用 name("<init>")。 */
     fun constructor(key: String, query: RecyclableBridge.FindMethodBuilder): Constructor<*> =
         lookup(key) { it.getMethod(key, query).getConstructorInstance(EzXposed.classLoader) }
 
-    /** 查一组同名 / 同特征的方法。 */
     fun methods(key: String, query: RecyclableBridge.FindMethodBuilder): List<Method> =
         lookup(key) { bridge ->
             bridge.getMethods(key, query).map { it.getMethodInstance(EzXposed.classLoader) }

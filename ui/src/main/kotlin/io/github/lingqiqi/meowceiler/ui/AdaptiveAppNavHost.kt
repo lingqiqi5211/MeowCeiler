@@ -20,20 +20,9 @@ import io.github.lingqiqi5211.meowui.component.MeowWindowWidth
 import io.github.lingqiqi5211.meowui.component.rememberMeowNavigationRailState
 import io.github.lingqiqi5211.meowui.theme.MeowTheme
 
-/**
- * 按窗口大小分三档：
- *
- * - 窄：整屏一页，导航栏在底部。手机竖屏。
- * - 中：导航栏移到左侧，仍然整屏一页。手机横屏、竖屏平板、展开的折叠机都在这一档。
- * - 宽：左侧栏 + 分两栏，导航栈摊在外壳右侧。横屏平板。
- *
- * 三档共用一个返回栈，宽屏因此不需要另一套导航状态：栈底永远是外壳，其余是详情。
- * [floatingNavigation] 开着时不出侧栏：悬浮底栏是用户挑的样子，宽屏也留在底下。
- */
+/** 各窗口档位共用返回栈；启用悬浮底栏时不显示侧栏。 */
 @Composable
 internal fun AdaptiveAppNavHost(
-    // 收 SnapshotStateList 而不是 List：List 在编译器眼里不稳定，下面几个 @Composable lambda
-    // 就不会被记住，每次重组都换新的，分栏两侧跟着整棵重新组合。
     backStack: SnapshotStateList<Route>,
     onBack: () -> Unit,
     predictiveBackEnabled: Boolean,
@@ -51,8 +40,7 @@ internal fun AdaptiveAppNavHost(
     }
     val railState = rememberMeowNavigationRailState()
     val rail = if (floatingNavigation) null else railState
-    // 左栏跟着侧栏一起变宽，否则展开多出来的那一截是从外壳内容里抠的，列表会被挤扁。
-    // 这里只给目标值，过渡由 MeowAdaptiveLayout 在布局期做。
+    // 侧栏展开时增加左栏总宽度，保持主页面内容宽度。
     val railWidth = when {
         rail == null -> 0.dp
         railState.isExpanded -> MeowNavigationRailDefaults.ExpandedWidth
@@ -60,7 +48,6 @@ internal fun AdaptiveAppNavHost(
     }
 
     MeowAdaptiveLayout(
-        // 给了 compactContent，窄屏归它管，compactPane 只是形参。
         compactPane = MeowCompactPane.List,
         listPane = { CompositionLocalProvider(LocalSideRail provides rail) { shell() } },
         detailPane = { navHost { route -> if (route == Route.Shell) DetailPlaceholder() else content(route) } },
@@ -74,7 +61,6 @@ internal fun AdaptiveAppNavHost(
     )
 }
 
-/** 详情栏还没有选中项。 */
 @Composable
 private fun DetailPlaceholder() {
     Box(
@@ -91,5 +77,5 @@ private fun DetailPlaceholder() {
     }
 }
 
-/** 左栏里留给外壳内容的宽度，侧边导航栏那一列另算。 */
+/** 主页面内容宽度，不含侧边导航栏。 */
 private val ShellContentWidth = 340.dp
