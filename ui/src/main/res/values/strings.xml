@@ -44,6 +44,7 @@
     <string name="home_status_framework">Xposed framework not connected</string>
     <string name="home_status_framework_summary">Enable the module in your manager, then restart the host</string>
     <string name="preference_not_connected">Not saved: the Xposed framework is not connected</string>
+    <string name="preference_enabled">Enabled</string>
     <string name="home_status_module_off">Module is off</string>
     <string name="home_status_module_off_summary">No feature is installed into any host</string>
     <string name="home_status_safe_mode">Safe mode stopped %1$d host(s)</string>
@@ -181,6 +182,12 @@
     <string name="systemui_clock_section_statusbar">Status bar clock</string>
     <string name="systemui_clock_section_big">Shade big clock</string>
     <string name="systemui_clock_section_mini">Shade mini clock</string>
+    <string name="systemui_clock_section_pad">Pad status bar date clock</string>
+    <string name="systemui_clock_format_pad">Pad status bar date clock format</string>
+    <string name="systemui_clock_hidden">Hide this clock</string>
+    <string name="systemui_clock_hidden_summary">Do not show the date clock in the Pad status bar</string>
+    <string name="systemui_icons">Icons</string>
+    <string name="systemui_icons_empty">No icon settings yet</string>
     <string name="systemui_clock_bold">Bold</string>
     <string name="systemui_clock_align">Two-line alignment</string>
     <string name="systemui_clock_align_start">Left</string>

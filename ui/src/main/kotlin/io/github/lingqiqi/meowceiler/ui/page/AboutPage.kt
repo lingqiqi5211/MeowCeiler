@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.lingqiqi.meowceiler.shared.readProperty
 import io.github.lingqiqi.meowceiler.ui.R
 import io.github.lingqiqi.meowceiler.ui.component.SettingsCard
 import io.github.lingqiqi.meowceiler.ui.component.SettingsInfoRow
@@ -115,9 +116,3 @@ private fun rememberLauncherIcon(size: Dp): ImageBitmap? {
 }
 
 private fun hyperOsName(): String = readProperty("ro.mi.os.version.name")
-
-private fun readProperty(key: String): String = runCatching {
-    Class.forName("android.os.SystemProperties")
-        .getMethod("get", String::class.java, String::class.java)
-        .invoke(null, key, "") as? String
-}.getOrNull().orEmpty()

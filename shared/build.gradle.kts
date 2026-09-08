@@ -24,6 +24,6 @@ kotlin {
 }
 
 dependencies {
-    // MeowUI 全项目只在这里声明一次，版本号也只有一处。
     api(libs.meowui.xposed)
+    api(libs.ezhooktool.core)
 }

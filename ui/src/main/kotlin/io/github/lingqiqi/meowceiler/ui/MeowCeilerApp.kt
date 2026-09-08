@@ -22,6 +22,8 @@ import io.github.lingqiqi.meowceiler.ui.page.ScopePage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiLockScreenPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiClockLayoutPage
+import io.github.lingqiqi.meowceiler.ui.page.SystemUiClockPage
+import io.github.lingqiqi.meowceiler.ui.page.SystemUiIconsPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiStatusBarPage
 import io.github.lingqiqi5211.meowui.component.MeowAppearancePage
 import io.github.lingqiqi5211.meowui.component.MeowAppearanceLabels
@@ -39,7 +41,6 @@ fun MeowCeilerApp(bridge: FrameworkBridge = NoFrameworkBridge) {
 
     MeowTheme(appearance = appearance.appearance) {
         val backStack = remember { mutableStateListOf<Route>(Route.Shell) }
-        // 记下来：这几个回调要一路传到各个页面，每趟重组换新实例的话，下游全都跳不过去。
         val nav = remember(backStack) { AppNavigation(backStack) }
 
         AdaptiveAppNavHost(
@@ -86,6 +87,8 @@ fun MeowCeilerApp(bridge: FrameworkBridge = NoFrameworkBridge) {
                 Route.SystemUi -> SystemUiPage(onBack = nav::pop, onOpenCategory = nav::push)
                 Route.SystemUiLockScreen -> SystemUiLockScreenPage(onBack = nav::pop)
                 Route.SystemUiStatusBar -> SystemUiStatusBarPage(onBack = nav::pop, onOpen = nav::push)
+                Route.SystemUiClock -> SystemUiClockPage(onBack = nav::pop, onOpen = nav::push)
+                Route.SystemUiIcons -> SystemUiIconsPage(onBack = nav::pop)
                 is Route.SystemUiClockLayout -> SystemUiClockLayoutPage(part = route.part, onBack = nav::pop)
                 Route.HookLog -> HookLogPage(
                     state = hookLog,

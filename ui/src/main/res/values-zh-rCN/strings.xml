@@ -42,6 +42,7 @@
     <string name="home_status_framework">Xposed 框架未连接</string>
     <string name="home_status_framework_summary">在管理器里启用模块，再重启宿主</string>
     <string name="preference_not_connected">没保存：Xposed 框架未连接</string>
+    <string name="preference_enabled">启用</string>
     <string name="home_status_module_off">模块已关闭</string>
     <string name="home_status_module_off_summary">所有功能都不会装载</string>
     <string name="home_status_safe_mode">安全模式已停用 %1$d 个宿主</string>
@@ -179,6 +180,12 @@
     <string name="systemui_clock_section_statusbar">状态栏时钟</string>
     <string name="systemui_clock_section_big">通知中心大时钟</string>
     <string name="systemui_clock_section_mini">通知中心迷你时钟</string>
+    <string name="systemui_clock_section_pad">Pad 状态栏日期时钟</string>
+    <string name="systemui_clock_format_pad">Pad 状态栏日期时钟格式</string>
+    <string name="systemui_clock_hidden">隐藏时钟</string>
+    <string name="systemui_clock_hidden_summary">不显示 Pad 状态栏日期时钟</string>
+    <string name="systemui_icons">图标</string>
+    <string name="systemui_icons_empty">暂无图标设置</string>
     <string name="systemui_clock_bold">加粗</string>
     <string name="systemui_clock_align">双排对齐方式</string>
     <string name="systemui_clock_align_start">左对齐</string>

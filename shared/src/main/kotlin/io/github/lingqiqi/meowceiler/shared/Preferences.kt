@@ -8,7 +8,6 @@ import io.github.lingqiqi5211.meowui.core.preference.PreferenceKey
  * 默认值必须是「远程设置不可用时对宿主安全」的那个值。
  */
 object Preferences {
-    /** 两侧必须用同一个名字。 */
     const val NAME = "meowceiler"
 
     object Module {
@@ -58,6 +57,13 @@ object Preferences {
         val ClockLeftMini = PreferenceKey("systemui_clock_left_mini", 0f)
         val ClockRightMini = PreferenceKey("systemui_clock_right_mini", 0f)
         val ClockOffsetMini = PreferenceKey("systemui_clock_offset_mini", 12f)
+        val ClockHiddenPad = PreferenceKey("systemui_clock_hidden_pad", false)
+        val ClockFormatPad = PreferenceKey("systemui_clock_format_pad", "")
+        val ClockBoldPad = PreferenceKey("systemui_clock_bold_pad", false)
+        val ClockSizePad = PreferenceKey("systemui_clock_size_pad", 0f)
+        val ClockLeftPad = PreferenceKey("systemui_clock_left_pad", 0f)
+        val ClockRightPad = PreferenceKey("systemui_clock_right_pad", 0f)
+        val ClockOffsetPad = PreferenceKey("systemui_clock_offset_pad", 12f)
     }
 
     /** 注入到系统设置里的模块入口。取值见 [SettingsEntryPosition]。 */
@@ -65,12 +71,7 @@ object Preferences {
         val Position = PreferenceKey("settings_entry_position", SettingsEntryPosition.Off.key)
     }
 
-    /**
-     * 功能级安全模式。
-     *
-     * 和 HyperCeiler 的整宿主停用不同：这里隔离的是**单个功能**，靠 hook 回调边界归因，
-     * 并以模块 apk 的标识做有效期 —— 模块一换记录自动作废、功能自动重试。
-     */
+    /** 安全模式记录以模块 APK 标识为有效期，模块更新后自动失效。 */
     object SafeMode {
         val Enabled = PreferenceKey("safe_mode_enabled", true)
         val Records = PreferenceKey("safe_mode_records", emptySet<String>())
@@ -86,11 +87,7 @@ object Preferences {
         val HiddenHosts = PreferenceKey("home_hidden_hosts", emptySet<String>())
     }
 
-    /**
-     * 全部键。备份、恢复、重置都按这份走。
-     *
-     * 新增键必须同时加进来 —— 漏了不会报错，只会在备份里静默缺一项。
-     */
+    /** 备份、恢复和重置使用此清单；新增设置键须同步注册。 */
     val all: List<PreferenceKey<*>> = listOf(
         Module.Enabled,
         Module.Debug,
@@ -131,6 +128,13 @@ object Preferences {
         SystemUi.ClockLeftMini,
         SystemUi.ClockRightMini,
         SystemUi.ClockOffsetMini,
+        SystemUi.ClockHiddenPad,
+        SystemUi.ClockFormatPad,
+        SystemUi.ClockBoldPad,
+        SystemUi.ClockSizePad,
+        SystemUi.ClockLeftPad,
+        SystemUi.ClockRightPad,
+        SystemUi.ClockOffsetPad,
         SettingsEntry.Position,
         Framework.ScopeSync,
         Home.HiddenHosts,
@@ -139,19 +143,10 @@ object Preferences {
     )
 }
 
-/**
- * 桌面图标入口的别名组件，隐藏图标就是禁用它。
- *
- * 真正的 Activity 不能直接禁用 —— 那样设置界面自己也打不开了。
- */
+/** 隐藏桌面图标仅禁用别名，保留实际设置 Activity。 */
 const val LauncherAliasName = ".LauncherAlias"
 
-/**
- * 模块自身的包名与设置入口。
- *
- * hook 跑在宿主进程里，拿不到自己的 BuildConfig，只能写死；必须和 `:app` 的
- * applicationId 一致。[LauncherAliasName] 也是同一份耦合。
- */
+/** Hook 无法读取模块 BuildConfig；此包名须与 :app 的 applicationId 及 [LauncherAliasName] 一致。 */
 const val ModulePackage = "io.github.lingqiqi.meowceiler"
 const val ModuleSettingsActivity = "$ModulePackage.SettingsActivity"
 

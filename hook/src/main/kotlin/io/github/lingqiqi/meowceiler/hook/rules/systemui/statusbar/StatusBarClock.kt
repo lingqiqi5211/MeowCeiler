@@ -17,6 +17,7 @@ import io.github.lingqiqi.meowceiler.hook.util.Settings
 import io.github.lingqiqi.meowceiler.hook.util.findViewByName
 import io.github.lingqiqi.meowceiler.hook.util.idOf
 import io.github.lingqiqi.meowceiler.shared.Preferences
+import io.github.lingqiqi.meowceiler.shared.isPadDevice
 import io.github.lingqiqi5211.ezhooktool.core.findAllMethods
 import io.github.lingqiqi5211.ezhooktool.core.findConstructor
 import io.github.lingqiqi5211.ezhooktool.core.findField
@@ -54,12 +55,12 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
         val spacing: Float = 1f,
         val fixedWidthDp: Float = 0f,
         val sizeSp: Float = 0f,
+        val hidden: Boolean = false,
     ) {
         val hasSeconds = 's' in format.replace(Regex("'[^']*'"), "")
         val twoLines = '\n' in format
     }
 
-    /** 宿主自己的样式。设置改了先还原再套新值，关掉的项才能真的退回去。 */
     private class Original(view: TextView) {
         private val typeface: Typeface? = view.typeface
         private var textSize = view.textSize
@@ -75,8 +76,15 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
         private val alignment = view.textAlignment
         private val spacingExtra = view.lineSpacingExtra
         private val spacingMultiplier = view.lineSpacingMultiplier
+        private var visibility = view.visibility
+        private var appliedVisibility: Int? = null
 
         fun restore(view: TextView) {
+            // 只还原模块修改过的可见性，避免热重载显示宿主已隐藏的时钟。
+            if (appliedVisibility != null) {
+                view.visibility = visibility
+                appliedVisibility = null
+            }
             view.typeface = typeface
             if (appliedTextSize != null) {
                 view.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize)
@@ -89,6 +97,23 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
             view.maxLines = maxLines
             view.textAlignment = alignment
             view.setLineSpacing(spacingExtra, spacingMultiplier)
+        }
+
+        fun setHidden(view: TextView, hidden: Boolean) {
+            if (!hidden) {
+                if (appliedVisibility == null) return
+                view.visibility = visibility
+                appliedVisibility = null
+                return
+            }
+            if (appliedVisibility == null || view.visibility != appliedVisibility) visibility = view.visibility
+            view.visibility = View.GONE
+            appliedVisibility = View.GONE
+        }
+
+        /** null 保留宿主左右内边距，下内边距始终使用宿主值。 */
+        fun applyPadding(view: TextView, startPx: Int?, endPx: Int?, top: Int) {
+            view.setPaddingRelative(startPx ?: padStart, top, endPx ?: padEnd, padBottom)
         }
 
         fun applySize(view: TextView, sizeSp: Float) {
@@ -146,8 +171,18 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
                 sizeSp = pref(Preferences.SystemUi.ClockSizeBig),
             ),
             "date_time" to mini,
-            "horizontal_time" to mini,
+            // Pad 的 horizontal_time 并非手机横屏迷你时钟，不能套用同一配置。
+            *(if (isPadDevice) emptyArray() else arrayOf("horizontal_time" to mini)),
             "normal_control_center_date_view" to mini,
+            "pad_clock" to Variant(
+                firstLine(Preferences.SystemUi.ClockFormatPad),
+                pref(Preferences.SystemUi.ClockBoldPad),
+                pref(Preferences.SystemUi.ClockLeftPad),
+                pref(Preferences.SystemUi.ClockRightPad),
+                pref(Preferences.SystemUi.ClockOffsetPad),
+                sizeSp = pref(Preferences.SystemUi.ClockSizePad),
+                hidden = pref(Preferences.SystemUi.ClockHiddenPad),
+            ),
         )
     }
 
@@ -159,6 +194,7 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
     private val markKey = EzResources.fakeResId("meowceiler.clock.mark")
     private val tickKey = EzResources.fakeResId("meowceiler.clock.tick")
     private val originalKey = EzResources.fakeResId("meowceiler.clock.original")
+    private val emptyKey = EzResources.fakeResId("meowceiler.clock.empty")
 
     @Volatile private var variants: Map<String, Variant> = emptyMap()
     @Volatile private var noShadeAnimation = false
@@ -226,6 +262,10 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
                 val view = param.thisObjectOrNull as? TextView ?: return@before
                 if (view.getTag(markKey) !== marker) adopt(view)
                 val variant = view.getTag(variantKey) as? Variant ?: return@before
+                if (variant.hidden) {
+                    param.result = null
+                    return@before
+                }
                 if (variant.format.isEmpty()) return@before
                 render(view, variant)
                 if (variant.hasSeconds && view.getTag(tickKey) == null && view.isAttachedToWindow) startTicker(view, variant)
@@ -446,11 +486,59 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
         val variant = name?.let(variants::get)
         view.setTag(variantKey, variant)
         adopted.add(view)
-        if (variant != null) style(view, variant)
+        if (variant != null) {
+            style(view, variant)
+            keepCollapsed(view)
+        }
+    }
+
+    // 宿主挂载后会重设 pad_clock 可见性，隐藏开关需在绘制前持续生效。
+    private fun keepCollapsed(view: TextView) {
+        if (view.getTag(emptyKey) != null) return
+        view.setTag(emptyKey, true)
+        // 未挂窗口时 ViewTreeObserver 是临时实例，挂上再注册。
+        doOnAttached(view) { clock ->
+            clock.viewTreeObserver.addOnPreDrawListener {
+                val original = clock.getTag(originalKey) as? Original
+                val variant = clock.getTag(variantKey) as? Variant
+                if (original != null && variant != null) {
+                    original.setHidden(clock, variant.hidden)
+                }
+                true
+            }
+        }
+    }
+
+    private fun doOnAttached(view: TextView, action: (TextView) -> Unit) {
+        if (view.isAttachedToWindow) {
+            action(view)
+            return
+        }
+        view.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(v: View) {
+                v.removeOnAttachStateChangeListener(this)
+                action(view)
+            }
+
+            override fun onViewDetachedFromWindow(v: View) = Unit
+        })
     }
 
     private fun restyle(view: TextView) {
         (view.getTag(variantKey) as? Variant)?.let { style(view, it) }
+    }
+
+    /** 左右为 0 表示沿用宿主内边距。 */
+    private fun applyPadding(view: TextView, v: Variant) {
+        if (v.hidden) return
+        val density = view.resources.displayMetrics.density
+        val top = if (v.offset != 12f) ((v.offset - 12f) * 0.5f * density).roundToInt() else 0
+        (view.getTag(originalKey) as? Original)?.applyPadding(
+            view,
+            startPx = (v.leftDp * density).roundToInt().takeIf { v.leftDp != 0f },
+            endPx = (v.rightDp * density).roundToInt().takeIf { v.rightDp != 0f },
+            top = top,
+        )
     }
 
     /**
@@ -566,6 +654,10 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
     }
 
     private fun style(view: TextView, v: Variant) {
+        if (v.hidden) {
+            (view.getTag(originalKey) as? Original)?.setHidden(view, true)
+            return
+        }
         val density = view.resources.displayMetrics.density
         (view.getTag(originalKey) as? Original)?.applySize(view, v.sizeSp)
         if (v.bold) view.typeface = bold(view.typeface)
@@ -579,8 +671,7 @@ object StatusBarClock : StaticHooker(Preferences.SystemUi.Clock) {
             }
             view.setLineSpacing(0f, v.spacing)
         }
-        val top = if (v.offset != 12f) ((v.offset - 12f) * 0.5f * density).roundToInt() else 0
-        view.setPaddingRelative((v.leftDp * density).roundToInt(), top, (v.rightDp * density).roundToInt(), 0)
+        applyPadding(view, v)
         if (v.fixedWidthDp > 30f) view.width = (v.fixedWidthDp * density).roundToInt()
     }
 
