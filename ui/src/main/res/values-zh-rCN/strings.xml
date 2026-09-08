@@ -31,6 +31,10 @@
     <string name="settings_scope_search">搜索应用</string>
     <string name="settings_scope_loading">正在读取应用列表</string>
     <string name="settings_scope_empty">没有匹配的应用</string>
+    <string name="pull_refresh_pull">下拉刷新</string>
+    <string name="pull_refresh_release">松开刷新</string>
+    <string name="pull_refresh_refreshing">正在刷新</string>
+    <string name="pull_refresh_done">刷新完成</string>
     <string name="settings_scope_granted">已在作用域</string>
     <string name="settings_scope_not_granted">不在作用域</string>
     <string name="home_empty">首页没有宿主</string>

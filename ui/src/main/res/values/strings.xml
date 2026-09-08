@@ -33,6 +33,10 @@
     <string name="settings_scope_search">Search apps</string>
     <string name="settings_scope_loading">Loading apps</string>
     <string name="settings_scope_empty">No matching apps</string>
+    <string name="pull_refresh_pull">Pull to refresh</string>
+    <string name="pull_refresh_release">Release to refresh</string>
+    <string name="pull_refresh_refreshing">Refreshing</string>
+    <string name="pull_refresh_done">Refreshed</string>
     <string name="settings_scope_granted">In scope</string>
     <string name="settings_scope_not_granted">Not in scope</string>
     <string name="home_empty">No hosts on the home page</string>
