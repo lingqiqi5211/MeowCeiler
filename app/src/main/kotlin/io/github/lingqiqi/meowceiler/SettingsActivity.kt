@@ -1,11 +1,14 @@
 package io.github.lingqiqi.meowceiler
 
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.ViewTreeObserver
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
 import io.github.lingqiqi.meowceiler.shared.Preferences
 import io.github.lingqiqi.meowceiler.ui.MeowCeilerApp
+import io.github.lingqiqi.meowceiler.ui.R
 import io.github.lingqiqi5211.meowui.core.preference.PreferenceWriteResult
 import io.github.lingqiqi5211.meowui.core.preference.PreferenceConnectionState
 import io.github.lingqiqi5211.meowui.libxposed.XposedServicePreferenceStore
@@ -17,6 +20,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 
 class SettingsActivity : ComponentActivity() {
     private var preferenceStore: XposedServicePreferenceStore? = null
+    private var lastNotConnectedToast = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,12 +56,23 @@ class SettingsActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    /** 写入失败必须暴露，不能吞掉或伪装成功。 */
+    /** 节流显示写入失败提示，避免连续拖动时重复提示。 */
     private fun onWriteResult(result: PreferenceWriteResult) {
         when (result) {
             PreferenceWriteResult.Success -> Unit
-            is PreferenceWriteResult.NotConnected -> Unit
+            is PreferenceWriteResult.NotConnected -> reportNotConnected()
             is PreferenceWriteResult.Failure -> result.cause.printStackTrace()
         }
+    }
+
+    private fun reportNotConnected() {
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastNotConnectedToast < NotConnectedToastInterval) return
+        lastNotConnectedToast = now
+        Toast.makeText(this, R.string.preference_not_connected, Toast.LENGTH_SHORT).show()
+    }
+
+    private companion object {
+        const val NotConnectedToastInterval = 3_000L
     }
 }
