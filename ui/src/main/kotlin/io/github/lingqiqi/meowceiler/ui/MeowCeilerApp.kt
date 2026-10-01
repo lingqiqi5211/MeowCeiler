@@ -20,11 +20,11 @@ import io.github.lingqiqi.meowceiler.ui.page.LogRecordPage
 import io.github.lingqiqi.meowceiler.ui.page.ModuleSettingsPage
 import io.github.lingqiqi.meowceiler.ui.page.SafeModePage
 import io.github.lingqiqi.meowceiler.ui.page.ScopePage
+import io.github.lingqiqi.meowceiler.ui.page.SettingsHostPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiLockScreenPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiClockLayoutPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiClockPage
-import io.github.lingqiqi.meowceiler.ui.page.SystemUiIconsPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiNotificationCenterPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiNotificationWeatherPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiStatusBarPage
@@ -34,8 +34,17 @@ import io.github.lingqiqi5211.meowui.preference.rememberMeowPreferenceValue
 import androidx.compose.runtime.getValue
 import io.github.lingqiqi5211.meowui.theme.MeowTheme
 
+/**
+ * [initialRoute] 来自宿主注入的入口，进来就停在那一页。
+ *
+ * 这种情况下从那一页返回要直接回宿主，[onExit] 负责结束这次界面，中间不经过模块首页。
+ */
 @Composable
-fun MeowCeilerApp(bridge: FrameworkBridge = NoFrameworkBridge) {
+fun MeowCeilerApp(
+    bridge: FrameworkBridge = NoFrameworkBridge,
+    initialRoute: Route? = null,
+    onExit: () -> Unit = {},
+) {
     val appearance = rememberAppearanceController()
     val scopeSync by rememberMeowPreferenceValue(io.github.lingqiqi.meowceiler.shared.Preferences.Framework.ScopeSync)
     val hiddenHosts by rememberMeowPreferenceValue(io.github.lingqiqi.meowceiler.shared.Preferences.Home.HiddenHosts)
@@ -43,12 +52,18 @@ fun MeowCeilerApp(bridge: FrameworkBridge = NoFrameworkBridge) {
     val hookLog = rememberHookLogState()
 
     MeowTheme(appearance = appearance.appearance) {
-        val backStack = remember { mutableStateListOf<Route>(Route.Shell) }
+        val backStack = remember {
+            mutableStateListOf<Route>(Route.Shell).apply { initialRoute?.let(::add) }
+        }
         val nav = remember(backStack) { AppNavigation(backStack) }
+        val entry = remember { initialRoute }
+        val back: () -> Unit = {
+            if (entry != null && backStack.lastOrNull() == entry) onExit() else nav.pop()
+        }
 
         AdaptiveAppNavHost(
             backStack = backStack,
-            onBack = nav::pop,
+            onBack = back,
             predictiveBackEnabled = appearance.appearance.predictiveBackEnabled,
             floatingNavigation = appearance.appearance.floatingNavigationBarEnabled,
         ) { route ->
@@ -79,36 +94,36 @@ fun MeowCeilerApp(bridge: FrameworkBridge = NoFrameworkBridge) {
                 Route.Appearance -> MeowAppearancePage(
                     appearance = appearance.appearance,
                     onAppearanceChange = appearance.onChange,
-                    onBackClick = nav::pop,
+                    onBackClick = back,
                     labels = appearanceLabels(),
                     interfaceItems = { AppLanguageRow() },
                 )
-                Route.Scope -> ScopePage(bridge = bridge, scopeState = scopeState, onBack = nav::pop)
-                Route.HomeHosts -> HomeHostsPage(onBack = nav::pop)
-                Route.Licenses -> LicensesPage(onBack = nav::pop)
-                Route.SafeMode -> SafeModePage(onBack = nav::pop)
-                Route.SystemUi -> SystemUiPage(onBack = nav::pop, onOpenCategory = nav::push)
-                Route.SystemUiLockScreen -> SystemUiLockScreenPage(onBack = nav::pop)
-                Route.SystemUiStatusBar -> SystemUiStatusBarPage(onBack = nav::pop, onOpen = nav::push)
-                Route.SystemUiClock -> SystemUiClockPage(onBack = nav::pop, onOpen = nav::push)
-                is Route.SystemUiClockLayout -> SystemUiClockLayoutPage(part = route.part, onBack = nav::pop)
-                Route.SystemUiIcons -> SystemUiIconsPage(onBack = nav::pop)
-                Route.SystemUiNotificationCenter -> SystemUiNotificationCenterPage(onBack = nav::pop, onOpen = nav::push)
-                Route.SystemUiNotificationWeather -> SystemUiNotificationWeatherPage(onBack = nav::pop)
+                Route.Scope -> ScopePage(bridge = bridge, scopeState = scopeState, onBack = back)
+                Route.HomeHosts -> HomeHostsPage(onBack = back)
+                Route.Licenses -> LicensesPage(onBack = back)
+                Route.SafeMode -> SafeModePage(onBack = back)
+                Route.SystemUi -> SystemUiPage(onBack = back, onOpenCategory = nav::push)
+                Route.SystemUiLockScreen -> SystemUiLockScreenPage(onBack = back)
+                Route.SystemUiStatusBar -> SystemUiStatusBarPage(onBack = back, onOpen = nav::push)
+                Route.SystemUiClock -> SystemUiClockPage(onBack = back, onOpen = nav::push)
+                is Route.SystemUiClockLayout -> SystemUiClockLayoutPage(part = route.part, onBack = back)
+                Route.SystemUiNotificationCenter -> SystemUiNotificationCenterPage(onBack = back, onOpen = nav::push)
+                Route.Settings -> SettingsHostPage(onBack = back)
+                Route.SystemUiNotificationWeather -> SystemUiNotificationWeatherPage(onBack = back)
                 Route.HookLog -> HookLogPage(
                     state = hookLog,
-                    onBack = nav::pop,
+                    onBack = back,
                     onOpenScope = { nav.push(Route.ScopeLog(it)) },
                     onOpenFeature = { nav.push(Route.FeatureLog(it)) },
                 )
-                is Route.ScopeLog -> ScopeLogPage(host = route.host, state = hookLog, onBack = nav::pop)
+                is Route.ScopeLog -> ScopeLogPage(host = route.host, state = hookLog, onBack = back)
                 is Route.FeatureLog -> FeatureLogPage(
                     tag = route.tag,
                     state = hookLog,
-                    onBack = nav::pop,
+                    onBack = back,
                     onOpenRecord = { nav.push(Route.LogRecord(it)) },
                 )
-                is Route.LogRecord -> LogRecordPage(record = route.record, onBack = nav::pop)
+                is Route.LogRecord -> LogRecordPage(record = route.record, onBack = back)
             }
         }
     }

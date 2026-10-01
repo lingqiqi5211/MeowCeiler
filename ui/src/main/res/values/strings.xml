@@ -199,8 +199,6 @@
     <string name="systemui_clock_fixed_width">Fixed width</string>
     <string name="systemui_clock_size">Clock size</string>
     <string name="adaptive_select_detail">Select an item on the left to view its settings</string>
-    <string name="systemui_icons">Icons</string>
-    <string name="systemui_icons_empty">No icon settings yet</string>
     <string name="systemui_notification_control_center">Notifications and Control center</string>
     <string name="systemui_notification_weather">Show weather</string>
     <string name="systemui_notification_weather_summary">Show weather next to the clock in the notification shade; tap to open Weather. Requires the system Weather app.</string>
@@ -211,4 +209,14 @@
     <string name="systemui_notification_weather_icon">Show weather as an icon</string>
     <string name="systemui_notification_weather_margin">Margin</string>
     <string name="systemui_notification_section">Notification shade</string>
+    <string name="scope_settings">Settings</string>
+    <string name="settings_icons">Icons</string>
+    <string name="settings_icons_count">Custom notification icon count</string>
+    <string name="settings_icons_count_summary">Adds a custom option to Icon display customization</string>
+    <string name="settings_icons_entry">Module entry in Icon display customization</string>
+    <string name="settings_icons_open_host">Icon display customization</string>
+    <!-- 下面四条注入到系统设置的界面里，宿主没有这些文案。 -->
+    <string name="settings_icons_count_custom">Custom</string>
+    <string name="settings_icons_count_unlimited">No limit</string>
+    <string name="settings_icons_entry_summary">More icon settings</string>
 </resources>

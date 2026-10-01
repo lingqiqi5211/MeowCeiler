@@ -1,14 +1,21 @@
 package io.github.lingqiqi.meowceiler
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.ViewTreeObserver
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
+import io.github.lingqiqi.meowceiler.shared.ModuleLink
 import io.github.lingqiqi.meowceiler.shared.Preferences
 import io.github.lingqiqi.meowceiler.ui.MeowCeilerApp
 import io.github.lingqiqi.meowceiler.ui.R
+import io.github.lingqiqi.meowceiler.ui.routeOfLink
 import io.github.lingqiqi5211.meowui.core.preference.PreferenceWriteResult
 import io.github.lingqiqi5211.meowui.core.preference.PreferenceConnectionState
 import io.github.lingqiqi5211.meowui.libxposed.XposedServicePreferenceStore
@@ -21,6 +28,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 class SettingsActivity : ComponentActivity() {
     private var preferenceStore: XposedServicePreferenceStore? = null
     private var lastNotConnectedToast = 0L
+    private var entryVersion by mutableIntStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,11 +52,23 @@ class SettingsActivity : ComponentActivity() {
             }
             setMeowContent {
                 MeowPreferenceProvider(store = store, onWriteResult = ::onWriteResult) {
-                    MeowCeilerApp(bridge = XposedFrameworkBridge)
+                    key(entryVersion) {
+                        MeowCeilerApp(
+                            bridge = XposedFrameworkBridge,
+                            initialRoute = routeOfLink(intent?.getStringExtra(ModuleLink.Extra)),
+                            onExit = ::finish,
+                        )
+                    }
                 }
             }
             ready = true
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (routeOfLink(intent.getStringExtra(ModuleLink.Extra)) != null) entryVersion++
     }
 
     override fun onDestroy() {

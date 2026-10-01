@@ -14,9 +14,6 @@ fun SystemUiStatusBarPage(onBack: () -> Unit, onOpen: (Route) -> Unit) {
             SettingsNavigationRow(titleRes = R.string.systemui_clock, testTag = "row.systemui.statusbar.clock") {
                 onOpen(Route.SystemUiClock)
             }
-            SettingsNavigationRow(titleRes = R.string.systemui_icons, testTag = "row.systemui.statusbar.icons") {
-                onOpen(Route.SystemUiIcons)
-            }
         }
     }
 }

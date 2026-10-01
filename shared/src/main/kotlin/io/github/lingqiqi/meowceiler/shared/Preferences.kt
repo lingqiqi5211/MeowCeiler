@@ -80,6 +80,12 @@ object Preferences {
         val Position = PreferenceKey("settings_entry_position", SettingsEntryPosition.Off.key)
     }
 
+    /** 注入到系统设置「图标显示自定义」页的条目。 */
+    object SettingsIcons {
+        val NotificationCount = PreferenceKey("settings_icons_notification_count", false)
+        val Entry = PreferenceKey("settings_icons_entry", false)
+    }
+
     /** 安全模式记录以模块 APK 标识为有效期，模块更新后自动失效。 */
     object SafeMode {
         val Enabled = PreferenceKey("safe_mode_enabled", true)
@@ -152,6 +158,8 @@ object Preferences {
         SystemUi.ClockRightPad,
         SystemUi.ClockOffsetPad,
         SettingsEntry.Position,
+        SettingsIcons.NotificationCount,
+        SettingsIcons.Entry,
         Framework.ScopeSync,
         Home.HiddenHosts,
         SafeMode.Enabled,

@@ -1,7 +1,7 @@
 [versions]
 # 与 MeowUI / EzHookTool / HyperCeiler 对齐。复合构建要求工具链一致：
 # MeowUI 用 Kotlin 2.4.20 编译，低版本编译器读不了它的 metadata。
-agp = "9.4.0"
+agp = "9.4.1"
 kotlin = "2.4.20"
 
 compileSdk = "37"

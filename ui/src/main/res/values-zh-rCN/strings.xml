@@ -197,8 +197,6 @@
     <string name="systemui_clock_fixed_width">固定宽度</string>
     <string name="systemui_clock_size">字体大小</string>
     <string name="adaptive_select_detail">选择左侧项目以查看设置</string>
-    <string name="systemui_icons">图标</string>
-    <string name="systemui_icons_empty">暂无图标设置</string>
     <string name="systemui_notification_control_center">通知与控制中心</string>
     <string name="systemui_notification_weather">显示天气</string>
     <string name="systemui_notification_weather_summary">在通知中心的时钟旁显示天气，点按打开天气应用。需要系统天气应用。</string>
@@ -209,4 +207,14 @@
     <string name="systemui_notification_weather_icon">天气以图标显示</string>
     <string name="systemui_notification_weather_margin">边距</string>
     <string name="systemui_notification_section">通知中心</string>
+    <string name="scope_settings">系统设置</string>
+    <string name="settings_icons">图标</string>
+    <string name="settings_icons_count">通知图标个数自定义</string>
+    <string name="settings_icons_count_summary">在「图标显示自定义」里加一个自定义档</string>
+    <string name="settings_icons_entry">在「图标显示自定义」里显示模块入口</string>
+    <string name="settings_icons_open_host">图标显示自定义</string>
+    <!-- 下面四条注入到系统设置的界面里，宿主没有这些文案。 -->
+    <string name="settings_icons_count_custom">自定义</string>
+    <string name="settings_icons_count_unlimited">不限</string>
+    <string name="settings_icons_entry_summary">更多图标设置</string>
 </resources>
