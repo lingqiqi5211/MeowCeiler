@@ -29,6 +29,8 @@ sealed interface Route {
     data object SystemUiNotificationCenter : Route
     data object SystemUiNotificationWeather : Route
 
+    /** HyperOS 3 没有系统自带的超级岛应用页，由这一页代替。 */
+    data object SystemUiFocusApps : Route
     data class SystemUiClockLayout(val part: ClockPart) : Route
 
     /** 系统设置宿主，不是模块自己的设置页（那是 Shell 的一个 Tab）。 */

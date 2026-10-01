@@ -34,6 +34,18 @@ object Preferences {
         val DoubleTapToSleep = PreferenceKey("systemui_lockscreen_double_tap", false)
         val Clock = PreferenceKey("systemui_clock", false)
         val NotificationWeather = PreferenceKey("systemui_notification_weather", false)
+        val FocusUnlock = PreferenceKey("systemui_focus_unlock", false)
+
+        /** 旧版通知应用记录，保留键兼容配置，不作为 OS4 成功通知的证据。 */
+        val FocusApps = PreferenceKey("systemui_focus_apps", emptySet<String>())
+
+        /** 旧版通知开关，保留键兼容配置；OS4 使用系统自己的开关。 */
+        val FocusHidden = PreferenceKey("systemui_focus_hidden", emptySet<String>())
+
+        /** 旧版媒体应用记录，页面与模块本地发现记录合并显示。 */
+        val FocusMediaApps = PreferenceKey("systemui_focus_media_apps", emptySet<String>())
+
+        val FocusMediaHidden = PreferenceKey("systemui_focus_media_hidden", emptySet<String>())
         val NotificationWeatherCity = PreferenceKey("systemui_notification_weather_city", false)
         val NotificationWeatherNewLine = PreferenceKey("systemui_notification_weather_new_line", false)
         val NotificationWeatherBold = PreferenceKey("systemui_notification_weather_bold", false)
@@ -119,6 +131,11 @@ object Preferences {
         Appearance.InterfaceScale,
         SystemUi.DoubleTapToSleep,
         SystemUi.Clock,
+        SystemUi.FocusUnlock,
+        SystemUi.FocusApps,
+        SystemUi.FocusHidden,
+        SystemUi.FocusMediaApps,
+        SystemUi.FocusMediaHidden,
         SystemUi.NotificationWeather,
         SystemUi.NotificationWeatherCity,
         SystemUi.NotificationWeatherNewLine,

@@ -23,6 +23,11 @@ private fun isFoldableDevice(): Boolean {
     }
 }
 
+/** HyperOS 大版本号。读不到按 0 处理，调用方据此退回不依赖版本的行为。 */
+val hyperOsVersion: Int by lazy {
+    readProperty("ro.mi.os.version.code").toIntOrNull() ?: 0
+}
+
 fun readProperty(key: String): String = runCatching {
     "android.os.SystemProperties".toClass().callStaticMethod("get", key, "") as? String
 }.getOrNull().orEmpty()

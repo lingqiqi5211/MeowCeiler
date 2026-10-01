@@ -209,6 +209,14 @@
     <string name="systemui_notification_weather_icon">Show weather as an icon</string>
     <string name="systemui_notification_weather_margin">Margin</string>
     <string name="systemui_notification_section">Notification shade</string>
+    <string name="systemui_focus_unlock">Remove Super Island whitelist</string>
+    <string name="systemui_focus_unlock_summary">Let apps outside the whitelist send Super Island notifications.</string>
+    <string name="systemui_focus_unlock_summary_managed">Let apps outside the whitelist send Super Island notifications. Every app that sends one shows up in Settings &gt; Notifications and status bar &gt; Xiaomi Super Island and can be turned off there.</string>
+    <string name="systemui_focus_apps">Super Island apps</string>
+    <string name="systemui_focus_apps_empty">No media app has been recorded yet</string>
+    <string name="systemui_focus_write_failed">Not saved: could not update the Super Island switch</string>
+    <string name="systemui_focus_apps_notification">Notifications</string>
+    <string name="systemui_focus_apps_media">Media cards</string>
     <string name="scope_settings">Settings</string>
     <string name="settings_icons">Icons</string>
     <string name="settings_icons_count">Custom notification icon count</string>

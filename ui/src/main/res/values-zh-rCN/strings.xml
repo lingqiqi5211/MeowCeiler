@@ -207,6 +207,14 @@
     <string name="systemui_notification_weather_icon">天气以图标显示</string>
     <string name="systemui_notification_weather_margin">边距</string>
     <string name="systemui_notification_section">通知中心</string>
+    <string name="systemui_focus_unlock">解除超级岛通知白名单</string>
+    <string name="systemui_focus_unlock_summary">让白名单之外的应用也能发超级岛通知。</string>
+    <string name="systemui_focus_unlock_summary_managed">让白名单之外的应用也能发超级岛通知。发过的应用会出现在「设置 &gt; 通知与状态栏 &gt; 小米超级岛」里，可以单独关掉。</string>
+    <string name="systemui_focus_apps">超级岛应用</string>
+    <string name="systemui_focus_apps_empty">还没有记录到媒体应用</string>
+    <string name="systemui_focus_write_failed">没保存：无法更新超级岛开关</string>
+    <string name="systemui_focus_apps_notification">通知</string>
+    <string name="systemui_focus_apps_media">媒体卡片</string>
     <string name="scope_settings">系统设置</string>
     <string name="settings_icons">图标</string>
     <string name="settings_icons_count">通知图标个数自定义</string>

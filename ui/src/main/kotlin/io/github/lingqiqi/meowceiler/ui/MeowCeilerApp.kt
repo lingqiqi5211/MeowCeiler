@@ -25,6 +25,7 @@ import io.github.lingqiqi.meowceiler.ui.page.SystemUiLockScreenPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiClockLayoutPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiClockPage
+import io.github.lingqiqi.meowceiler.ui.page.SystemUiFocusAppsPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiNotificationCenterPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiNotificationWeatherPage
 import io.github.lingqiqi.meowceiler.ui.page.SystemUiStatusBarPage
@@ -110,6 +111,7 @@ fun MeowCeilerApp(
                 Route.SystemUiNotificationCenter -> SystemUiNotificationCenterPage(onBack = back, onOpen = nav::push)
                 Route.Settings -> SettingsHostPage(onBack = back)
                 Route.SystemUiNotificationWeather -> SystemUiNotificationWeatherPage(onBack = back)
+                Route.SystemUiFocusApps -> SystemUiFocusAppsPage(onBack = back)
                 Route.HookLog -> HookLogPage(
                     state = hookLog,
                     onBack = back,

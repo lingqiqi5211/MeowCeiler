@@ -5,6 +5,7 @@ import android.content.ContentValues
 import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
+import io.github.lingqiqi.meowceiler.shared.FocusAppRegistry
 import io.github.lingqiqi.meowceiler.shared.HookLog
 import io.github.lingqiqi.meowceiler.shared.ModulePackage
 import io.github.lingqiqi.meowceiler.shared.Scope
@@ -17,9 +18,29 @@ class HookLogProvider : ContentProvider() {
 
     override fun onCreate(): Boolean = true
 
-    override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
+    override fun call(
+        method: String,
+        arg: String?,
+        extras: Bundle?,
+    ): Bundle? {
         assertCallerAllowed()
         return when (method) {
+            FocusAppRegistry.MethodRecord -> {
+                val uid = android.os.Binder.getCallingUid()
+                require(
+                    uid == android.os.Process.myUid() ||
+                        Scope.SystemUi in context?.packageManager?.getPackagesForUid(uid).orEmpty(),
+                )
+                val kind = extras?.getString(FocusAppRegistry.KeyKind)
+                require(FocusAppRegistry.isValid(kind, arg))
+                Bundle().apply {
+                    putBoolean(
+                        FocusAppRegistry.KeyAccepted,
+                        FocusAppRegistry.record(requireNotNull(context), requireNotNull(kind), requireNotNull(arg)),
+                    )
+                }
+            }
+
             HookLog.MethodAppend -> {
                 val records = extras?.getStringArrayList(HookLog.KeyRecords).orEmpty()
                 store.append(records)
@@ -45,7 +66,9 @@ class HookLogProvider : ContentProvider() {
                 null
             }
 
-            else -> null
+            else -> {
+                null
+            }
         }
     }
 
@@ -71,9 +94,16 @@ class HookLogProvider : ContentProvider() {
 
     override fun getType(uri: Uri): String? = null
 
-    override fun insert(uri: Uri, values: ContentValues?): Uri? = null
+    override fun insert(
+        uri: Uri,
+        values: ContentValues?,
+    ): Uri? = null
 
-    override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int = 0
+    override fun delete(
+        uri: Uri,
+        selection: String?,
+        selectionArgs: Array<out String>?,
+    ): Int = 0
 
     override fun update(
         uri: Uri,
