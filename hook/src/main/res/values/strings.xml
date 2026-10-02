@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_icons_count_custom">Custom</string>
+    <string name="settings_icons_count_unlimited">No limit</string>
+    <string name="settings_icons_entry_summary">More icon settings</string>
+</resources>

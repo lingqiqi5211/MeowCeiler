@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_icons_count_custom">自定义</string>
+    <string name="settings_icons_count_unlimited">不限</string>
+    <string name="settings_icons_entry_summary">更多图标设置</string>
+</resources>

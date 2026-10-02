@@ -2,6 +2,7 @@ package io.github.lingqiqi.meowceiler.hook.rules.settings
 
 import android.content.Context
 import android.content.Intent
+import io.github.lingqiqi.meowceiler.hook.R
 import io.github.lingqiqi.meowceiler.hook.base.Feature
 import io.github.lingqiqi.meowceiler.hook.base.StaticHooker
 import io.github.lingqiqi.meowceiler.hook.util.MLog
@@ -42,7 +43,7 @@ object IconSettingsEntry : StaticHooker(Preferences.SettingsIcons.Entry) {
         entry.callMethod("setKey", EntryKey)
         entry.callMethod("setPersistent", false)
         entry.callMethod("setTitle", ModuleName)
-        moduleString(SummaryName)?.let { entry.callMethod("setSummary", it) }
+        entry.callMethod("setSummary", moduleString(R.string.settings_icons_entry_summary))
         // 宿主 xml 没写 order，条目按加入顺序拿到 0 起的序号，插到最前面要给负数。
         entry.callMethod("setOrder", -2)
         HostPreferences.onClick(entry) { open(fragment) }
@@ -59,5 +60,4 @@ object IconSettingsEntry : StaticHooker(Preferences.SettingsIcons.Entry) {
             .onFailure { MLog.w(id, "cannot open module settings", it) }
     }
 
-    private const val SummaryName = "settings_icons_entry_summary"
 }

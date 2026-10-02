@@ -223,8 +223,4 @@
     <string name="settings_icons_count_summary">Adds a custom option to Icon display customization</string>
     <string name="settings_icons_entry">Module entry in Icon display customization</string>
     <string name="settings_icons_open_host">Icon display customization</string>
-    <!-- 下面四条注入到系统设置的界面里，宿主没有这些文案。 -->
-    <string name="settings_icons_count_custom">Custom</string>
-    <string name="settings_icons_count_unlimited">No limit</string>
-    <string name="settings_icons_entry_summary">More icon settings</string>
 </resources>

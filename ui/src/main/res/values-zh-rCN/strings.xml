@@ -221,8 +221,4 @@
     <string name="settings_icons_count_summary">在「图标显示自定义」里加一个自定义档</string>
     <string name="settings_icons_entry">在「图标显示自定义」里显示模块入口</string>
     <string name="settings_icons_open_host">图标显示自定义</string>
-    <!-- 下面四条注入到系统设置的界面里，宿主没有这些文案。 -->
-    <string name="settings_icons_count_custom">自定义</string>
-    <string name="settings_icons_count_unlimited">不限</string>
-    <string name="settings_icons_entry_summary">更多图标设置</string>
 </resources>

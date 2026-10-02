@@ -7,6 +7,7 @@ import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.view.View
 import android.widget.ImageView
+import io.github.lingqiqi.meowceiler.hook.R
 import io.github.lingqiqi.meowceiler.hook.base.Feature
 import io.github.lingqiqi.meowceiler.hook.base.StaticHooker
 import io.github.lingqiqi.meowceiler.hook.util.MLog
@@ -39,8 +40,6 @@ object ModuleEntry : StaticHooker() {
 
     /** RecyclerView.Adapter，不是 ListAdapter 也不是 Preference —— 反编译设置 apk 确认的。 */
     private const val AdapterClassName = "com.android.settings.MiuiSettings\$HeaderAdapter"
-
-    private const val IconName = "ic_settings_entry"
 
     /** 宿主自己给每个 header 图标用的尺寸，照抄才能和邻居对齐。 */
     private const val IconSizeDimen = "header_icon_size"
@@ -152,8 +151,7 @@ object ModuleEntry : StaticHooker() {
     private val icon: Drawable? by lazy {
         runCatching {
             val resources = EzXposed.moduleRes
-            val resId = resources.getIdentifier(IconName, "drawable", ModulePackage)
-            if (resId == 0) null else resources.getDrawable(resId, null)
+            runCatching { resources.getDrawable(R.drawable.ic_settings_entry, null) }.getOrNull()
         }.getOrNull()
     }
 

@@ -2,6 +2,7 @@ package io.github.lingqiqi.meowceiler.hook.rules.settings
 
 import android.content.Context
 import android.provider.Settings.System
+import io.github.lingqiqi.meowceiler.hook.R
 import io.github.lingqiqi.meowceiler.hook.base.Feature
 import io.github.lingqiqi.meowceiler.hook.base.StaticHooker
 import io.github.lingqiqi.meowceiler.hook.util.MLog
@@ -56,7 +57,7 @@ object NotificationIconCount : StaticHooker(Preferences.SettingsIcons.Notificati
 
         val slider = createSlider(context)
         // setEntries 在默认适配器下会把 entryValues 一起改掉，顺序不能反。
-        dropDown.callMethod("setEntries", appended(entries, moduleString(CustomLabel).orEmpty()))
+        dropDown.callMethod("setEntries", appended(entries, moduleString(R.string.settings_icons_count_custom).orEmpty()))
         dropDown.callMethod("setEntryValues", appended(presets, CustomValue))
         HostPreferences.group(context, screen, order = -1, key = GroupKey, members = listOf(dropDown, slider))
 
@@ -84,7 +85,7 @@ object NotificationIconCount : StaticHooker(Preferences.SettingsIcons.Notificati
     /** 不给标题：上一条下拉已经说明这是什么，滑条自己显示当前值。 */
     private fun createSlider(context: Context): Any =
         HostPreferences.createSlider(context, 0..Max) { icons ->
-            if (icons >= Max) moduleString(UnlimitedLabel) else null
+            if (icons >= Max) moduleString(R.string.settings_icons_count_unlimited) else null
         }.apply {
             callMethod("setKey", SliderKey)
             callMethod("setPersistent", false)
