@@ -25,6 +25,7 @@ import android.hardware.SensorManager;
 
 import com.sevtinge.hyperceiler.libhook.appbase.mihome.HomeBaseHookNew;
 import com.sevtinge.hyperceiler.libhook.appbase.mihome.Version;
+import com.sevtinge.hyperceiler.libhook.base.BaseHook;
 import io.github.lingqiqi5211.ezhooktool.xposed.java.IMethodHook;
 import com.sevtinge.hyperceiler.libhook.utils.api.ShakeManager;
 
@@ -33,7 +34,8 @@ import io.github.lingqiqi5211.ezhooktool.xposed.common.HookParam;
 public class ShakeDevice extends HomeBaseHookNew {
 
     private static final String STATE_LAUNCHER_ACTIVITY = "ShakeDevice.launcherActivity";
-    private final String shakeMgrKey = "MIUIZER_SHAKE_MGR";
+    private static final String SHAKE_MGR_KEY = "MIUIZER_SHAKE_MGR";
+    private static final String SENSOR_CLEANUP_KEY = "MIUIZER_SHAKE_SENSOR_CLEANUP";
 
     @Version(isPad = false, min = 600000000)
     private void initOS3Hook() {
@@ -81,14 +83,10 @@ public class ShakeDevice extends HomeBaseHookNew {
     }
 
     private void registerShakeListener(Activity launcherActivity) {
-        Object stored = com.sevtinge.hyperceiler.libhook.base.BaseHook.getAdditionalInstanceField(
-            launcherActivity, shakeMgrKey
-        );
+        Object stored = BaseHook.getAdditionalInstanceField(launcherActivity, SHAKE_MGR_KEY);
         ShakeManager shakeMgr = stored instanceof ShakeManager
             ? (ShakeManager) stored : new ShakeManager(launcherActivity);
-        com.sevtinge.hyperceiler.libhook.base.BaseHook.setAdditionalInstanceField(
-            launcherActivity, shakeMgrKey, shakeMgr
-        );
+        BaseHook.setAdditionalInstanceField(launcherActivity, SHAKE_MGR_KEY, shakeMgr);
         SensorManager sensorMgr = (SensorManager) launcherActivity.getSystemService(
             Context.SENSOR_SERVICE
         );
@@ -98,20 +96,35 @@ public class ShakeDevice extends HomeBaseHookNew {
             sensorMgr.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
             SensorManager.SENSOR_DELAY_NORMAL
         );
-        registerSensorListenerHotReloadCleanup(sensorMgr, shakeMgr);
+        // onResume 会反复走到这里，旧的注销项必须先释放，否则清理队列会随恢复次数无限增长。
+        releaseSensorCleanup(launcherActivity);
+        BaseHook.setAdditionalInstanceField(
+            launcherActivity,
+            SENSOR_CLEANUP_KEY,
+            BaseHook.registerSensorListenerHotReloadCleanup(sensorMgr, shakeMgr)
+        );
         putHotReloadRuntimeState(STATE_LAUNCHER_ACTIVITY, launcherActivity);
     }
 
     private void unregisterShakeListener(Activity launcherActivity) {
-        Object stored = com.sevtinge.hyperceiler.libhook.base.BaseHook.getAdditionalInstanceField(
-            launcherActivity, shakeMgrKey
-        );
+        Object stored = BaseHook.getAdditionalInstanceField(launcherActivity, SHAKE_MGR_KEY);
         if (stored instanceof ShakeManager shakeMgr) {
             SensorManager sensorMgr = (SensorManager) launcherActivity.getSystemService(
                 Context.SENSOR_SERVICE
             );
             sensorMgr.unregisterListener(shakeMgr);
         }
+        releaseSensorCleanup(launcherActivity);
+        BaseHook.removeAdditionalInstanceField(launcherActivity, SHAKE_MGR_KEY);
         putHotReloadRuntimeState(STATE_LAUNCHER_ACTIVITY, null);
+    }
+
+    /** 注销后不再需要热重载清理，及时移除队列对监听器和宿主 Activity 的持有。 */
+    private void releaseSensorCleanup(Activity launcherActivity) {
+        Object stored = BaseHook.getAdditionalInstanceField(launcherActivity, SENSOR_CLEANUP_KEY);
+        if (stored instanceof BaseHook.HotReloadCleanup cleanup) {
+            cleanup.cancel();
+            BaseHook.removeAdditionalInstanceField(launcherActivity, SENSOR_CLEANUP_KEY);
+        }
     }
 }

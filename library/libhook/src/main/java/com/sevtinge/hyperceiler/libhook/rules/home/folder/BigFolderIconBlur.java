@@ -31,7 +31,10 @@ import com.sevtinge.hyperceiler.libhook.base.BaseHook;
 import com.sevtinge.hyperceiler.libhook.utils.api.DisplayUtils;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.blur.BlurUtils;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.github.lingqiqi5211.ezhooktool.xposed.common.HookParam;
 import io.github.lingqiqi5211.ezhooktool.xposed.java.IMethodHook;
@@ -48,6 +51,9 @@ public class BigFolderIconBlur extends BaseHook {
     Class<?> mFolderIcon2x2;
     Class<?> mFolderIcon2x2_4;
     Class<?> mFolderIcon2x2_9;
+
+    /** 每个大文件夹图标一份的模糊目标。用弱引用保存，图标销毁后不会拖住旧 View。 */
+    private final List<BlurTarget> mBlurTargets = new ArrayList<>();
 
     @Override
     public void init() {
@@ -104,47 +110,8 @@ public class BigFolderIconBlur extends BaseHook {
                     lp1.height = mFolderHeight;
                 }
 
-                findAndHookMethod(mLauncher, "showEditPanel", boolean.class, new IMethodHook() {
-                    @Override
-                    public void after(HookParam param) {
-                        isShowEditPanel = (boolean) param.getArgs()[0];
-                        if (isShowEditPanel) {
-                            mDockBlur.setVisibility(View.GONE);
-                            mIconImageView.setVisibility(View.VISIBLE);
-                        } else {
-                            mDockBlur.setVisibility(View.VISIBLE);
-                            mIconImageView.setVisibility(View.GONE);
-                        }
-                    }
-                });
-
-                findAndHookMethod(mLauncher, "openFolder", mFolderInfo, View.class, new IMethodHook() {
-                    @Override
-                    public void after(HookParam param) {
-                        mDockBlur.setVisibility(View.GONE);
-                    }
-                });
-
-                findAndHookMethod(mLauncher, "closeFolder", boolean.class, new IMethodHook() {
-                    @Override
-                    public void after(HookParam param) {
-                        if (!isShowEditPanel) mDockBlur.setVisibility(View.VISIBLE);
-                    }
-                });
-
-                findAndHookMethod(mLauncher, "onStateSetStart", mLauncherState, new IMethodHook() {
-                    @Override
-                    public void after(HookParam param) {
-                        Boolean mLauncherState = param.getArgs()[0].getClass().getSimpleName().equals("LauncherState");
-                        Boolean mNormalState = param.getArgs()[0].getClass().getSimpleName().equals("NormalState");
-
-                        if (mLauncherState || mNormalState) {
-                            mDockBlur.setVisibility(View.VISIBLE);
-                        } else {
-                            mDockBlur.setVisibility(View.GONE);
-                        }
-                    }
-                });
+                // 全局 Hook 在 init 中只安装一次，这里只登记图标，避免每个图标重复叠加一层。
+                mBlurTargets.add(new BlurTarget(mDockBlur, mIconImageView));
             }
         };
 
@@ -175,5 +142,89 @@ public class BigFolderIconBlur extends BaseHook {
                 }
             }
         });
+
+        installLauncherHooks();
+    }
+
+    private void installLauncherHooks() {
+        if (mLauncher == null) return;
+
+        findAndHookMethod(mLauncher, "showEditPanel", boolean.class, new IMethodHook() {
+            @Override
+            public void after(HookParam param) {
+                isShowEditPanel = (boolean) param.getArgs()[0];
+                for (BlurTarget target : liveBlurTargets()) {
+                    target.applyEditPanel(isShowEditPanel);
+                }
+            }
+        });
+
+        findAndHookMethod(mLauncher, "openFolder", mFolderInfo, View.class, new IMethodHook() {
+            @Override
+            public void after(HookParam param) {
+                for (BlurTarget target : liveBlurTargets()) {
+                    target.hideBlur();
+                }
+            }
+        });
+
+        findAndHookMethod(mLauncher, "closeFolder", boolean.class, new IMethodHook() {
+            @Override
+            public void after(HookParam param) {
+                if (isShowEditPanel) return;
+                for (BlurTarget target : liveBlurTargets()) {
+                    target.showBlur();
+                }
+            }
+        });
+
+        findAndHookMethod(mLauncher, "onStateSetStart", mLauncherState, new IMethodHook() {
+            @Override
+            public void after(HookParam param) {
+                String stateName = param.getArgs()[0].getClass().getSimpleName();
+                boolean visible = stateName.equals("LauncherState") || stateName.equals("NormalState");
+                for (BlurTarget target : liveBlurTargets()) {
+                    target.setBlurVisible(visible);
+                }
+            }
+        });
+    }
+
+    private List<BlurTarget> liveBlurTargets() {
+        mBlurTargets.removeIf(target -> target.mDockBlur.get() == null);
+        return mBlurTargets;
+    }
+
+    private static final class BlurTarget {
+        private final WeakReference<FrameLayout> mDockBlur;
+        private final WeakReference<ImageView> mIconImageView;
+
+        BlurTarget(FrameLayout dockBlur, ImageView iconImageView) {
+            mDockBlur = new WeakReference<>(dockBlur);
+            mIconImageView = new WeakReference<>(iconImageView);
+        }
+
+        void applyEditPanel(boolean isShowEditPanel) {
+            setBlurVisible(!isShowEditPanel);
+            ImageView icon = mIconImageView.get();
+            if (icon != null) {
+                icon.setVisibility(isShowEditPanel ? View.VISIBLE : View.GONE);
+            }
+        }
+
+        void hideBlur() {
+            setBlurVisible(false);
+        }
+
+        void showBlur() {
+            setBlurVisible(true);
+        }
+
+        void setBlurVisible(boolean visible) {
+            FrameLayout blur = mDockBlur.get();
+            if (blur != null) {
+                blur.setVisibility(visible ? View.VISIBLE : View.GONE);
+            }
+        }
     }
 }

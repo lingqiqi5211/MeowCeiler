@@ -39,10 +39,12 @@ public class ShakeManager implements SensorEventListener {
     private boolean shakeInitiated = false;
     private long lastShakeEvent = System.currentTimeMillis();
 
+    /** 只保留 Application 上下文，避免反向持有 Launcher Activity。 */
     private final Context helperContext;
 
     public ShakeManager(Context helpercontext) {
-        this.helperContext = helpercontext;
+        Context applicationContext = helpercontext.getApplicationContext();
+        this.helperContext = applicationContext != null ? applicationContext : helpercontext;
     }
 
     public void reset() {

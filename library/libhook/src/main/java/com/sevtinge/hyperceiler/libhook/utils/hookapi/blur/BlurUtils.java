@@ -32,6 +32,8 @@ import com.sevtinge.hyperceiler.common.utils.PrefsBridge;
 import com.sevtinge.hyperceiler.libhook.base.BaseHook;
 import com.sevtinge.hyperceiler.libhook.utils.api.DisplayUtils;
 
+import java.lang.ref.WeakReference;
+
 import io.github.lingqiqi5211.ezhooktool.core.java.Methods;
 
 public class BlurUtils {
@@ -140,10 +142,21 @@ public class BlurUtils {
             @Override
             public void onViewDetachedFromWindow(@NonNull View v) {
                 v.setBackground(null);
+                mViewRootImpl = null;
             }
         };
         view.addOnAttachStateChangeListener(listener);
-        BaseHook.registerHotReloadCleanup(() -> view.removeOnAttachStateChangeListener(listener));
+        // 清理队列不能强引用 View：listener 会绕到本对象的 mViewRootImpl，后者钉住整棵 View 树。
+        // 两个引用的存活都由 View 决定，View 被回收后这项注销操作也就不再需要了。
+        WeakReference<View> viewRef = new WeakReference<>(view);
+        WeakReference<View.OnAttachStateChangeListener> listenerRef = new WeakReference<>(listener);
+        BaseHook.registerHotReloadCleanup(view, () -> {
+            View attached = viewRef.get();
+            View.OnAttachStateChangeListener current = listenerRef.get();
+            if (attached != null && current != null) {
+                attached.removeOnAttachStateChangeListener(current);
+            }
+        });
     }
 
     private Drawable createBackgroundDrawable(Object viewRootImpl, boolean isBlurEnable, int color, int cornerRadius, int blurRadius) {

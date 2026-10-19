@@ -36,6 +36,7 @@ import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.DexKit;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.IDexKit;
 import com.sevtinge.hyperceiler.libhook.utils.hookapi.dexkit.IDexKitList;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -99,21 +100,93 @@ public abstract class BaseHook {
         void onApplicationAttachAfter(@NonNull Context context);
     }
 
+    /**
+     * 热重载注销项。
+     * <p>
+     * 被注册的对象自行销毁时（例如 View 已移除，对应的注销操作再也不会需要）调用
+     * {@link #cancel()}，避免清理队列一直持有它。
+     */
+    public interface HotReloadCleanup {
+        void cancel();
+    }
+
+    private static final class CleanupEntry implements Runnable, HotReloadCleanup {
+        private final Runnable action;
+        /** 注销操作所属对象，仅用于判断该操作是否已失效。 */
+        private final WeakReference<Object> owner;
+        private volatile boolean cancelled;
+
+        CleanupEntry(@Nullable Object owner, @NonNull Runnable action) {
+            this.owner = owner == null ? null : new WeakReference<>(owner);
+            this.action = action;
+        }
+
+        boolean isStale() {
+            return owner != null && owner.get() == null;
+        }
+
+        @Override
+        public void run() {
+            if (!cancelled) {
+                action.run();
+            }
+        }
+
+        @Override
+        public void cancel() {
+            cancelled = true;
+            HOT_RELOAD_CLEANUPS.remove(this);
+        }
+    }
+
     private static final CopyOnWriteArrayList<ApplicationHook> APPLICATION_HOOKS = new CopyOnWriteArrayList<>();
-    private static final ConcurrentLinkedDeque<Runnable> HOT_RELOAD_CLEANUPS = new ConcurrentLinkedDeque<>();
+    private static final ConcurrentLinkedDeque<CleanupEntry> HOT_RELOAD_CLEANUPS = new ConcurrentLinkedDeque<>();
     /** 仅保存宿主/系统 classloader 创建的对象，供下一 generation 重建外部注册。 */
     private static final ConcurrentHashMap<String, Object> HOT_RELOAD_RUNTIME_STATE =
         new ConcurrentHashMap<>();
     private static volatile boolean sApplicationHookInstalled = false;
 
-    public static void registerHotReloadCleanup(@NonNull Runnable cleanup) {
-        HOT_RELOAD_CLEANUPS.addLast(cleanup);
+    /**
+     * 登记一项热重载注销操作。
+     *
+     * @return 注销项所属对象已经销毁时使用的句柄，调用 {@link HotReloadCleanup#cancel()} 可释放队列持有
+     */
+    @NonNull
+    public static HotReloadCleanup registerHotReloadCleanup(@NonNull Runnable cleanup) {
+        return registerHotReloadCleanup(null, cleanup);
+    }
+
+    /**
+     * 登记一项热重载注销操作，并带上它的所属对象。
+     * <p>
+     * 所属对象已被回收时，该注销操作不可能再有用到的时候，后续登记会把它从队列里清掉。
+     * 传入 {@code owner} 时，注销操作本身只能用弱引用持有该对象，否则队列会一直把它销住。
+     *
+     * @param owner 注销操作所属对象，可为 {@code null}
+     */
+    @NonNull
+    public static HotReloadCleanup registerHotReloadCleanup(@Nullable Object owner,
+                                                            @NonNull Runnable cleanup) {
+        sweepStaleCleanups();
+        CleanupEntry entry = new CleanupEntry(owner, cleanup);
+        HOT_RELOAD_CLEANUPS.addLast(entry);
+        return entry;
+    }
+
+    /** 移除已失效的注销项，避免队列随反复创建的 View、监听器无限增长。 */
+    private static void sweepStaleCleanups() {
+        for (CleanupEntry entry : HOT_RELOAD_CLEANUPS) {
+            if (entry.isStale()) {
+                HOT_RELOAD_CLEANUPS.remove(entry);
+            }
+        }
     }
 
     /** 为已成功注册的 BroadcastReceiver 添加幂等的热重载注销操作。 */
-    public static void registerReceiverHotReloadCleanup(@NonNull Context context,
-                                                        @NonNull BroadcastReceiver receiver) {
-        registerHotReloadCleanup(() -> {
+    @NonNull
+    public static HotReloadCleanup registerReceiverHotReloadCleanup(@NonNull Context context,
+                                                                    @NonNull BroadcastReceiver receiver) {
+        return registerHotReloadCleanup(() -> {
             try {
                 context.unregisterReceiver(receiver);
             } catch (IllegalArgumentException ignored) {
@@ -123,9 +196,12 @@ public abstract class BaseHook {
     }
 
     /** 为已成功注册的 ContentObserver 添加幂等的热重载注销操作。 */
-    public static void registerContentObserverHotReloadCleanup(@NonNull ContentResolver resolver,
-                                                               @NonNull ContentObserver observer) {
-        registerHotReloadCleanup(() -> {
+    @NonNull
+    public static HotReloadCleanup registerContentObserverHotReloadCleanup(
+        @NonNull ContentResolver resolver,
+        @NonNull ContentObserver observer
+    ) {
+        return registerHotReloadCleanup(() -> {
             try {
                 resolver.unregisterContentObserver(observer);
             } catch (IllegalArgumentException ignored) {
@@ -135,11 +211,12 @@ public abstract class BaseHook {
     }
 
     /** 为已成功注册的 NetworkCallback 添加幂等的热重载注销操作。 */
-    public static void registerNetworkCallbackHotReloadCleanup(
+    @NonNull
+    public static HotReloadCleanup registerNetworkCallbackHotReloadCleanup(
         @NonNull ConnectivityManager manager,
         @NonNull ConnectivityManager.NetworkCallback callback
     ) {
-        registerHotReloadCleanup(() -> {
+        return registerHotReloadCleanup(() -> {
             try {
                 manager.unregisterNetworkCallback(callback);
             } catch (IllegalArgumentException ignored) {
@@ -149,24 +226,27 @@ public abstract class BaseHook {
     }
 
     /** 为已成功注册的 Application 生命周期回调添加幂等的热重载注销操作。 */
-    public static void registerActivityLifecycleHotReloadCleanup(
+    @NonNull
+    public static HotReloadCleanup registerActivityLifecycleHotReloadCleanup(
         @NonNull Application application,
         @NonNull Application.ActivityLifecycleCallbacks callback
     ) {
-        registerHotReloadCleanup(() -> application.unregisterActivityLifecycleCallbacks(callback));
+        return registerHotReloadCleanup(() -> application.unregisterActivityLifecycleCallbacks(callback));
     }
 
     /** 为已成功注册的 SensorEventListener 添加热重载注销操作。 */
-    public static void registerSensorListenerHotReloadCleanup(
+    @NonNull
+    public static HotReloadCleanup registerSensorListenerHotReloadCleanup(
         @NonNull SensorManager manager,
         @NonNull SensorEventListener listener
     ) {
-        registerHotReloadCleanup(() -> manager.unregisterListener(listener));
+        return registerHotReloadCleanup(() -> manager.unregisterListener(listener));
     }
 
     /** 移除当前模块通过指定 Handler 投递的所有延迟任务。 */
-    public static void registerHandlerHotReloadCleanup(@NonNull Handler handler) {
-        registerHotReloadCleanup(() -> handler.removeCallbacksAndMessages(null));
+    @NonNull
+    public static HotReloadCleanup registerHandlerHotReloadCleanup(@NonNull Handler handler) {
+        return registerHotReloadCleanup(() -> handler.removeCallbacksAndMessages(null));
     }
 
     /**
@@ -218,7 +298,7 @@ public abstract class BaseHook {
 
     static void prepareHotReload() {
         Throwable firstFailure = null;
-        Runnable cleanup;
+        CleanupEntry cleanup;
         while ((cleanup = HOT_RELOAD_CLEANUPS.pollLast()) != null) {
             try {
                 cleanup.run();
