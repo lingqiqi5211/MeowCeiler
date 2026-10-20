@@ -6,6 +6,7 @@ import io.github.lingqiqi.meowceiler.shared.HookLog
 import io.github.lingqiqi.meowceiler.shared.Preferences
 import io.github.lingqiqi.meowceiler.shared.SafeModeGate
 import io.github.lingqiqi.meowceiler.shared.SafeModeRecord
+import io.github.lingqiqi.meowceiler.shared.Scope
 import io.github.lingqiqi5211.ezhooktool.xposed.EzXposed
 import kotlinx.coroutines.launch
 import java.io.File
@@ -60,7 +61,11 @@ object SafeMode {
     /** 记一次失败。达到阈值就地生效。偏好读不到时不写回，免得冲掉真实计数。 */
     fun recordFailure(throwable: Throwable) {
         if (!enabled || !preferencesReadable) return
-        val host = EzXposed.packageName.takeIf { it.isNotBlank() } ?: return
+        val host = if (EzXposed.isSystemServer) {
+            Scope.SystemServer
+        } else {
+            EzXposed.packageName.takeIf { it.isNotBlank() } ?: return
+        }
 
         val next = SafeModeRecord(
             hostPackage = host,

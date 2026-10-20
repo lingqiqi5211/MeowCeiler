@@ -21,6 +21,7 @@ import io.github.lingqiqi.meowceiler.shared.Preferences
 import io.github.lingqiqi.meowceiler.shared.SafeModeRecord
 import io.github.lingqiqi.meowceiler.ui.R
 import io.github.lingqiqi.meowceiler.ui.Route
+import io.github.lingqiqi.meowceiler.ui.host.HostEntry
 import io.github.lingqiqi.meowceiler.ui.host.InstalledHost
 import io.github.lingqiqi.meowceiler.ui.host.appIconSizePx
 import io.github.lingqiqi.meowceiler.ui.host.rememberAppIcon
@@ -46,7 +47,10 @@ fun HomePage(
     val hosts = rememberInstalledHosts()
     val visible: (InstalledHost) -> Boolean = { host ->
         val packageName = host.entry.packageName
-        (scopeFilter == null || packageName in scopeFilter) && packageName !in hiddenHosts
+        val inScope =
+            scopeFilter == null || packageName in scopeFilter ||
+                (host.entry == HostEntry.SystemFramework && "system" in scopeFilter)
+        inScope && packageName !in hiddenHosts
     }
 
     MeowPreferenceScreen {
@@ -69,61 +73,73 @@ private fun StatusTip(onOpenSafeMode: () -> Unit) {
     val connection by rememberMeowPreferenceConnectionState()
     val moduleEnabled by rememberMeowPreferenceValue(Preferences.Module.Enabled)
     val safeModeRaw by rememberMeowPreferenceValue(Preferences.SafeMode.Records)
-    val blocked = remember(safeModeRaw) {
-        safeModeRaw.mapNotNull(SafeModeRecord::decode).count { it.blocked }
-    }
+    val blocked =
+        remember(safeModeRaw) {
+            safeModeRaw.mapNotNull(SafeModeRecord::decode).count { it.blocked }
+        }
 
     when {
-        connection is PreferenceConnectionState.Disconnected -> MeowTip(
-            message = stringResource(R.string.home_status_framework_summary),
-            modifier = Modifier.fillMaxWidth().testTag("tip.home.framework"),
-            title = stringResource(R.string.home_status_framework),
-            style = MeowTipStyle.Error,
-        )
+        connection is PreferenceConnectionState.Disconnected -> {
+            MeowTip(
+                message = stringResource(R.string.home_status_framework_summary),
+                modifier = Modifier.fillMaxWidth().testTag("tip.home.framework"),
+                title = stringResource(R.string.home_status_framework),
+                style = MeowTipStyle.Error,
+            )
+        }
 
-        !moduleEnabled -> MeowTip(
-            message = stringResource(R.string.home_status_module_off_summary),
-            modifier = Modifier.fillMaxWidth().testTag("tip.home.module_off"),
-            title = stringResource(R.string.home_status_module_off),
-            style = MeowTipStyle.Warning,
-        )
+        !moduleEnabled -> {
+            MeowTip(
+                message = stringResource(R.string.home_status_module_off_summary),
+                modifier = Modifier.fillMaxWidth().testTag("tip.home.module_off"),
+                title = stringResource(R.string.home_status_module_off),
+                style = MeowTipStyle.Warning,
+            )
+        }
 
-        blocked > 0 -> MeowTip(
-            message = stringResource(R.string.home_status_safe_mode_summary, blocked),
-            modifier = Modifier.fillMaxWidth().testTag("tip.home.safe_mode"),
-            title = stringResource(R.string.home_status_safe_mode),
-            style = MeowTipStyle.Warning,
-            actionText = stringResource(R.string.home_status_open),
-            onAction = onOpenSafeMode,
-        )
+        blocked > 0 -> {
+            MeowTip(
+                message = stringResource(R.string.home_status_safe_mode_summary, blocked),
+                modifier = Modifier.fillMaxWidth().testTag("tip.home.safe_mode"),
+                title = stringResource(R.string.home_status_safe_mode),
+                style = MeowTipStyle.Warning,
+                actionText = stringResource(R.string.home_status_open),
+                onAction = onOpenSafeMode,
+            )
+        }
 
-        else -> Unit
+        else -> {
+            Unit
+        }
     }
 }
 
 @Composable
 private fun EmptyHosts() {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 48.dp)
-            .testTag("section.hosts.empty"),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 48.dp)
+                .testTag("section.hosts.empty"),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         BasicText(
             text = stringResource(R.string.home_empty),
-            style = MeowTheme.typography.title.copy(
-                color = MeowTheme.colors.onSurface,
-                textAlign = TextAlign.Center,
-            ),
+            style =
+                MeowTheme.typography.title.copy(
+                    color = MeowTheme.colors.onSurface,
+                    textAlign = TextAlign.Center,
+                ),
         )
         BasicText(
             text = stringResource(R.string.home_empty_summary),
-            style = MeowTheme.typography.summary.copy(
-                color = MeowTheme.colors.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            ),
+            style =
+                MeowTheme.typography.summary.copy(
+                    color = MeowTheme.colors.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                ),
         )
     }
 }
@@ -141,7 +157,10 @@ internal fun HostIcon(packageName: String) {
 internal val HostIconSize = 32.dp
 
 @Composable
-private fun HostRow(host: InstalledHost, onOpenHost: (Route) -> Unit) {
+private fun HostRow(
+    host: InstalledHost,
+    onOpenHost: (Route) -> Unit,
+) {
     MeowActionPreference(
         title = host.label,
         modifier = Modifier.testTag("row.host.${host.entry.packageName}"),

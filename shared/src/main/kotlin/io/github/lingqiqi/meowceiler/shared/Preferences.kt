@@ -49,9 +49,11 @@ object Preferences {
         val NotificationWeatherCity = PreferenceKey("systemui_notification_weather_city", false)
         val NotificationWeatherNewLine = PreferenceKey("systemui_notification_weather_new_line", false)
         val NotificationWeatherBold = PreferenceKey("systemui_notification_weather_bold", false)
+
         /** sp，0 表示跟随宿主日期字号。 */
         val NotificationWeatherSize = PreferenceKey("systemui_notification_weather_size", 0f)
         val NotificationWeatherIcon = PreferenceKey("systemui_notification_weather_icon", false)
+
         /** dp，0 表示跟随宿主给日期留的间距。 */
         val NotificationWeatherMargin = PreferenceKey("systemui_notification_weather_margin", 0f)
         val ClockNoSync = PreferenceKey("systemui_clock_no_sync", false)
@@ -87,6 +89,44 @@ object Preferences {
         val ClockOffsetPad = PreferenceKey("systemui_clock_offset_pad", 12f)
     }
 
+    /** Android 16+ 包管理服务；布尔开关只影响后续安装，全部默认关闭。 */
+    object PackageManager {
+        val Enabled = PreferenceKey("package_manager_enabled", false)
+        val Downgrade = PreferenceKey("package_manager_downgrade", false)
+        val Verification = PreferenceKey("package_manager_verification", false)
+        val Integrity = PreferenceKey("package_manager_integrity", false)
+        val ResourceArscRestrictions = PreferenceKey("package_manager_resource_arsc_restrictions", false)
+        val SharedUser = PreferenceKey("package_manager_shared_user", false)
+        val Digest = PreferenceKey("package_manager_digest", false)
+        val ExactSignature = PreferenceKey("package_manager_exact_signature", false)
+        val PreviousSignatures = PreferenceKey("package_manager_previous_signatures", false)
+        val VerificationAgent = PreferenceKey("package_manager_verification_agent", false)
+        val LowApiCheck = PreferenceKey("package_manager_low_api_check", false)
+        val Persistent = PreferenceKey("package_manager_persistent", false)
+        val IsolationViolation = PreferenceKey("package_manager_isolation_violation", false)
+        val AllowUpdateSystemApp = PreferenceKey("package_manager_allow_update_system_app", false)
+        val SystemAppHiddenApis = PreferenceKey("package_manager_system_app_hidden_apis", false)
+
+        val all =
+            listOf(
+                Enabled,
+                Downgrade,
+                Verification,
+                Integrity,
+                ResourceArscRestrictions,
+                SharedUser,
+                Digest,
+                ExactSignature,
+                PreviousSignatures,
+                VerificationAgent,
+                LowApiCheck,
+                Persistent,
+                IsolationViolation,
+                AllowUpdateSystemApp,
+                SystemAppHiddenApis,
+            )
+    }
+
     /** 注入到系统设置里的模块入口。取值见 [SettingsEntryPosition]。 */
     object SettingsEntry {
         val Position = PreferenceKey("settings_entry_position", SettingsEntryPosition.Off.key)
@@ -115,73 +155,74 @@ object Preferences {
     }
 
     /** 备份、恢复和重置使用此清单；新增设置键须同步注册。 */
-    val all: List<PreferenceKey<*>> = listOf(
-        Module.Enabled,
-        Module.Debug,
-        Appearance.Style,
-        Appearance.ThemeMode,
-        Appearance.DynamicColor,
-        Appearance.SeedColor,
-        Appearance.PaletteStyle,
-        Appearance.MiuixMonet,
-        Appearance.AmoledDark,
-        Appearance.Blur,
-        Appearance.FloatingNavigation,
-        Appearance.PredictiveBack,
-        Appearance.InterfaceScale,
-        SystemUi.DoubleTapToSleep,
-        SystemUi.Clock,
-        SystemUi.FocusUnlock,
-        SystemUi.FocusApps,
-        SystemUi.FocusHidden,
-        SystemUi.FocusMediaApps,
-        SystemUi.FocusMediaHidden,
-        SystemUi.NotificationWeather,
-        SystemUi.NotificationWeatherCity,
-        SystemUi.NotificationWeatherNewLine,
-        SystemUi.NotificationWeatherBold,
-        SystemUi.NotificationWeatherSize,
-        SystemUi.NotificationWeatherIcon,
-        SystemUi.NotificationWeatherMargin,
-        SystemUi.ClockNoSync,
-        SystemUi.ClockNoShadeAnimation,
-        SystemUi.ClockFormatStatusBar,
-        SystemUi.ClockFormatBig,
-        SystemUi.ClockFormatMini,
-        SystemUi.ClockSizeStatusBar,
-        SystemUi.ClockSizeBig,
-        SystemUi.ClockSizeMini,
-        SystemUi.ClockStyle,
-        SystemUi.ClockAlign,
-        SystemUi.ClockSpacing,
-        SystemUi.ClockFixedWidth,
-        SystemUi.ClockBoldStatusBar,
-        SystemUi.ClockLeftStatusBar,
-        SystemUi.ClockRightStatusBar,
-        SystemUi.ClockOffsetStatusBar,
-        SystemUi.ClockBoldBig,
-        SystemUi.ClockLeftBig,
-        SystemUi.ClockRightBig,
-        SystemUi.ClockOffsetBig,
-        SystemUi.ClockBoldMini,
-        SystemUi.ClockLeftMini,
-        SystemUi.ClockRightMini,
-        SystemUi.ClockOffsetMini,
-        SystemUi.ClockHiddenPad,
-        SystemUi.ClockFormatPad,
-        SystemUi.ClockBoldPad,
-        SystemUi.ClockSizePad,
-        SystemUi.ClockLeftPad,
-        SystemUi.ClockRightPad,
-        SystemUi.ClockOffsetPad,
-        SettingsEntry.Position,
-        SettingsIcons.NotificationCount,
-        SettingsIcons.Entry,
-        Framework.ScopeSync,
-        Home.HiddenHosts,
-        SafeMode.Enabled,
-        SafeMode.Records,
-    )
+    val all: List<PreferenceKey<*>> =
+        listOf(
+            Module.Enabled,
+            Module.Debug,
+            Appearance.Style,
+            Appearance.ThemeMode,
+            Appearance.DynamicColor,
+            Appearance.SeedColor,
+            Appearance.PaletteStyle,
+            Appearance.MiuixMonet,
+            Appearance.AmoledDark,
+            Appearance.Blur,
+            Appearance.FloatingNavigation,
+            Appearance.PredictiveBack,
+            Appearance.InterfaceScale,
+            SystemUi.DoubleTapToSleep,
+            SystemUi.Clock,
+            SystemUi.FocusUnlock,
+            SystemUi.FocusApps,
+            SystemUi.FocusHidden,
+            SystemUi.FocusMediaApps,
+            SystemUi.FocusMediaHidden,
+            SystemUi.NotificationWeather,
+            SystemUi.NotificationWeatherCity,
+            SystemUi.NotificationWeatherNewLine,
+            SystemUi.NotificationWeatherBold,
+            SystemUi.NotificationWeatherSize,
+            SystemUi.NotificationWeatherIcon,
+            SystemUi.NotificationWeatherMargin,
+            SystemUi.ClockNoSync,
+            SystemUi.ClockNoShadeAnimation,
+            SystemUi.ClockFormatStatusBar,
+            SystemUi.ClockFormatBig,
+            SystemUi.ClockFormatMini,
+            SystemUi.ClockSizeStatusBar,
+            SystemUi.ClockSizeBig,
+            SystemUi.ClockSizeMini,
+            SystemUi.ClockStyle,
+            SystemUi.ClockAlign,
+            SystemUi.ClockSpacing,
+            SystemUi.ClockFixedWidth,
+            SystemUi.ClockBoldStatusBar,
+            SystemUi.ClockLeftStatusBar,
+            SystemUi.ClockRightStatusBar,
+            SystemUi.ClockOffsetStatusBar,
+            SystemUi.ClockBoldBig,
+            SystemUi.ClockLeftBig,
+            SystemUi.ClockRightBig,
+            SystemUi.ClockOffsetBig,
+            SystemUi.ClockBoldMini,
+            SystemUi.ClockLeftMini,
+            SystemUi.ClockRightMini,
+            SystemUi.ClockOffsetMini,
+            SystemUi.ClockHiddenPad,
+            SystemUi.ClockFormatPad,
+            SystemUi.ClockBoldPad,
+            SystemUi.ClockSizePad,
+            SystemUi.ClockLeftPad,
+            SystemUi.ClockRightPad,
+            SystemUi.ClockOffsetPad,
+            SettingsEntry.Position,
+            SettingsIcons.NotificationCount,
+            SettingsIcons.Entry,
+            Framework.ScopeSync,
+            Home.HiddenHosts,
+            SafeMode.Enabled,
+            SafeMode.Records,
+        ) + PackageManager.all
 }
 
 /** 隐藏桌面图标仅禁用别名，保留实际设置 Activity。 */

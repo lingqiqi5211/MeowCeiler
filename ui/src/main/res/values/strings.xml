@@ -70,7 +70,43 @@
     <string name="settings_hot_reload_none">Nothing to reload — every injected process is already up to date.</string>
     <string name="settings_framework_failed">Xposed framework: %1$s</string>
 
+    <string name="package_manager_title">Package manager service</string>
+    <string name="package_manager_tip_title">Warning</string>
+    <string name="package_manager_tip">The features under this list should be enabled selectively only after you understand them; some options carry certain risks, please be aware.\nThe normal options take effect immediately except for the master switch; extended features require a restart to take effect regardless of their switch state.</string>
+    <string name="package_manager_switch">Core Patch</string>
+    <string name="package_manager_basic">Basic features</string>
+    <string name="package_manager_extended">Extended features</string>
+    <string name="package_manager_enabled">Enable Core Patch</string>
+    <string name="package_manager_downgrade">Allow downgrade apps</string>
+    <string name="package_manager_downgrade_desc">Allow downgrade app when the app is at higher version</string>
+    <string name="package_manager_verification">Disable digest verify</string>
+    <string name="package_manager_verification_desc">Disable signature verification when installing the app. Modified apps can be installed.</string>
+    <string name="package_manager_integrity">Disable system integrity checks</string>
+    <string name="package_manager_integrity_desc">Prohibit automatic recovery of modified content. This will be enabled by default when the Disable digest verify feature is enabled.</string>
+    <string name="package_manager_shared_user">Bypass shared user signature verify</string>
+    <string name="package_manager_shared_user_desc">Allow installation of apps that differerent signature from shared user signatures. This feature is somewhat dangerous and should only be enabled when needed.</string>
+    <string name="package_manager_digest">Disable APK signature verification</string>
+    <string name="package_manager_digest_desc">Allow override app with different signatures</string>
+    <string name="package_manager_exact_signature">Disable exact signature match</string>
+    <string name="package_manager_exact_signature_desc">Disables exact signature matching between APKs, allowing installation when each APK split has a different signature. Enable only when absolutely necessary.</string>
+    <string name="package_manager_previous_signatures">Use installed app signatures</string>
+    <string name="package_manager_previous_signatures_desc">This feature is extremely dangerous and should only be enabled when absolutely necessary</string>
+    <string name="package_manager_verification_agent">Disable package verification agent</string>
+    <string name="package_manager_verification_agent_desc">e.g. Google Play Protection</string>
+    <string name="package_manager_low_api_check">Disable low target SDK check</string>
+    <string name="package_manager_low_api_check_desc">Allow installation of apps targeting a lower Android version</string>
+    <string name="package_manager_persistent">Disable persistent app restriction</string>
+    <string name="package_manager_persistent_desc">Allow updating persistent applications</string>
+    <string name="package_manager_isolation_violation">Bypass isolation violation</string>
+    <string name="package_manager_isolation_violation_desc">Allow installation without the isolation violation check</string>
+    <string name="package_manager_allow_update_system_app">Allow updating system apps</string>
+    <string name="package_manager_allow_update_system_app_desc">Allow system applications to be updated</string>
+    <string name="package_manager_system_app_hidden_apis">Allow hidden APIs for system apps</string>
+    <string name="package_manager_resource_arsc_restrictions">Disable resource restrictions</string>
+    <string name="scope_system_framework">System framework</string>
+
     <string name="safe_mode">Safe mode</string>
+
     <string name="safe_mode_summary">Stop hooking an app when the module keeps failing in it</string>
     <string name="safe_mode_enabled">Enable safe mode</string>
     <string name="safe_mode_enabled_summary">After 3 failures in one app, the module stops hooking it until you retry or the module is updated</string>

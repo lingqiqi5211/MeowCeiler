@@ -47,7 +47,6 @@ fun ModuleSettingsPage(
 
     var iconHidden by remember { mutableStateOf(LauncherIcon.isHidden(context)) }
 
-
     val scopeSync by rememberMeowPreferenceValue(Preferences.Framework.ScopeSync)
     val entryPositionKey by rememberMeowPreferenceValue(Preferences.SettingsEntry.Position)
     val entryPosition = SettingsEntryPosition.from(entryPositionKey)
@@ -63,39 +62,44 @@ fun ModuleSettingsPage(
     val noTargets = stringResource(R.string.settings_hot_reload_none)
     val frameworkFailed = stringResource(R.string.settings_framework_failed)
 
-    val backup = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument(PreferencesBackup.MimeType),
-    ) { uri: Uri? ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        scope.launch {
-            val text = PreferencesBackup.export(store)
-            val ok = withContext(Dispatchers.IO) {
-                runCatching {
-                    context.contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) }
-                }.isSuccess
+    val backup =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.CreateDocument(PreferencesBackup.MimeType),
+        ) { uri: Uri? ->
+            if (uri == null) return@rememberLauncherForActivityResult
+            scope.launch {
+                val text = PreferencesBackup.export(store)
+                val ok =
+                    withContext(Dispatchers.IO) {
+                        runCatching {
+                            context.contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) }
+                        }.isSuccess
+                    }
+                result = if (ok) exported else ioFailed
             }
-            result = if (ok) exported else ioFailed
         }
-    }
 
-    val restore = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
-    ) { uri: Uri? ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        scope.launch {
-            val text = withContext(Dispatchers.IO) {
-                runCatching {
-                    context.contentResolver.openInputStream(uri)?.use { it.readBytes().decodeToString() }
-                }.getOrNull()
-            }
-            val applied = text?.let { PreferencesBackup.import(store, it) }
-            result = when {
-                text == null -> ioFailed
-                applied == null -> importFailed
-                else -> importedFormat.format(applied)
+    val restore =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.OpenDocument(),
+        ) { uri: Uri? ->
+            if (uri == null) return@rememberLauncherForActivityResult
+            scope.launch {
+                val text =
+                    withContext(Dispatchers.IO) {
+                        runCatching {
+                            context.contentResolver.openInputStream(uri)?.use { it.readBytes().decodeToString() }
+                        }.getOrNull()
+                    }
+                val applied = text?.let { PreferencesBackup.import(store, it) }
+                result =
+                    when {
+                        text == null -> ioFailed
+                        applied == null -> importFailed
+                        else -> importedFormat.format(applied)
+                    }
             }
         }
-    }
 
     MeowPreferenceScreen {
         SettingsCard(testTag = "section.appearance") {
@@ -173,12 +177,13 @@ fun ModuleSettingsPage(
                 summary = stringResource(R.string.settings_hot_reload_summary),
                 onClick = {
                     scope.launch {
-                        result = bridge.hotReload().fold(
-                            onSuccess = { count ->
-                                if (count == 0) noTargets else reloadedFormat.format(count)
-                            },
-                            onFailure = { frameworkFailed.format(it.message.orEmpty()) },
-                        )
+                        result =
+                            bridge.hotReload().fold(
+                                onSuccess = { count ->
+                                    if (count == 0) noTargets else reloadedFormat.format(count)
+                                },
+                                onFailure = { frameworkFailed.format(it.message.orEmpty()) },
+                            )
                     }
                 },
             )
@@ -228,11 +233,11 @@ fun ModuleSettingsPage(
     )
 }
 
-
 @Composable
-private fun entryPositionLabels(): Map<SettingsEntryPosition, String> = mapOf(
-    SettingsEntryPosition.Off to stringResource(R.string.settings_entry_off),
-    SettingsEntryPosition.Device to stringResource(R.string.settings_entry_device),
-    SettingsEntryPosition.Launcher to stringResource(R.string.settings_entry_launcher),
-    SettingsEntryPosition.More to stringResource(R.string.settings_entry_more),
-)
+private fun entryPositionLabels(): Map<SettingsEntryPosition, String> =
+    mapOf(
+        SettingsEntryPosition.Off to stringResource(R.string.settings_entry_off),
+        SettingsEntryPosition.Device to stringResource(R.string.settings_entry_device),
+        SettingsEntryPosition.Launcher to stringResource(R.string.settings_entry_launcher),
+        SettingsEntryPosition.More to stringResource(R.string.settings_entry_more),
+    )

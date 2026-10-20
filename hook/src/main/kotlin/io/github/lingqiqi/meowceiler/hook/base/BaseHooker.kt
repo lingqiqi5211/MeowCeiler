@@ -1,16 +1,18 @@
 package io.github.lingqiqi.meowceiler.hook.base
 
 import io.github.lingqiqi.meowceiler.hook.util.MLog
+import io.github.lingqiqi.meowceiler.hook.util.Settings
 import io.github.lingqiqi.meowceiler.shared.HookEventKind
 import io.github.lingqiqi.meowceiler.shared.HookLog
-import io.github.lingqiqi.meowceiler.hook.util.Settings
 import io.github.lingqiqi5211.meowui.core.preference.PreferenceKey
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.concurrent.CopyOnWriteArraySet
 
 /** [switch] 为 null 表示无开关，恒随父级。 */
-sealed class BaseHooker(private val switch: PreferenceKey<Boolean>? = null) {
+sealed class BaseHooker(
+    private val switch: PreferenceKey<Boolean>? = null,
+) {
     val id: String get() = switch?.name ?: this::class.java.simpleName
 
     /** 有开关的才是「功能」。无开关的 scope 归框架级，只在出错时上报，不进日志页的功能清单。 */
@@ -23,6 +25,7 @@ sealed class BaseHooker(private val switch: PreferenceKey<Boolean>? = null) {
     private val children = CopyOnWriteArraySet<BaseHooker>()
 
     private var installed = false
+    private var initialized = false
 
     @Volatile
     private var selfEnabled = true
@@ -46,22 +49,48 @@ sealed class BaseHooker(private val switch: PreferenceKey<Boolean>? = null) {
 
     /** 开关由框架在这里统一读，所以子类永远不需要调 super。 */
     internal fun performInit() {
+        if (initialized) return
+        initialized = true
         runCatching { onInit() }
             .onFailure { MLog.event(HookEventKind.InitFailed, 'E', logTag, describe("onInit failed"), it) }
         applySwitch()
     }
 
+    /** Rebinds preference collectors after Settings.close() during framework hot reload. */
+    internal open fun refreshAfterHotReload() {
+        if (switch == null) {
+            updateSelfState(extraCondition)
+        } else {
+            updateSelfState(Settings.read(switch) && extraCondition)
+            if (this is DynamicHooker) {
+                Settings.scope.launch {
+                    Settings.observe(switch).collectLatest { enabled ->
+                        updateSelfState(enabled && extraCondition)
+                    }
+                }
+            }
+        }
+        children.forEach { it.refreshAfterHotReload() }
+    }
+
     private fun applySwitch() {
         when {
-            switch == null -> updateSelfState(extraCondition)
+            switch == null -> {
+                updateSelfState(extraCondition)
+            }
 
-            this is DynamicHooker -> Settings.scope.launch {
-                Settings.observe(switch).collectLatest { enabled ->
-                    updateSelfState(enabled && extraCondition)
+            this is DynamicHooker -> {
+                updateSelfState(Settings.read(switch) && extraCondition)
+                Settings.scope.launch {
+                    Settings.observe(switch).collectLatest { enabled ->
+                        updateSelfState(enabled && extraCondition)
+                    }
                 }
             }
 
-            else -> updateSelfState(Settings.read(switch) && extraCondition)
+            else -> {
+                updateSelfState(Settings.read(switch) && extraCondition)
+            }
         }
     }
 
@@ -86,8 +115,7 @@ sealed class BaseHooker(private val switch: PreferenceKey<Boolean>? = null) {
                 .onSuccess {
                     installed = true
                     if (isFeature) MLog.event(HookEventKind.Installed, 'I', id, "installed")
-                }
-                .onFailure {
+                }.onFailure {
                     MLog.event(HookEventKind.HookFailed, 'E', logTag, describe("onHook failed"), it)
                 }
         }
@@ -105,7 +133,11 @@ sealed class BaseHooker(private val switch: PreferenceKey<Boolean>? = null) {
 }
 
 /** 开关只读一次，关着就不装。改开关要重启宿主。 */
-abstract class StaticHooker(switch: PreferenceKey<Boolean>? = null) : BaseHooker(switch)
+abstract class StaticHooker(
+    switch: PreferenceKey<Boolean>? = null,
+) : BaseHooker(switch)
 
 /** 免重启开关：订阅开关，hook 照装，回调开头自己读 [enabled]。改 View、静态字段、监听器的不适合。 */
-abstract class DynamicHooker(switch: PreferenceKey<Boolean>? = null) : BaseHooker(switch)
+abstract class DynamicHooker(
+    switch: PreferenceKey<Boolean>? = null,
+) : BaseHooker(switch)

@@ -1,38 +1,40 @@
 package io.github.lingqiqi.meowceiler.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
+import io.github.lingqiqi.meowceiler.ui.component.AppLanguageRow
+import io.github.lingqiqi.meowceiler.ui.page.AboutPage
+import io.github.lingqiqi.meowceiler.ui.page.FeatureLogPage
+import io.github.lingqiqi.meowceiler.ui.page.HomeHostsPage
+import io.github.lingqiqi.meowceiler.ui.page.HomePage
+import io.github.lingqiqi.meowceiler.ui.page.HookLogPage
+import io.github.lingqiqi.meowceiler.ui.page.LicensesPage
+import io.github.lingqiqi.meowceiler.ui.page.LogRecordPage
+import io.github.lingqiqi.meowceiler.ui.page.ModuleSettingsPage
+import io.github.lingqiqi.meowceiler.ui.page.PackageManagerPage
+import io.github.lingqiqi.meowceiler.ui.page.SafeModePage
+import io.github.lingqiqi.meowceiler.ui.page.ScopeLogPage
+import io.github.lingqiqi.meowceiler.ui.page.ScopePage
+import io.github.lingqiqi.meowceiler.ui.page.SettingsHostPage
+import io.github.lingqiqi.meowceiler.ui.page.SystemFrameworkPage
+import io.github.lingqiqi.meowceiler.ui.page.SystemUiClockLayoutPage
+import io.github.lingqiqi.meowceiler.ui.page.SystemUiClockPage
+import io.github.lingqiqi.meowceiler.ui.page.SystemUiFocusAppsPage
+import io.github.lingqiqi.meowceiler.ui.page.SystemUiLockScreenPage
+import io.github.lingqiqi.meowceiler.ui.page.SystemUiNotificationCenterPage
+import io.github.lingqiqi.meowceiler.ui.page.SystemUiNotificationWeatherPage
+import io.github.lingqiqi.meowceiler.ui.page.SystemUiPage
+import io.github.lingqiqi.meowceiler.ui.page.SystemUiStatusBarPage
 import io.github.lingqiqi.meowceiler.ui.settings.FrameworkBridge
 import io.github.lingqiqi.meowceiler.ui.settings.NoFrameworkBridge
 import io.github.lingqiqi.meowceiler.ui.settings.rememberHookLogState
 import io.github.lingqiqi.meowceiler.ui.settings.rememberScopeState
-import io.github.lingqiqi.meowceiler.ui.component.AppLanguageRow
-import io.github.lingqiqi.meowceiler.ui.page.AboutPage
-import io.github.lingqiqi.meowceiler.ui.page.FeatureLogPage
-import io.github.lingqiqi.meowceiler.ui.page.HomePage
-import io.github.lingqiqi.meowceiler.ui.page.HomeHostsPage
-import io.github.lingqiqi.meowceiler.ui.page.HookLogPage
-import io.github.lingqiqi.meowceiler.ui.page.ScopeLogPage
-import io.github.lingqiqi.meowceiler.ui.page.LicensesPage
-import io.github.lingqiqi.meowceiler.ui.page.LogRecordPage
-import io.github.lingqiqi.meowceiler.ui.page.ModuleSettingsPage
-import io.github.lingqiqi.meowceiler.ui.page.SafeModePage
-import io.github.lingqiqi.meowceiler.ui.page.ScopePage
-import io.github.lingqiqi.meowceiler.ui.page.SettingsHostPage
-import io.github.lingqiqi.meowceiler.ui.page.SystemUiLockScreenPage
-import io.github.lingqiqi.meowceiler.ui.page.SystemUiPage
-import io.github.lingqiqi.meowceiler.ui.page.SystemUiClockLayoutPage
-import io.github.lingqiqi.meowceiler.ui.page.SystemUiClockPage
-import io.github.lingqiqi.meowceiler.ui.page.SystemUiFocusAppsPage
-import io.github.lingqiqi.meowceiler.ui.page.SystemUiNotificationCenterPage
-import io.github.lingqiqi.meowceiler.ui.page.SystemUiNotificationWeatherPage
-import io.github.lingqiqi.meowceiler.ui.page.SystemUiStatusBarPage
-import io.github.lingqiqi5211.meowui.component.MeowAppearancePage
 import io.github.lingqiqi5211.meowui.component.MeowAppearanceLabels
+import io.github.lingqiqi5211.meowui.component.MeowAppearancePage
 import io.github.lingqiqi5211.meowui.preference.rememberMeowPreferenceValue
-import androidx.compose.runtime.getValue
 import io.github.lingqiqi5211.meowui.theme.MeowTheme
 
 /**
@@ -53,9 +55,10 @@ fun MeowCeilerApp(
     val hookLog = rememberHookLogState()
 
     MeowTheme(appearance = appearance.appearance) {
-        val backStack = remember {
-            mutableStateListOf<Route>(Route.Shell).apply { initialRoute?.let(::add) }
-        }
+        val backStack =
+            remember {
+                mutableStateListOf<Route>(Route.Shell).apply { initialRoute?.let(::add) }
+            }
         val nav = remember(backStack) { AppNavigation(backStack) }
         val entry = remember { initialRoute }
         val back: () -> Unit = {
@@ -69,95 +72,160 @@ fun MeowCeilerApp(
             floatingNavigation = appearance.appearance.floatingNavigationBarEnabled,
         ) { route ->
             when (route) {
-                Route.Shell -> ShellPage(
-                    floatingNavigation = appearance.appearance.floatingNavigationBarEnabled,
-                    onTabChanged = nav::resetDetail,
-                    home = {
-                        HomePage(
-                            scopeFilter = scopeState.packages?.takeIf { scopeSync },
-                            hiddenHosts = if (scopeSync) emptySet() else hiddenHosts,
-                            onOpenSafeMode = { nav.openRoot(Route.SafeMode) },
-                            onOpenHost = nav::openRoot,
-                        )
-                    },
-                    settings = {
-                        ModuleSettingsPage(
-                            bridge = bridge,
-                            onOpenAppearance = { nav.openRoot(Route.Appearance) },
-                            onOpenScope = { nav.openRoot(Route.Scope) },
-                            onOpenHomeHosts = { nav.openRoot(Route.HomeHosts) },
-                            onOpenSafeMode = { nav.openRoot(Route.SafeMode) },
-                            onOpenHookLog = { nav.openRoot(Route.HookLog) },
-                        )
-                    },
-                    about = { AboutPage(onOpenLicenses = { nav.openRoot(Route.Licenses) }) },
-                )
-                Route.Appearance -> MeowAppearancePage(
-                    appearance = appearance.appearance,
-                    onAppearanceChange = appearance.onChange,
-                    onBackClick = back,
-                    labels = appearanceLabels(),
-                    interfaceItems = { AppLanguageRow() },
-                )
-                Route.Scope -> ScopePage(bridge = bridge, scopeState = scopeState, onBack = back)
-                Route.HomeHosts -> HomeHostsPage(onBack = back)
-                Route.Licenses -> LicensesPage(onBack = back)
-                Route.SafeMode -> SafeModePage(onBack = back)
-                Route.SystemUi -> SystemUiPage(onBack = back, onOpenCategory = nav::push)
-                Route.SystemUiLockScreen -> SystemUiLockScreenPage(onBack = back)
-                Route.SystemUiStatusBar -> SystemUiStatusBarPage(onBack = back, onOpen = nav::push)
-                Route.SystemUiClock -> SystemUiClockPage(onBack = back, onOpen = nav::push)
-                is Route.SystemUiClockLayout -> SystemUiClockLayoutPage(part = route.part, onBack = back)
-                Route.SystemUiNotificationCenter -> SystemUiNotificationCenterPage(onBack = back, onOpen = nav::push)
-                Route.Settings -> SettingsHostPage(onBack = back)
-                Route.SystemUiNotificationWeather -> SystemUiNotificationWeatherPage(onBack = back)
-                Route.SystemUiFocusApps -> SystemUiFocusAppsPage(onBack = back)
-                Route.HookLog -> HookLogPage(
-                    state = hookLog,
-                    onBack = back,
-                    onOpenScope = { nav.push(Route.ScopeLog(it)) },
-                    onOpenFeature = { nav.push(Route.FeatureLog(it)) },
-                )
-                is Route.ScopeLog -> ScopeLogPage(host = route.host, state = hookLog, onBack = back)
-                is Route.FeatureLog -> FeatureLogPage(
-                    tag = route.tag,
-                    state = hookLog,
-                    onBack = back,
-                    onOpenRecord = { nav.push(Route.LogRecord(it)) },
-                )
-                is Route.LogRecord -> LogRecordPage(record = route.record, onBack = back)
+                Route.Shell -> {
+                    ShellPage(
+                        floatingNavigation = appearance.appearance.floatingNavigationBarEnabled,
+                        onTabChanged = nav::resetDetail,
+                        home = {
+                            HomePage(
+                                scopeFilter = scopeState.packages?.takeIf { scopeSync },
+                                hiddenHosts = if (scopeSync) emptySet() else hiddenHosts,
+                                onOpenSafeMode = { nav.openRoot(Route.SafeMode) },
+                                onOpenHost = nav::openRoot,
+                            )
+                        },
+                        settings = {
+                            ModuleSettingsPage(
+                                bridge = bridge,
+                                onOpenAppearance = { nav.openRoot(Route.Appearance) },
+                                onOpenScope = { nav.openRoot(Route.Scope) },
+                                onOpenHomeHosts = { nav.openRoot(Route.HomeHosts) },
+                                onOpenSafeMode = { nav.openRoot(Route.SafeMode) },
+                                onOpenHookLog = { nav.openRoot(Route.HookLog) },
+                            )
+                        },
+                        about = { AboutPage(onOpenLicenses = { nav.openRoot(Route.Licenses) }) },
+                    )
+                }
+
+                Route.Appearance -> {
+                    MeowAppearancePage(
+                        appearance = appearance.appearance,
+                        onAppearanceChange = appearance.onChange,
+                        onBackClick = back,
+                        labels = appearanceLabels(),
+                        interfaceItems = { AppLanguageRow() },
+                    )
+                }
+
+                Route.Scope -> {
+                    ScopePage(bridge = bridge, scopeState = scopeState, onBack = back)
+                }
+
+                Route.HomeHosts -> {
+                    HomeHostsPage(onBack = back)
+                }
+
+                Route.Licenses -> {
+                    LicensesPage(onBack = back)
+                }
+
+                Route.SystemFramework -> {
+                    SystemFrameworkPage(onBack = back, onOpenCategory = nav::push)
+                }
+
+                Route.PackageManager -> {
+                    PackageManagerPage(onBack = back)
+                }
+
+                Route.SafeMode -> {
+                    SafeModePage(onBack = back)
+                }
+
+                Route.SystemUi -> {
+                    SystemUiPage(onBack = back, onOpenCategory = nav::push)
+                }
+
+                Route.SystemUiLockScreen -> {
+                    SystemUiLockScreenPage(onBack = back)
+                }
+
+                Route.SystemUiStatusBar -> {
+                    SystemUiStatusBarPage(onBack = back, onOpen = nav::push)
+                }
+
+                Route.SystemUiClock -> {
+                    SystemUiClockPage(onBack = back, onOpen = nav::push)
+                }
+
+                is Route.SystemUiClockLayout -> {
+                    SystemUiClockLayoutPage(part = route.part, onBack = back)
+                }
+
+                Route.SystemUiNotificationCenter -> {
+                    SystemUiNotificationCenterPage(onBack = back, onOpen = nav::push)
+                }
+
+                Route.Settings -> {
+                    SettingsHostPage(onBack = back)
+                }
+
+                Route.SystemUiNotificationWeather -> {
+                    SystemUiNotificationWeatherPage(onBack = back)
+                }
+
+                Route.SystemUiFocusApps -> {
+                    SystemUiFocusAppsPage(onBack = back)
+                }
+
+                Route.HookLog -> {
+                    HookLogPage(
+                        state = hookLog,
+                        onBack = back,
+                        onOpenScope = { nav.push(Route.ScopeLog(it)) },
+                        onOpenFeature = { nav.push(Route.FeatureLog(it)) },
+                    )
+                }
+
+                is Route.ScopeLog -> {
+                    ScopeLogPage(host = route.host, state = hookLog, onBack = back)
+                }
+
+                is Route.FeatureLog -> {
+                    FeatureLogPage(
+                        tag = route.tag,
+                        state = hookLog,
+                        onBack = back,
+                        onOpenRecord = { nav.push(Route.LogRecord(it)) },
+                    )
+                }
+
+                is Route.LogRecord -> {
+                    LogRecordPage(record = route.record, onBack = back)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun appearanceLabels() = MeowAppearanceLabels(
-    title = stringResource(R.string.appearance_title),
-    themeColor = stringResource(R.string.appearance_theme_color),
-    themeMode = stringResource(R.string.appearance_theme_mode),
-    systemMode = stringResource(R.string.appearance_mode_system),
-    lightMode = stringResource(R.string.appearance_mode_light),
-    darkMode = stringResource(R.string.appearance_mode_dark),
-    amoledDark = stringResource(R.string.appearance_amoled),
-    amoledDarkSummary = stringResource(R.string.appearance_amoled_summary),
-    colorSettings = stringResource(R.string.appearance_colors),
-    paletteStyle = stringResource(R.string.appearance_palette),
-    colorSpec = stringResource(R.string.appearance_color_spec),
-    miuixMonet = stringResource(R.string.appearance_monet),
-    miuixMonetSummary = stringResource(R.string.appearance_monet_summary),
-    interfaceSettings = stringResource(R.string.appearance_interface),
-    interfaceStyle = stringResource(R.string.appearance_style),
-    floatingNavigationBar = stringResource(R.string.settings_floating_nav),
-    floatingNavigationBarSummary = stringResource(R.string.settings_floating_nav_summary),
-    blur = stringResource(R.string.appearance_blur),
-    blurSummary = stringResource(R.string.appearance_blur_summary),
-    predictiveBack = stringResource(R.string.appearance_predictive_back),
-    predictiveBackSummary = stringResource(R.string.appearance_predictive_back_summary),
-    interfaceScale = stringResource(R.string.appearance_scale),
-    interfaceScaleSummary = stringResource(R.string.appearance_scale_summary),
-    customColor = stringResource(R.string.appearance_custom_color),
-    defaultValue = stringResource(R.string.slider_default),
-    dialogConfirm = stringResource(R.string.dialog_confirm),
-    dialogCancel = stringResource(R.string.dialog_cancel),
-)
+private fun appearanceLabels() =
+    MeowAppearanceLabels(
+        title = stringResource(R.string.appearance_title),
+        themeColor = stringResource(R.string.appearance_theme_color),
+        themeMode = stringResource(R.string.appearance_theme_mode),
+        systemMode = stringResource(R.string.appearance_mode_system),
+        lightMode = stringResource(R.string.appearance_mode_light),
+        darkMode = stringResource(R.string.appearance_mode_dark),
+        amoledDark = stringResource(R.string.appearance_amoled),
+        amoledDarkSummary = stringResource(R.string.appearance_amoled_summary),
+        colorSettings = stringResource(R.string.appearance_colors),
+        paletteStyle = stringResource(R.string.appearance_palette),
+        colorSpec = stringResource(R.string.appearance_color_spec),
+        miuixMonet = stringResource(R.string.appearance_monet),
+        miuixMonetSummary = stringResource(R.string.appearance_monet_summary),
+        interfaceSettings = stringResource(R.string.appearance_interface),
+        interfaceStyle = stringResource(R.string.appearance_style),
+        floatingNavigationBar = stringResource(R.string.settings_floating_nav),
+        floatingNavigationBarSummary = stringResource(R.string.settings_floating_nav_summary),
+        blur = stringResource(R.string.appearance_blur),
+        blurSummary = stringResource(R.string.appearance_blur_summary),
+        predictiveBack = stringResource(R.string.appearance_predictive_back),
+        predictiveBackSummary = stringResource(R.string.appearance_predictive_back_summary),
+        interfaceScale = stringResource(R.string.appearance_scale),
+        interfaceScaleSummary = stringResource(R.string.appearance_scale_summary),
+        customColor = stringResource(R.string.appearance_custom_color),
+        defaultValue = stringResource(R.string.slider_default),
+        dialogConfirm = stringResource(R.string.dialog_confirm),
+        dialogCancel = stringResource(R.string.dialog_cancel),
+    )
