@@ -14,6 +14,8 @@ import io.github.lingqiqi.meowceiler.shared.SafeModeRecord
 import io.github.lingqiqi.meowceiler.ui.R
 import io.github.lingqiqi.meowceiler.ui.component.SettingsCard
 import io.github.lingqiqi.meowceiler.ui.component.SettingsSection
+import io.github.lingqiqi5211.meowui.component.MeowActionPreference
+import io.github.lingqiqi5211.meowui.component.MeowSwitchPreference
 import io.github.lingqiqi5211.meowui.component.MeowPreferencePage
 import io.github.lingqiqi5211.meowui.preference.currentMeowPreferenceStore
 import io.github.lingqiqi5211.meowui.preference.rememberMeowPreferenceValue
@@ -45,12 +47,14 @@ fun SafeModePage(onBack: () -> Unit) {
         onBackClick = onBack,
     ) {
         SettingsCard(testTag = "section.safe_mode.switch") {
-            MeowSwitchPreference(
-                key = Preferences.SafeMode.Enabled,
-                title = stringResource(R.string.safe_mode_enabled),
-                modifier = Modifier.testTag("row.safe_mode_enabled"),
-                summary = stringResource(R.string.safe_mode_enabled_summary),
-            )
+            item(id = Preferences.SafeMode.Enabled.name, container = false) {
+                MeowSwitchPreference(
+                    key = Preferences.SafeMode.Enabled,
+                    title = stringResource(R.string.safe_mode_enabled),
+                    modifier = Modifier.testTag("row.safe_mode_enabled"),
+                    summary = stringResource(R.string.safe_mode_enabled_summary),
+                )
+            }
         }
 
         SettingsSection(
@@ -58,27 +62,33 @@ fun SafeModePage(onBack: () -> Unit) {
             testTag = "section.safe_mode.blocked",
         ) {
             if (blocked.isEmpty()) {
-                MeowActionPreference(
-                    title = stringResource(R.string.safe_mode_blocked_empty),
-                    enabled = false,
-                    onClick = {},
-                )
+                item(id = "row.safe_mode.empty", container = false) {
+                    MeowActionPreference(
+                        title = stringResource(R.string.safe_mode_blocked_empty),
+                        enabled = false,
+                        onClick = {},
+                    )
+                }
             }
             if (blocked.isNotEmpty()) {
-                MeowActionPreference(
-                    title = stringResource(R.string.safe_mode_retry_note),
-                    enabled = false,
-                    onClick = {},
-                )
+                item(id = "row.safe_mode.note", container = false) {
+                    MeowActionPreference(
+                        title = stringResource(R.string.safe_mode_retry_note),
+                        enabled = false,
+                        onClick = {},
+                    )
+                }
             }
             blocked.forEach { record ->
-                MeowActionPreference(
-                    title = context.appLabel(record.hostPackage),
-                    modifier = Modifier.testTag("row.safe_mode.${record.hostPackage}"),
-                    summary = record.message,
-                    value = stringResource(R.string.safe_mode_retry),
-                    onClick = { clear(record.hostPackage) },
-                )
+                item(id = record.hostPackage, container = false) {
+                    MeowActionPreference(
+                        title = context.appLabel(record.hostPackage),
+                        modifier = Modifier.testTag("row.safe_mode.${record.hostPackage}"),
+                        summary = record.message,
+                        value = stringResource(R.string.safe_mode_retry),
+                        onClick = { clear(record.hostPackage) },
+                    )
+                }
             }
         }
 
@@ -89,13 +99,15 @@ fun SafeModePage(onBack: () -> Unit) {
                 testTag = "section.safe_mode.warned",
             ) {
                 warned.forEach { record ->
-                    MeowActionPreference(
-                        title = context.appLabel(record.hostPackage),
-                        modifier = Modifier.testTag("row.safe_mode.warn.${record.hostPackage}"),
-                        summary = record.message,
-                        value = "${record.failures}/${SafeModeRecord.FailureThreshold}",
-                        onClick = { clear(record.hostPackage) },
-                    )
+                    item(id = record.hostPackage, container = false) {
+                        MeowActionPreference(
+                            title = context.appLabel(record.hostPackage),
+                            modifier = Modifier.testTag("row.safe_mode.warn.${record.hostPackage}"),
+                            summary = record.message,
+                            value = "${record.failures}/${SafeModeRecord.FailureThreshold}",
+                            onClick = { clear(record.hostPackage) },
+                        )
+                    }
                 }
             }
         }

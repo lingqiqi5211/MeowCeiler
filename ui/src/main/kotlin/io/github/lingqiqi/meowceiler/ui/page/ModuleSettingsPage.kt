@@ -23,6 +23,9 @@ import io.github.lingqiqi.meowceiler.ui.component.SettingsSection
 import io.github.lingqiqi.meowceiler.ui.settings.FrameworkBridge
 import io.github.lingqiqi.meowceiler.ui.settings.LauncherIcon
 import io.github.lingqiqi.meowceiler.ui.settings.PreferencesBackup
+import io.github.lingqiqi5211.meowui.component.MeowActionPreference
+import io.github.lingqiqi5211.meowui.component.MeowPopupPreference
+import io.github.lingqiqi5211.meowui.component.MeowSwitchPreference
 import io.github.lingqiqi5211.meowui.component.MeowAlertDialog
 import io.github.lingqiqi5211.meowui.component.MeowPreferenceScreen
 import io.github.lingqiqi5211.meowui.preference.currentMeowPreferenceStore
@@ -111,38 +114,44 @@ fun ModuleSettingsPage(
         }
 
         SettingsSection(titleRes = R.string.settings_display, testTag = "section.display") {
-            MeowSwitchPreference(
-                title = stringResource(R.string.settings_hide_launcher_icon),
-                checked = iconHidden,
-                onCheckedChange = {
-                    iconHidden = it
-                    LauncherIcon.setHidden(context, it)
-                },
-                modifier = Modifier.testTag("row.hide_launcher_icon"),
-                summary = stringResource(R.string.settings_hide_launcher_icon_summary),
-            )
-            MeowPopupPreference(
-                title = stringResource(R.string.settings_entry_position),
-                value = entryPosition,
-                options = SettingsEntryPosition.entries,
-                onValueChange = { picked ->
-                    scope.launch { store.write(Preferences.SettingsEntry.Position, picked.key) }
-                },
-                modifier = Modifier.testTag("row.entry_position"),
-                summary = stringResource(R.string.settings_entry_position_summary),
-                optionLabel = entryPositionLabels()::getValue,
-            )
+            item(id = "row.hide_launcher_icon", container = false) {
+                MeowSwitchPreference(
+                    title = stringResource(R.string.settings_hide_launcher_icon),
+                    checked = iconHidden,
+                    onCheckedChange = {
+                        iconHidden = it
+                        LauncherIcon.setHidden(context, it)
+                    },
+                    modifier = Modifier.testTag("row.hide_launcher_icon"),
+                    summary = stringResource(R.string.settings_hide_launcher_icon_summary),
+                )
+            }
+            item(id = Preferences.SettingsEntry.Position.name, container = false) {
+                MeowPopupPreference(
+                    title = stringResource(R.string.settings_entry_position),
+                    value = entryPosition,
+                    options = SettingsEntryPosition.entries,
+                    onValueChange = { picked ->
+                        scope.launch { store.write(Preferences.SettingsEntry.Position, picked.key) }
+                    },
+                    modifier = Modifier.testTag("row.entry_position"),
+                    summary = stringResource(R.string.settings_entry_position_summary),
+                    optionLabel = entryPositionLabels()::getValue,
+                )
+            }
         }
 
         SettingsSection(titleRes = R.string.settings_module, testTag = "section.module") {
             FeatureSwitchRow(key = Preferences.Module.Enabled, titleRes = R.string.module_enabled)
             FeatureSwitchRow(key = Preferences.Module.Debug, titleRes = R.string.module_debug)
-            MeowSwitchPreference(
-                key = Preferences.Framework.ScopeSync,
-                title = stringResource(R.string.settings_scope_sync),
-                modifier = Modifier.testTag("row.scope_sync"),
-                summary = stringResource(R.string.settings_scope_sync_summary),
-            )
+            item(id = Preferences.Framework.ScopeSync.name, container = false) {
+                MeowSwitchPreference(
+                    key = Preferences.Framework.ScopeSync,
+                    title = stringResource(R.string.settings_scope_sync),
+                    modifier = Modifier.testTag("row.scope_sync"),
+                    summary = stringResource(R.string.settings_scope_sync_summary),
+                )
+            }
             SettingsNavigationRow(
                 titleRes = R.string.settings_home_hosts,
                 testTag = "row.home_hosts",
@@ -150,64 +159,78 @@ fun ModuleSettingsPage(
                 visible = !scopeSync,
                 onClick = onOpenHomeHosts,
             )
-            MeowActionPreference(
-                title = stringResource(R.string.settings_scope),
-                modifier = Modifier.testTag("row.scope"),
-                summary = stringResource(R.string.settings_scope_summary),
-                navigation = true,
-                onClick = onOpenScope,
-            )
-            MeowActionPreference(
-                title = stringResource(R.string.safe_mode),
-                modifier = Modifier.testTag("row.safe_mode"),
-                summary = stringResource(R.string.safe_mode_summary),
-                navigation = true,
-                onClick = onOpenSafeMode,
-            )
-            MeowActionPreference(
-                title = stringResource(R.string.hook_log),
-                modifier = Modifier.testTag("row.hook_log"),
-                summary = stringResource(R.string.hook_log_summary),
-                navigation = true,
-                onClick = onOpenHookLog,
-            )
-            MeowActionPreference(
-                title = stringResource(R.string.settings_hot_reload),
-                modifier = Modifier.testTag("row.hot_reload"),
-                summary = stringResource(R.string.settings_hot_reload_summary),
-                onClick = {
-                    scope.launch {
-                        result =
-                            bridge.hotReload().fold(
-                                onSuccess = { count ->
-                                    if (count == 0) noTargets else reloadedFormat.format(count)
-                                },
-                                onFailure = { frameworkFailed.format(it.message.orEmpty()) },
-                            )
-                    }
-                },
-            )
+            item(id = "row.scope", container = false) {
+                MeowActionPreference(
+                    title = stringResource(R.string.settings_scope),
+                    modifier = Modifier.testTag("row.scope"),
+                    summary = stringResource(R.string.settings_scope_summary),
+                    navigation = true,
+                    onClick = onOpenScope,
+                )
+            }
+            item(id = "row.safe_mode", container = false) {
+                MeowActionPreference(
+                    title = stringResource(R.string.safe_mode),
+                    modifier = Modifier.testTag("row.safe_mode"),
+                    summary = stringResource(R.string.safe_mode_summary),
+                    navigation = true,
+                    onClick = onOpenSafeMode,
+                )
+            }
+            item(id = "row.hook_log", container = false) {
+                MeowActionPreference(
+                    title = stringResource(R.string.hook_log),
+                    modifier = Modifier.testTag("row.hook_log"),
+                    summary = stringResource(R.string.hook_log_summary),
+                    navigation = true,
+                    onClick = onOpenHookLog,
+                )
+            }
+            item(id = "row.hot_reload", container = false) {
+                MeowActionPreference(
+                    title = stringResource(R.string.settings_hot_reload),
+                    modifier = Modifier.testTag("row.hot_reload"),
+                    summary = stringResource(R.string.settings_hot_reload_summary),
+                    onClick = {
+                        scope.launch {
+                            result =
+                                bridge.hotReload().fold(
+                                    onSuccess = { count ->
+                                        if (count == 0) noTargets else reloadedFormat.format(count)
+                                    },
+                                    onFailure = { frameworkFailed.format(it.message.orEmpty()) },
+                                )
+                        }
+                    },
+                )
+            }
         }
 
         SettingsSection(titleRes = R.string.settings_data, testTag = "section.data") {
-            MeowActionPreference(
-                title = stringResource(R.string.settings_backup),
-                modifier = Modifier.testTag("row.backup"),
-                summary = stringResource(R.string.settings_backup_summary),
-                onClick = { backup.launch(PreferencesBackup.FileName) },
-            )
-            MeowActionPreference(
-                title = stringResource(R.string.settings_restore),
-                modifier = Modifier.testTag("row.restore"),
-                summary = stringResource(R.string.settings_restore_summary),
-                onClick = { restore.launch(arrayOf("*/*")) },
-            )
-            MeowActionPreference(
-                title = stringResource(R.string.settings_reset),
-                modifier = Modifier.testTag("row.reset"),
-                summary = stringResource(R.string.settings_reset_summary),
-                onClick = { confirmReset = true },
-            )
+            item(id = "row.backup", container = false) {
+                MeowActionPreference(
+                    title = stringResource(R.string.settings_backup),
+                    modifier = Modifier.testTag("row.backup"),
+                    summary = stringResource(R.string.settings_backup_summary),
+                    onClick = { backup.launch(PreferencesBackup.FileName) },
+                )
+            }
+            item(id = "row.restore", container = false) {
+                MeowActionPreference(
+                    title = stringResource(R.string.settings_restore),
+                    modifier = Modifier.testTag("row.restore"),
+                    summary = stringResource(R.string.settings_restore_summary),
+                    onClick = { restore.launch(arrayOf("*/*")) },
+                )
+            }
+            item(id = "row.reset", container = false) {
+                MeowActionPreference(
+                    title = stringResource(R.string.settings_reset),
+                    modifier = Modifier.testTag("row.reset"),
+                    summary = stringResource(R.string.settings_reset_summary),
+                    onClick = { confirmReset = true },
+                )
+            }
         }
     }
 

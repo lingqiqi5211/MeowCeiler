@@ -38,6 +38,9 @@ fun FeatureLogPage(tag: String, state: HookLogState, onBack: () -> Unit, onOpenR
     val problems = records.filter { it.isProblem }.sortedByDescending { it.lastMillis }
     val trace = records.filter { it.kind == HookEventKind.Log && (it.level == 'D' || it.level == 'I') }
         .sortedByDescending { it.lastMillis }
+    val installedTitle = stringResource(R.string.log_kind_installed)
+    val traceTitle = stringResource(R.string.log_trace_entry)
+    val problemTitles = problems.associate { it.kind to stringResource(it.kind.titleRes()) }
 
     MeowPreferencePage(
         title = stringResource(R.string.feature_health),
@@ -61,7 +64,7 @@ fun FeatureLogPage(tag: String, state: HookLogState, onBack: () -> Unit, onOpenR
         if (installed != null) {
             SettingsCard(testTag = "section.log.installed") {
                 SettingsValueRow(
-                    title = stringResource(R.string.log_kind_installed),
+                    title = installedTitle,
                     value = installed.time(),
                     testTag = "row.log.installed",
                     navigation = true,
@@ -84,7 +87,7 @@ fun FeatureLogPage(tag: String, state: HookLogState, onBack: () -> Unit, onOpenR
             SettingsSection(titleRes = R.string.log_problems, testTag = "section.log.problems") {
                 problems.forEachIndexed { index, record ->
                     SettingsValueRow(
-                        title = stringResource(record.kind.titleRes()),
+                        title = problemTitles.getValue(record.kind),
                         value = record.summary(),
                         testTag = "row.log.problem.$index",
                         navigation = true,
@@ -97,7 +100,7 @@ fun FeatureLogPage(tag: String, state: HookLogState, onBack: () -> Unit, onOpenR
             SettingsSection(titleRes = R.string.log_trace, testTag = "section.log.trace") {
                 trace.forEachIndexed { index, record ->
                     SettingsValueRow(
-                        title = stringResource(R.string.log_trace_entry),
+                        title = traceTitle,
                         value = "${record.time()} ${record.message.lineSequence().first()}",
                         testTag = "row.log.trace.$index",
                         navigation = true,

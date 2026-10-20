@@ -58,7 +58,7 @@ fun SystemUiFocusAppsPage(onBack: () -> Unit) {
             testTag = "section.systemui.focus.media",
         ) {
             mediaApps.forEach { app ->
-                item(key = app.packageName, container = false) {
+                item(id = app.packageName, container = false) {
                     FocusAppRow(
                         app = app,
                         allowed = app.packageName !in mediaHidden,

@@ -19,8 +19,12 @@ fun MeowPreferenceSectionScope.FeatureTextRow(
     visible: Boolean = true,
     allowBlank: Boolean = false,
     testTag: String = "row.${key.name}",
-) = item(key = key.name, visible = visible, container = false) {
-    MeowTextRow(key, titleRes, allowBlank, testTag)
+) {
+    if (visible) {
+        item(id = key.name, container = false) {
+            MeowTextRow(key, titleRes, allowBlank, testTag)
+        }
+    }
 }
 
 @Composable

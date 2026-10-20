@@ -14,7 +14,7 @@ import io.github.lingqiqi5211.meowui.core.preference.PreferenceKey
 fun SettingsSection(
     titleRes: Int,
     testTag: String,
-    content: @Composable MeowPreferenceSectionScope.() -> Unit,
+    content: MeowPreferenceSectionScope.() -> Unit,
 ) {
     MeowPreferenceSection(
         modifier = Modifier.testTag(testTag),
@@ -26,7 +26,7 @@ fun SettingsSection(
 @Composable
 fun SettingsCard(
     testTag: String,
-    content: @Composable MeowPreferenceSectionScope.() -> Unit,
+    content: MeowPreferenceSectionScope.() -> Unit,
 ) {
     MeowPreferenceSection(modifier = Modifier.testTag(testTag), content = content)
 }
@@ -38,8 +38,12 @@ fun MeowPreferenceSectionScope.FeatureSwitchRow(
     summaryRes: Int? = null,
     visible: Boolean = true,
     testTag: String = "row.${key.name}",
-) = item(key = key.name, visible = visible, container = false) {
-    MeowSwitchPreferenceRow(key, titleRes, summaryRes, testTag)
+) {
+    if (visible) {
+        item(id = key.name, container = false) {
+            MeowSwitchPreferenceRow(key, titleRes, summaryRes, testTag)
+        }
+    }
 }
 
 @Suppress("FunctionName")
@@ -49,8 +53,12 @@ fun MeowPreferenceSectionScope.SettingsNavigationRow(
     summaryRes: Int? = null,
     visible: Boolean = true,
     onClick: () -> Unit,
-) = item(key = testTag, visible = visible, container = false) {
-    MeowActionRow(titleRes, testTag, summaryRes, value = null, navigation = true, onClick = onClick)
+) {
+    if (visible) {
+        item(id = testTag, container = false) {
+            MeowActionRow(titleRes, testTag, summaryRes, value = null, navigation = true, onClick = onClick)
+        }
+    }
 }
 
 @Suppress("FunctionName")
@@ -58,7 +66,7 @@ fun MeowPreferenceSectionScope.SettingsInfoRow(
     titleRes: Int,
     value: String,
     testTag: String,
-) = item(key = testTag, container = false) {
+) = item(id = testTag, container = false) {
     MeowActionRow(titleRes, testTag, summaryRes = null, value = value, navigation = false, onClick = {})
 }
 
@@ -73,8 +81,12 @@ fun MeowPreferenceSectionScope.FeatureSliderRow(
     showPlus: Boolean = false,
     visible: Boolean = true,
     testTag: String = "row.${key.name}",
-) = item(key = key.name, visible = visible, container = false) {
-    MeowSliderRow(key, titleRes, range, step, unit, showPlus, testTag)
+) {
+    if (visible) {
+        item(id = key.name, container = false) {
+            MeowSliderRow(key, titleRes, range, step, unit, showPlus, testTag)
+        }
+    }
 }
 
 @Suppress("FunctionName")
@@ -84,7 +96,7 @@ fun MeowPreferenceSectionScope.SettingsValueRow(
     testTag: String,
     navigation: Boolean = false,
     onClick: () -> Unit = {},
-) = item(key = testTag, container = false) {
+) = item(id = testTag, container = false) {
     MeowTextActionRow(title, value, testTag, navigation, onClick)
 }
 
@@ -92,7 +104,7 @@ fun MeowPreferenceSectionScope.SettingsValueRow(
 fun MeowPreferenceSectionByTitle(
     title: String,
     testTag: String,
-    content: @Composable MeowPreferenceSectionScope.() -> Unit,
+    content: MeowPreferenceSectionScope.() -> Unit,
 ) {
     MeowPreferenceSection(modifier = Modifier.testTag(testTag), title = title, content = content)
 }

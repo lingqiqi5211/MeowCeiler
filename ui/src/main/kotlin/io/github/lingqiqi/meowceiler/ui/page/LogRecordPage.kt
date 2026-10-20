@@ -56,7 +56,7 @@ fun LogRecordPage(record: HookLogRecord, onBack: () -> Unit) {
         ),
     ) {
         SettingsCard(testTag = "section.log.record") {
-            item(key = "text") {
+            item(id = "text") {
                 // 堆栈按原样横向滚动：折行会把缩进和栈帧顺序搅在一起，读不出层级。
                 SelectionContainer {
                     BasicText(

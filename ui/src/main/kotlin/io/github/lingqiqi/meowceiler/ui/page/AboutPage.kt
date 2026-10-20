@@ -28,6 +28,7 @@ import io.github.lingqiqi.meowceiler.ui.R
 import io.github.lingqiqi.meowceiler.ui.component.SettingsCard
 import io.github.lingqiqi.meowceiler.ui.component.SettingsInfoRow
 import io.github.lingqiqi.meowceiler.ui.component.SettingsSection
+import io.github.lingqiqi5211.meowui.component.MeowActionPreference
 import io.github.lingqiqi5211.meowui.component.MeowPreferenceScreen
 import io.github.lingqiqi5211.meowui.theme.MeowTheme
 
@@ -52,16 +53,20 @@ fun AboutPage(onOpenLicenses: () -> Unit) {
         AboutHero(versionName)
 
         SettingsCard(testTag = "section.about.links") {
-            MeowActionPreference(
-                title = stringResource(R.string.about_source),
-                navigation = true,
-                onClick = { uriHandler.openUri(ProjectUrl) },
-            )
-            MeowActionPreference(
-                title = stringResource(R.string.about_licenses),
-                navigation = true,
-                onClick = onOpenLicenses,
-            )
+            item(id = "row.about.source", container = false) {
+                MeowActionPreference(
+                    title = stringResource(R.string.about_source),
+                    navigation = true,
+                    onClick = { uriHandler.openUri(ProjectUrl) },
+                )
+            }
+            item(id = "row.about.licenses", container = false) {
+                MeowActionPreference(
+                    title = stringResource(R.string.about_licenses),
+                    navigation = true,
+                    onClick = onOpenLicenses,
+                )
+            }
         }
 
         SettingsSection(titleRes = R.string.about_device, testTag = "section.about.device") {

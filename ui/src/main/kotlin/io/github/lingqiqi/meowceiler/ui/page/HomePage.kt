@@ -55,11 +55,9 @@ fun HomePage(
 
     MeowPreferenceScreen {
         StatusTip(onOpenSafeMode)
-        // 每个宿主都声明，藏起来的走 `item(visible = false)`：
-        // 直接不声明的话分区收不到「这一趟少了谁」，改完开关首页要等下次重建才更新。
         MeowPreferenceSection(modifier = Modifier.testTag("section.hosts")) {
-            hosts.forEach { host ->
-                item(key = host.entry.packageName, visible = visible(host), container = false) {
+            hosts.filter(visible).forEach { host ->
+                item(id = host.entry.packageName, container = false) {
                     HostRow(host, onOpenHost)
                 }
             }

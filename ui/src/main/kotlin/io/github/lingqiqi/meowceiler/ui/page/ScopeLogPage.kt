@@ -68,7 +68,7 @@ fun ScopeLogPage(host: String, state: HookLogState, onBack: () -> Unit) {
         }
 
         SettingsCard(testTag = "section.log.detail") {
-            item(key = "text") {
+            item(id = "text") {
                 // 与记录详情同一套：横向滚动、不折行，堆栈才看得出层级。
                 SelectionContainer {
                     BasicText(

@@ -12,9 +12,16 @@ import androidx.compose.ui.res.stringResource
 import io.github.lingqiqi.meowceiler.ui.R
 import io.github.lingqiqi.meowceiler.ui.settings.AppLanguage
 import io.github.lingqiqi5211.meowui.component.MeowPreferenceSectionScope
+import io.github.lingqiqi5211.meowui.component.MeowPopupPreference
+
+fun MeowPreferenceSectionScope.AppLanguageRow() {
+    item(id = "row.language", container = false) {
+        AppLanguagePreference()
+    }
+}
 
 @Composable
-fun MeowPreferenceSectionScope.AppLanguageRow() {
+private fun AppLanguagePreference() {
     val context = LocalContext.current
     var language by remember { mutableStateOf(AppLanguage.current(context)) }
     val labels = mapOf(

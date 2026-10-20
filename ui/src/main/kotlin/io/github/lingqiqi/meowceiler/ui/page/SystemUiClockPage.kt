@@ -22,6 +22,7 @@ import io.github.lingqiqi.meowceiler.ui.component.SettingsCard
 import io.github.lingqiqi.meowceiler.ui.component.SettingsNavigationRow
 import io.github.lingqiqi.meowceiler.ui.component.SettingsSection
 import io.github.lingqiqi5211.meowui.component.MeowPreferenceSectionScope
+import io.github.lingqiqi5211.meowui.component.MeowPopupPreference
 import io.github.lingqiqi5211.meowui.core.preference.PreferenceKey
 import io.github.lingqiqi5211.meowui.preference.currentMeowPreferenceStore
 import io.github.lingqiqi5211.meowui.preference.rememberMeowPreferenceValue
@@ -174,8 +175,14 @@ fun SystemUiClockLayoutPage(part: ClockPart, onBack: () -> Unit) {
     }
 }
 
-@Composable
 private fun MeowPreferenceSectionScope.IntChoiceRow(key: PreferenceKey<Int>, titleRes: Int, labels: Map<Int, Int>) {
+    item(id = key.name, container = false) {
+        IntChoicePreference(key, titleRes, labels)
+    }
+}
+
+@Composable
+private fun IntChoicePreference(key: PreferenceKey<Int>, titleRes: Int, labels: Map<Int, Int>) {
     val value by rememberMeowPreferenceValue(key)
     val store = currentMeowPreferenceStore()
     val scope = rememberCoroutineScope()

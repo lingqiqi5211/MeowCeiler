@@ -80,23 +80,26 @@ fun HookLogPage(
         }
 
         hosts.forEach { (host, features) ->
+            val featureRows = features.map { health ->
+                val value = when {
+                    health.hasProblem -> stringResource(R.string.feature_health_failed, health.failureCount)
+                    health.installed -> stringResource(R.string.feature_health_ok)
+                    else -> stringResource(R.string.feature_health_unknown)
+                }
+                Triple(health.tag, featureTitle(health.tag), value)
+            }
             MeowPreferenceSectionByTitle(title = host, testTag = "section.log.$host") {
                 SettingsNavigationRow(
                     titleRes = R.string.log_detail,
                     testTag = "row.log.detail.$host",
                 ) { onOpenScope(host) }
-                features.forEach { health ->
+                featureRows.forEach { (tag, title, value) ->
                     SettingsValueRow(
-                        title = featureTitle(health.tag),
-                        value = when {
-                            health.hasProblem ->
-                                stringResource(R.string.feature_health_failed, health.failureCount)
-                            health.installed -> stringResource(R.string.feature_health_ok)
-                            else -> stringResource(R.string.feature_health_unknown)
-                        },
-                        testTag = "row.log.feature.${health.tag}",
+                        title = title,
+                        value = value,
+                        testTag = "row.log.feature.$tag",
                         navigation = true,
-                    ) { onOpenFeature(health.tag) }
+                    ) { onOpenFeature(tag) }
                 }
             }
         }
