@@ -40,9 +40,12 @@ object NotificationIconCount : StaticHooker(Preferences.SettingsIcons.Notificati
     private const val Unlimited = 99
 
     override fun onHook() {
-        "com.android.settings.IconDisplayCustomizationSettings".toClass()
-            .findMethod { name("onCreate"); paramCount(1) }
-            .createHook { after { param -> param.thisObjectOrNull?.let(::install) } }
+        "com.android.settings.IconDisplayCustomizationSettings"
+            .toClass()
+            .findMethod {
+                name("onCreate")
+                paramCount(1)
+            }.createHook { after { param -> param.thisObjectOrNull?.let(::install) } }
     }
 
     private fun install(fragment: Any) {
@@ -50,8 +53,9 @@ object NotificationIconCount : StaticHooker(Preferences.SettingsIcons.Notificati
         val screen = HostPreferences.screen(fragment) ?: return
         val context = fragment.callMethod("getContext") as? Context ?: return
         // getEntryValues 只在特定适配器下有返回，字段是两种适配器都会写的那一份。
-        val presets = findField(dropDown.javaClass) { name("mEntryValues") }.get(dropDown) as? Array<*>
-            ?: return
+        val presets =
+            findField(dropDown.javaClass) { name("mEntryValues") }.get(dropDown) as? Array<*>
+                ?: return
         val entries = dropDown.callMethod("getEntries") as? Array<*> ?: return
         if (presets.any { it?.toString() == CustomValue }) return
 
@@ -69,12 +73,13 @@ object NotificationIconCount : StaticHooker(Preferences.SettingsIcons.Notificati
         dropDown.callMethod("setValue", if (custom) CustomValue else current.toString())
 
         var hostListener: Any? = null
-        hostListener = HostPreferences.onChange(dropDown) { value ->
-            val chosen = value?.toString() == CustomValue
-            slider.callMethod("setVisible", chosen)
-            // 切到自定义只是把滑条露出来，值等用户拖了再写。
-            if (chosen) true else HostPreferences.dispatchChange(hostListener, dropDown, value)
-        }
+        hostListener =
+            HostPreferences.onChange(dropDown) { value ->
+                val chosen = value?.toString() == CustomValue
+                slider.callMethod("setVisible", chosen)
+                // 切到自定义只是把滑条露出来，值等用户拖了再写。
+                if (chosen) true else HostPreferences.dispatchChange(hostListener, dropDown, value)
+            }
         HostPreferences.onChange(slider) { value ->
             val icons = value as? Int ?: return@onChange false
             write(context, icons)
@@ -84,20 +89,27 @@ object NotificationIconCount : StaticHooker(Preferences.SettingsIcons.Notificati
 
     /** 不给标题：上一条下拉已经说明这是什么，滑条自己显示当前值。 */
     private fun createSlider(context: Context): Any =
-        HostPreferences.createSlider(context, 0..Max) { icons ->
-            if (icons >= Max) moduleString(R.string.settings_icons_count_unlimited) else null
-        }.apply {
-            callMethod("setKey", SliderKey)
-            callMethod("setPersistent", false)
-        }
+        HostPreferences
+            .createSlider(context, 0..Max) { icons ->
+                if (icons >= Max) moduleString(R.string.settings_icons_count_unlimited) else null
+            }.apply {
+                callMethod("setKey", SliderKey)
+                callMethod("setPersistent", false)
+            }
 
-    private fun write(context: Context, icons: Int) {
+    private fun write(
+        context: Context,
+        icons: Int,
+    ) {
         val value = if (icons >= Max) Unlimited else icons
         runCatching { System.putInt(context.contentResolver, HostKey, value) }
             .onFailure { MLog.w(id, "cannot write $HostKey", it) }
     }
 
-    private fun appended(source: Array<*>, extra: CharSequence): Array<CharSequence> =
+    private fun appended(
+        source: Array<*>,
+        extra: CharSequence,
+    ): Array<CharSequence> =
         Array(source.size + 1) { index ->
             if (index < source.size) source[index].toString() else extra
         }

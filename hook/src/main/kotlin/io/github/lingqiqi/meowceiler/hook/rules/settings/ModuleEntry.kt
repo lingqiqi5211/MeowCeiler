@@ -48,42 +48,47 @@ object ModuleEntry : StaticHooker() {
      * 各位置的锚点，按系统设置的 id 资源名找，条目顺序各版本会变。
      * 「更多设置」是 other_advanced_settings；app_timer 是「应用使用时间」，别当锚点。
      */
-    private val Anchors = mapOf(
-        SettingsEntryPosition.Device to "my_device",
-        SettingsEntryPosition.Launcher to "launcher_settings",
-        SettingsEntryPosition.More to "other_advanced_settings",
-    )
+    private val Anchors =
+        mapOf(
+            SettingsEntryPosition.Device to "my_device",
+            SettingsEntryPosition.Launcher to "launcher_settings",
+            SettingsEntryPosition.More to "other_advanced_settings",
+        )
 
     /** 每次刷列表都重新读，改了位置或关掉，下次进设置就生效，不用重启。 */
     private val position
         get() = SettingsEntryPosition.from(Settings.read(Preferences.SettingsEntry.Position))
 
     override fun onHook() {
-        val headerClass = HeaderClassName.toClassOrNull() ?: run {
-            MLog.w("$id: $HeaderClassName not found, skipping")
-            return
-        }
+        val headerClass =
+            HeaderClassName.toClassOrNull() ?: run {
+                MLog.w("$id: $HeaderClassName not found, skipping")
+                return
+            }
         val idField = findField(headerClass) { name("id") }
         val titleField = findField(headerClass) { name("title") }
         val intentField = findField(headerClass) { name("intent") }
         val groupIdField = findField(headerClass) { name("groupId") }
 
-        "com.android.settings.MiuiSettings".toClass()
+        "com.android.settings.MiuiSettings"
+            .toClass()
             .findMethod {
                 name("updateHeaderList")
                 paramCount(1)
-            }
-            .createHook {
+            }.createHook {
                 after { param ->
                     val activity = param.thisObjectOrNull as? Activity ?: return@after
+
                     @Suppress("UNCHECKED_CAST")
                     val headers = param.args.getOrNull(0) as? MutableList<Any> ?: return@after
                     headers.removeAll { idField.getLong(it) == HeaderId }
                     if (position == SettingsEntryPosition.Off) return@after
 
-                    val header = headerClass.getDeclaredConstructor()
-                        .apply { isAccessible = true }
-                        .newInstance()
+                    val header =
+                        headerClass
+                            .getDeclaredConstructor()
+                            .apply { isAccessible = true }
+                            .newInstance()
                     idField.setLong(header, HeaderId)
                     titleField.set(header, ModuleName)
                     intentField.set(
@@ -110,9 +115,10 @@ object ModuleEntry : StaticHooker() {
         idField: Field,
     ): Int {
         val anchor = Anchors[position] ?: return headers.size
-        val anchorId = activity.resources
-            .getIdentifier(anchor, "id", activity.packageName)
-            .toLong()
+        val anchorId =
+            activity.resources
+                .getIdentifier(anchor, "id", activity.packageName)
+                .toLong()
         if (anchorId == 0L) return headers.size
 
         val index = headers.indexOfFirst { idField.getLong(it) == anchorId }
@@ -124,23 +130,24 @@ object ModuleEntry : StaticHooker() {
      * 不填 iconRes：它由宿主 Resources 解析，模块 id 在宿主里对不上，填了会命中别的资源。真崩过。
      */
     private fun hookIcon(idField: Field) {
-        val adapterClass = AdapterClassName.toClassOrNull() ?: run {
-            MLog.w("$id: $AdapterClassName not found, entry stays iconless")
-            return
-        }
+        val adapterClass =
+            AdapterClassName.toClassOrNull() ?: run {
+                MLog.w("$id: $AdapterClassName not found, entry stays iconless")
+                return
+            }
         adapterClass
             .findMethod {
                 name("setIcon")
                 paramCount(2)
-            }
-            .createHook {
+            }.createHook {
                 after { param ->
                     val header = param.args.getOrNull(1) ?: return@after
                     if (idField.getLong(header) != HeaderId) return@after
 
                     val holder = param.args.getOrNull(0) ?: return@after
-                    val iconView = holder.javaClass.getField("icon").get(holder) as? ImageView
-                        ?: return@after
+                    val iconView =
+                        holder.javaClass.getField("icon").get(holder) as? ImageView
+                            ?: return@after
 
                     iconView.setImageBitmap(iconBitmap(iconView) ?: return@after)
                     iconView.visibility = View.VISIBLE
@@ -162,16 +169,18 @@ object ModuleEntry : StaticHooker() {
         cachedBitmap?.let { return it }
         val drawable = icon ?: return null
         val resources = iconView.resources
-        val dimenId = resources.getIdentifier(
-            IconSizeDimen,
-            "dimen",
-            iconView.context.packageName,
-        )
-        val size = if (dimenId != 0) {
-            resources.getDimensionPixelSize(dimenId)
-        } else {
-            drawable.intrinsicWidth.coerceAtLeast(1)
-        }
+        val dimenId =
+            resources.getIdentifier(
+                IconSizeDimen,
+                "dimen",
+                iconView.context.packageName,
+            )
+        val size =
+            if (dimenId != 0) {
+                resources.getDimensionPixelSize(dimenId)
+            } else {
+                drawable.intrinsicWidth.coerceAtLeast(1)
+            }
         return Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888).also { bitmap ->
             drawable.setBounds(0, 0, size, size)
             drawable.draw(Canvas(bitmap))

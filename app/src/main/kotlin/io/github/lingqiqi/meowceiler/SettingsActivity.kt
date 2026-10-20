@@ -6,18 +6,18 @@ import android.os.SystemClock
 import android.view.ViewTreeObserver
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.lifecycleScope
 import io.github.lingqiqi.meowceiler.shared.ModuleLink
 import io.github.lingqiqi.meowceiler.shared.Preferences
 import io.github.lingqiqi.meowceiler.ui.MeowCeilerApp
 import io.github.lingqiqi.meowceiler.ui.R
 import io.github.lingqiqi.meowceiler.ui.routeOfLink
-import io.github.lingqiqi5211.meowui.core.preference.PreferenceWriteResult
 import io.github.lingqiqi5211.meowui.core.preference.PreferenceConnectionState
+import io.github.lingqiqi5211.meowui.core.preference.PreferenceWriteResult
 import io.github.lingqiqi5211.meowui.libxposed.XposedServicePreferenceStore
 import io.github.lingqiqi5211.meowui.preference.MeowPreferenceProvider
 import io.github.lingqiqi5211.meowui.setMeowContent
@@ -37,13 +37,15 @@ class SettingsActivity : ComponentActivity() {
         preferenceStore = store
         var ready = false
         val decor = window.decorView
-        decor.viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
-            override fun onPreDraw(): Boolean {
-                if (!ready) return false
-                decor.viewTreeObserver.removeOnPreDrawListener(this)
-                return true
-            }
-        })
+        decor.viewTreeObserver.addOnPreDrawListener(
+            object : ViewTreeObserver.OnPreDrawListener {
+                override fun onPreDraw(): Boolean {
+                    if (!ready) return false
+                    decor.viewTreeObserver.removeOnPreDrawListener(this)
+                    return true
+                }
+            },
+        )
         lifecycleScope.launch {
             // 远程偏好就绪后才创建主题，避免首帧从默认缩放动画到用户缩放。
             // 没装框架也能打开设置；只限制首次等待，不阻断后续连接。

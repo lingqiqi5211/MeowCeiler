@@ -29,9 +29,12 @@ object IconSettingsEntry : StaticHooker(Preferences.SettingsIcons.Entry) {
     private const val EntryKey = "meowceiler_icon_settings"
 
     override fun onHook() {
-        "com.android.settings.IconDisplayCustomizationSettings".toClass()
-            .findMethod { name("onCreate"); paramCount(1) }
-            .createHook { after { param -> param.thisObjectOrNull?.let(::install) } }
+        "com.android.settings.IconDisplayCustomizationSettings"
+            .toClass()
+            .findMethod {
+                name("onCreate")
+                paramCount(1)
+            }.createHook { after { param -> param.thisObjectOrNull?.let(::install) } }
     }
 
     private fun install(fragment: Any) {
@@ -52,12 +55,12 @@ object IconSettingsEntry : StaticHooker(Preferences.SettingsIcons.Entry) {
 
     /** 模块留在自己的任务里，开过就挪到前台；返回由模块结束界面，自然退回设置。 */
     private fun open(fragment: Any) {
-        val intent = Intent()
-            .setClassName(ModulePackage, ModuleSettingsActivity)
-            .putExtra(ModuleLink.Extra, ModuleLink.SettingsHost)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+        val intent =
+            Intent()
+                .setClassName(ModulePackage, ModuleSettingsActivity)
+                .putExtra(ModuleLink.Extra, ModuleLink.SettingsHost)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
         runCatching { fragment.callMethod("startActivity", intent) }
             .onFailure { MLog.w(id, "cannot open module settings", it) }
     }
-
 }

@@ -26,11 +26,13 @@ object Settings {
         private set
 
     /** 协程里漏出来的异常不能带崩宿主，记日志了事。 */
-    private fun newScope() = CoroutineScope(
-        SupervisorJob() + Dispatchers.Default + CoroutineExceptionHandler { _, t ->
-            MLog.e(HookLog.FrameworkTag, "coroutine failed", t)
-        },
-    )
+    private fun newScope() =
+        CoroutineScope(
+            SupervisorJob() + Dispatchers.Default +
+                CoroutineExceptionHandler { _, t ->
+                    MLog.e(HookLog.FrameworkTag, "coroutine failed", t)
+                },
+        )
 
     fun init(module: XposedModule) {
         store = module.createPreferenceStore(Preferences.NAME)
@@ -43,11 +45,13 @@ object Settings {
     fun <T : Any> observe(key: PreferenceKey<T>): Flow<T> = requireStore().observe(key)
 
     /** remote 是否真的通了。[read] 不通时回落默认值，安全模式必须能区分「读到空」和「没读到」。 */
-    fun isConnected(): Boolean =
-        store?.connectionState?.value == PreferenceConnectionState.Connected
+    fun isConnected(): Boolean = store?.connectionState?.value == PreferenceConnectionState.Connected
 
     /** 安全模式记录要从宿主进程写回，所以 hook 侧也需要写入口。 */
-    suspend fun <T : Any> write(key: PreferenceKey<T>, value: T) {
+    suspend fun <T : Any> write(
+        key: PreferenceKey<T>,
+        value: T,
+    ) {
         requireStore().write(key, value)
     }
 
@@ -58,6 +62,5 @@ object Settings {
         store = null
     }
 
-    private fun requireStore(): XposedModulePreferenceStore =
-        checkNotNull(store) { "Settings.init() has not been called in this process" }
+    private fun requireStore(): XposedModulePreferenceStore = checkNotNull(store) { "Settings.init() has not been called in this process" }
 }
