@@ -25,7 +25,7 @@ jobs:
         run: git clone --depth 1 --recurse-submodules --shallow-submodules -b main https://github.com/lingqiqi5211/MeowUI.git ../MeowUI
 
       - name: Setup JDK
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
