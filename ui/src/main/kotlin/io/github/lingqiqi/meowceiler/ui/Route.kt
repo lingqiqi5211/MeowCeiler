@@ -48,6 +48,8 @@ sealed interface Route {
     /** 系统设置宿主，不是模块自己的设置页（那是 Shell 的一个 Tab）。 */
     data object Settings : Route
 
+    data object Weather : Route
+
     /** 某个作用域的全部日志。 */
     data class ScopeLog(
         val host: String,

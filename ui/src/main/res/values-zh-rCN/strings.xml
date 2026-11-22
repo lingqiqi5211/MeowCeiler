@@ -256,4 +256,23 @@
     <string name="settings_icons_count_summary">在「图标显示自定义」里加一个自定义档</string>
     <string name="settings_icons_entry">在「图标显示自定义」里显示模块入口</string>
     <string name="settings_icons_open_host">图标显示自定义</string>
+    <string name="weather_title">天气</string>
+    <string name="weather_module_off">请先启用模块，再应用天气设置。</string>
+    <string name="weather_enabled">首页顶栏模糊</string>
+    <string name="weather_description">滚动天气首页时，顶栏会模糊显示下方的内容。</string>
+    <string name="weather_apply">应用并重启天气</string>
+    <string name="weather_apply_summary">立即重新打开天气，应用当前选择。</string>
+    <string name="weather_save">下次冷启动生效</string>
+    <string name="weather_save_summary">保存选择，等下次打开天气时生效。</string>
+    <string name="weather_refresh">查询状态</string>
+    <string name="weather_status">设置状态</string>
+    <string name="weather_working">正在处理…</string>
+    <string name="weather_pending">设置已修改，等待应用</string>
+    <string name="weather_initialized">天气已接收设置</string>
+    <string name="weather_disabled">已关闭</string>
+    <string name="weather_waiting">等待天气冷启动</string>
+    <string name="weather_unsupported">初始化被拒绝</string>
+    <string name="weather_failed">交付失败或提供端离线</string>
+    <string name="weather_unknown">尚未查询</string>
+    <string name="weather_requirements">已验证 marble 的天气 18.0.0.27-R。需要 Root、ZygiskNext（HyOS API 1）及支持载荷的 NativeRelay，已验证模块版本为 0.6.0-payload-probe。</string>
 </resources>

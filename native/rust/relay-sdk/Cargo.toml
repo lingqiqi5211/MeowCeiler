@@ -1,0 +1,13 @@
+[workspace]
+members = ["crates/abi", "crates/relay"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+
+[workspace.dependencies]
+libc = "=0.2.191"
+native-relay-abi = { path = "crates/abi", version = "0.1.0" }

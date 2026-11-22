@@ -15,6 +15,16 @@ object Preferences {
         val Debug = PreferenceKey("module_debug", false)
     }
 
+    object Weather {
+        // Older backups kept the master switch and blur override separately.
+        val Enabled = PreferenceKey("weather_native_enabled", false)
+        val Blur = PreferenceKey("weather_native_blur", "system")
+        val Pending = PreferenceKey("weather_native_pending", false)
+        val all = listOf(Enabled, Blur, Pending)
+
+        fun topBarEnabled(enabled: Boolean, blur: String): Boolean = enabled && blur == "on"
+    }
+
     /** 外观。只有设置进程用，hook 侧不读。枚举存字符串，避免序号漂移。 */
     object Appearance {
         val Style = PreferenceKey("appearance_style", "material")
@@ -222,7 +232,7 @@ object Preferences {
             Home.HiddenHosts,
             SafeMode.Enabled,
             SafeMode.Records,
-        ) + PackageManager.all
+        ) + PackageManager.all + Weather.all
 }
 
 /** 隐藏桌面图标仅禁用别名，保留实际设置 Activity。 */

@@ -21,12 +21,15 @@ import io.github.lingqiqi5211.meowui.core.preference.PreferenceWriteResult
 import io.github.lingqiqi5211.meowui.libxposed.XposedServicePreferenceStore
 import io.github.lingqiqi5211.meowui.preference.MeowPreferenceProvider
 import io.github.lingqiqi5211.meowui.setMeowContent
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
 class SettingsActivity : ComponentActivity() {
     private var preferenceStore: XposedServicePreferenceStore? = null
+    private val nativeWeatherBridge by lazy { NativeWeatherBridgeImpl(applicationContext) }
     private var lastNotConnectedToast = 0L
     private var entryVersion by mutableIntStateOf(0)
 
@@ -35,6 +38,27 @@ class SettingsActivity : ComponentActivity() {
 
         val store = XposedServicePreferenceStore(Preferences.NAME)
         preferenceStore = store
+        lifecycleScope.launch {
+            combine(
+                store.connectionState,
+                store.observe(Preferences.Module.Enabled),
+                store.observe(Preferences.Weather.Enabled),
+                store.observe(Preferences.Weather.Blur),
+                store.observe(Preferences.Weather.Pending),
+            ) { connection, module, weather, blur, pending ->
+                if (connection != PreferenceConnectionState.Connected || (pending && module)) {
+                    null
+                } else {
+                    module && Preferences.Weather.topBarEnabled(weather, blur)
+                }
+            }.distinctUntilChanged().collect { config ->
+                if (config != null) {
+                    nativeWeatherBridge.synchronizeIfConfigured(config)?.onFailure {
+                        Toast.makeText(this@SettingsActivity, it.message, Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
         var ready = false
         val decor = window.decorView
         decor.viewTreeObserver.addOnPreDrawListener(
@@ -57,6 +81,7 @@ class SettingsActivity : ComponentActivity() {
                     key(entryVersion) {
                         MeowCeilerApp(
                             bridge = XposedFrameworkBridge,
+                            nativeWeatherBridge = nativeWeatherBridge,
                             initialRoute = routeOfLink(intent?.getStringExtra(ModuleLink.Extra)),
                             onExit = ::finish,
                         )

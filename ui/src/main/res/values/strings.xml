@@ -259,4 +259,23 @@
     <string name="settings_icons_count_summary">Adds a custom option to Icon display customization</string>
     <string name="settings_icons_entry">Module entry in Icon display customization</string>
     <string name="settings_icons_open_host">Icon display customization</string>
+    <string name="weather_title">Weather</string>
+    <string name="weather_module_off">Enable the module before applying this setting.</string>
+    <string name="weather_enabled">Blur the Weather top bar</string>
+    <string name="weather_description">Blur the content beneath the top bar when scrolling the Weather home screen.</string>
+    <string name="weather_apply">Apply and restart weather</string>
+    <string name="weather_apply_summary">Reopen Weather now to apply this change.</string>
+    <string name="weather_save">Apply on next cold start</string>
+    <string name="weather_save_summary">Save this choice for the next time Weather starts.</string>
+    <string name="weather_refresh">Check status</string>
+    <string name="weather_status">Setting status</string>
+    <string name="weather_working">Working…</string>
+    <string name="weather_pending">Settings changed; apply required</string>
+    <string name="weather_initialized">Weather received the setting</string>
+    <string name="weather_disabled">Disabled</string>
+    <string name="weather_waiting">Waiting for weather cold start</string>
+    <string name="weather_unsupported">Initialization rejected</string>
+    <string name="weather_failed">Delivery failed or provider offline</string>
+    <string name="weather_unknown">Not checked</string>
+    <string name="weather_requirements">Verified on marble with Weather 18.0.0.27-R. Requires root, ZygiskNext (HyOS API 1) and NativeRelay with payload support (tested with 0.6.0-payload-probe).</string>
 </resources>

@@ -45,6 +45,7 @@ import io.github.lingqiqi5211.meowui.theme.MeowTheme
 @Composable
 fun MeowCeilerApp(
     bridge: FrameworkBridge = NoFrameworkBridge,
+    nativeWeatherBridge: io.github.lingqiqi.meowceiler.ui.settings.NativeWeatherBridge = io.github.lingqiqi.meowceiler.ui.settings.NoNativeWeatherBridge,
     initialRoute: Route? = null,
     onExit: () -> Unit = {},
 ) {
@@ -154,6 +155,11 @@ fun MeowCeilerApp(
 
                 Route.SystemUiNotificationCenter -> {
                     SystemUiNotificationCenterPage(onBack = back, onOpen = nav::push)
+                }
+
+                Route.Weather -> {
+                    io.github.lingqiqi.meowceiler.ui.page
+                        .WeatherPage(nativeWeatherBridge, back)
                 }
 
                 Route.Settings -> {

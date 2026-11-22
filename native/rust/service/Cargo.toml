@@ -1,0 +1,11 @@
+[package]
+name = "meow-native-service"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+native-relay.workspace = true
+meow-native-provider.workspace = true
+libc.workspace = true

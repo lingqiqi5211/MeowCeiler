@@ -1,0 +1,22 @@
+[workspace]
+members = ["payload", "provider", "service", "weather-config", "runtime"]
+exclude = ["native-relay-sdk", "relay-sdk"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+
+[workspace.dependencies]
+native-relay = { path = "relay-sdk/crates/relay" }
+native-relay-abi = { path = "relay-sdk/crates/abi" }
+libc = "=0.2.191"
+meow-native-provider = { path = "provider" }
+meow-native-service = { path = "service" }
+meow-weather-config = { path = "weather-config" }
+
+[profile.release]
+panic = "abort"
+strip = "symbols"
+lto = "thin"

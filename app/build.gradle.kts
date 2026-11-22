@@ -123,7 +123,18 @@ android {
         additionalParameters += listOf("--allow-reserved-package-id", "--package-id", "0x64")
     }
 
+    sourceSets.getByName("main").jniLibs.srcDir(
+        layout.buildDirectory
+            .dir("generated/nativeWeather")
+            .get()
+            .asFile,
+    )
+
     packaging {
+        jniLibs {
+            useLegacyPackaging = true
+            keepDebugSymbols += setOf("**/libmeow_runtime.so", "**/libmeow_native_payload.so")
+        }
         resources {
             merges += "META-INF/xposed/*"
         }
@@ -134,6 +145,68 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
 }
+
+val buildNativeWeather by tasks.registering {
+    val rust = rootProject.file("native/rust")
+    val output = layout.buildDirectory.dir("generated/nativeWeather/arm64-v8a")
+    inputs.files(
+        fileTree(rust) {
+            include("**/Cargo.toml", "**/Cargo.lock", "**/*.rs")
+            exclude("target/**", "native-relay-sdk/**")
+        },
+    )
+    outputs.dir(output)
+    doLast {
+        val windows = System.getProperty("os.name").startsWith("Windows")
+        val host =
+            if (windows) {
+                "windows-x86_64"
+            } else if (System.getProperty("os.name").startsWith("Mac")) {
+                "darwin-x86_64"
+            } else {
+                "linux-x86_64"
+            }
+        val sdk =
+            androidComponents.sdkComponents.sdkDirectory
+                .get()
+                .asFile
+        val ndk = System.getenv("ANDROID_NDK_HOME")?.let(::file) ?: sdk.resolve("ndk/28.2.13676358")
+        val clang = ndk.resolve("toolchains/llvm/prebuilt/$host/bin/aarch64-linux-android35-clang" + if (windows) ".cmd" else "")
+        check(clang.isFile) { "Install NDK 28.2.13676358 or set ANDROID_NDK_HOME" }
+        val cargo =
+            System.getenv("CARGO") ?: File(System.getProperty("user.home"), ".cargo/bin/cargo" + if (windows) ".exe" else "").absolutePath
+        val process =
+            ProcessBuilder(
+                cargo,
+                "build",
+                "--locked",
+                "--offline",
+                "--release",
+                "--target",
+                "aarch64-linux-android",
+                "-p",
+                "meow-native-runtime",
+                "-p",
+                "meow-native-payload",
+            ).directory(rust)
+                .redirectErrorStream(true)
+                .apply {
+                    environment()["CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER"] = clang.absolutePath
+                }.start()
+        process.inputStream.bufferedReader().useLines { lines -> lines.forEach(logger::lifecycle) }
+        check(process.waitFor() == 0) { "Native weather build failed" }
+        val destination = output.get().asFile.apply { mkdirs() }
+        rust
+            .resolve(
+                "target/aarch64-linux-android/release/libmeow_native_payload.so",
+            ).copyTo(destination.resolve("libmeow_native_payload.so"), overwrite = true)
+        rust
+            .resolve(
+                "target/aarch64-linux-android/release/meow-native-runtime",
+            ).copyTo(destination.resolve("libmeow_runtime.so"), overwrite = true)
+    }
+}
+tasks.named("preBuild") { dependsOn(buildNativeWeather) }
 
 androidComponents {
     onVariants { variant ->

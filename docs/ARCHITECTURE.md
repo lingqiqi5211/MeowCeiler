@@ -789,7 +789,7 @@ XiaomiHelper 同样如此。这个比例是对的,照抄。
 的 `target` 字段和功能健康页存在的意义。
 ---
 
-## 10. 为 native hook 预留的两个模块
+## 10. Native Hook 的早期设计与天气实现
 
 「服务端」指的是**类似 LSPosed 自身的本地特权服务**,用来加载 so 层级的 hook,不是云端后端。
 本项目是它的客户端。这里没有网络,只有本地 IPC。整件事分成进程内和跨进程两面,各占一个模块:
@@ -832,7 +832,7 @@ abstract class NativeHooker(
 继承 `StaticHooker` 而不是直接继承 `BaseHooker`,是为了不破坏那个 sealed 层级 ——
 `applyStateChange` 里的 `when (this)` 不用加分支。
 
-### 现阶段只放这些
+### 最初预留的接口
 
 ```kotlin
 // :native
@@ -850,9 +850,13 @@ interface NativeHookService {
 }
 ```
 
-**先不引入 Rust 工具链配置**(cargo-ndk 之类),避免现在就拖慢日常构建。Rust 源码后续放
-`native/rust/`。等 Rust 侧的服务协议定下来再填 `:service` 的实现 —— 现在只需要目录、接口,
-以及上面那三条约束写进文档,免得将来实现时踩。
+以上接口属于早期设计。首个天气功能采用下面的 APK bridge 和 Rust workspace。
+
+### 已实现的天气功能
+
+天气首页顶栏模糊由 APK bridge、MeowCeiler 的 Rust 提供端与载荷，以及独立 NativeRelay 模块配合完成。Gradle 会将提供端和载荷打入 arm64 APK。设置页可以保存开关、重启天气和查询初始化回执。开关在天气进程冷启动时生效。
+
+上文的两个 Gradle 模块是设计预留。天气使用的实际接口、版本要求和服务生命周期见 [天气功能说明](../native/rust/README.md)。
 
 ---
 

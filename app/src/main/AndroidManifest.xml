@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:icon="@mipmap/ic_launcher"
@@ -13,6 +14,13 @@
         android:theme="@style/Theme.MeowCeiler"
         android:enableOnBackInvokedCallback="true"
         tools:targetApi="36">
+
+        <receiver android:name=".NativeWeatherReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
 
         <!-- 宿主跨进程写日志，由 Provider 校验 UID；directBootAware 支持解锁前写入。 -->
         <provider

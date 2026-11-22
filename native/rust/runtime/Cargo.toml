@@ -1,0 +1,16 @@
+[package]
+name = "meow-native-runtime"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[[bin]]
+name = "meow-native-runtime"
+path = "src/main.rs"
+
+[dependencies]
+libc.workspace = true
+native-relay.workspace = true
+meow-native-service.workspace = true
+meow-weather-config.workspace = true

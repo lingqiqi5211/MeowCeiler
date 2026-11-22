@@ -30,6 +30,14 @@ jobs:
           distribution: temurin
           java-version: 21
 
+      - name: Prepare native toolchain
+        run: |
+          rustup toolchain install 1.95.0 --profile minimal --target aarch64-linux-android
+          rustup default 1.95.0
+          sdkmanager "ndk;28.2.13676358"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/28.2.13676358" >> "$GITHUB_ENV"
+          cargo fetch --locked --manifest-path native/rust/Cargo.toml
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
         with:

@@ -11,4 +11,5 @@ enum class HostEntry(
     SystemFramework(Scope.SystemServer, Route.SystemFramework),
     SystemUi(Scope.SystemUi, Route.SystemUi),
     Settings(Scope.Settings, Route.Settings),
+    Weather("com.miui.weather2", Route.Weather),
 }

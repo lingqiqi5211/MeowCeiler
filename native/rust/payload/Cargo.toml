@@ -1,0 +1,14 @@
+[package]
+name = "meow-native-payload"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+native-relay-abi.workspace = true
+meow-weather-config.workspace = true
+libc.workspace = true

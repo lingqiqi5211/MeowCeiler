@@ -48,7 +48,7 @@ fun HomePage(
     val visible: (InstalledHost) -> Boolean = { host ->
         val packageName = host.entry.packageName
         val inScope =
-            scopeFilter == null || packageName in scopeFilter ||
+            host.entry == HostEntry.Weather || scopeFilter == null || packageName in scopeFilter ||
                 (host.entry == HostEntry.SystemFramework && "system" in scopeFilter)
         inScope && packageName !in hiddenHosts
     }
